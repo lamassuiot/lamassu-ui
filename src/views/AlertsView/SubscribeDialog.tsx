@@ -5,7 +5,6 @@ import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import WebhookOutlinedIcon from "@mui/icons-material/WebhookOutlined";
 import { useDispatch } from "react-redux";
 import * as eventsActions from "ducks/features/alerts/actions";
-import { useKeycloak } from "@react-keycloak/web";
 import { createSchema } from "genson-js";
 import { materialLight, materialOceanic } from "react-syntax-highlighter/dist/esm/styles/prism";
 import SyntaxHighlighter from "react-syntax-highlighter";
@@ -13,6 +12,7 @@ import { getColor } from "components/utils/lamassuColors";
 import jsonschema from "jsonschema";
 import { JSONPath } from "jsonpath-plus";
 import { ColoredButton } from "components/LamassuComponents/ColoredButton";
+import { useAuth } from "oidc-react";
 
 interface Props {
     event: CloudEvent | undefined,
@@ -22,7 +22,7 @@ interface Props {
 export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => {
     const theme = useTheme();
     const dispatch = useDispatch();
-    const keycloak = useKeycloak();
+    const auth = useAuth();
 
     const [currentStep, setCurrentStep] = useState<number>(0);
     const [disableNextStepBtn, setDisableNextStepBtn] = useState<boolean>(false);
@@ -76,10 +76,12 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
 
     useEffect(() => {
         const init = async () => {
-            const profile = await keycloak.keycloak.loadUserProfile();
-            setEmail(profile.email);
-            if (selectedChannelType === "email") {
-                setSelectedSubscriptionConfig({ email_address: profile.email });
+            console.log(auth.userData);
+            if (auth.userData) {
+                setEmail(auth.userData.profile.email);
+                if (selectedChannelType === "email") {
+                    setSelectedSubscriptionConfig({ email_address: auth.userData.profile.email });
+                }
             }
         };
         init();

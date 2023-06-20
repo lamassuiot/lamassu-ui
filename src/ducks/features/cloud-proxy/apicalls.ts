@@ -1,5 +1,4 @@
 import { apiRequest } from "ducks/services/api";
-import keycloak from "keycloak";
 
 export const getInfo = async (): Promise<any> => {
     return apiRequest({
@@ -27,11 +26,14 @@ export const synchronizeCloudConnectors = async (connectorID: string, caName: st
 };
 
 export const fireEvent = async (eventType: string, eventData: any): Promise<any> => {
+    const token = localStorage.getItem("access_token");
+    const userID = token;
+
     const now = new Date();
     const event = {
         specversion: "1.0",
         id: now,
-        source: "lamassu-ui-" + keycloak.tokenParsed!.sub,
+        source: "lamassu-ui-" + userID,
         type: eventType,
         datacontenttype: "application/json",
         time: now,

@@ -25,22 +25,31 @@ import { InfoView } from "./Info";
 import MailOutlinedIcon from "@mui/icons-material/MailOutlined";
 import SelectAllOutlinedIcon from "@mui/icons-material/SelectAllOutlined";
 import { AlertsView } from "./AlertsView";
-import { useKeycloak } from "@react-keycloak/web";
+import { useAuth } from "oidc-react";
 
 export const DashboardLayout = () => {
+    const auth = useAuth();
     const cookies = new Cookies();
     if (cookies.get("paletteMode") === undefined) {
         cookies.set("paletteMode", "light", { path: "/" });
     }
 
-    const keycloak = useKeycloak();
-    useEffect(() => {
-        if (!keycloak.keycloak.authenticated) {
-            keycloak.keycloak.login();
-        }
-    }, [keycloak]);
+    // useEffect(() => {
+    //     console.log("checking user data", auth.userData);
 
-    const notificationsList : Array<Notification> = useAppSelector((state) => notificationsSelector.getNotificationList(state));
+    //     if (auth.userData === null || auth.userData === undefined) {
+    //         console.log("launching auth");
+    //         auth.signIn();
+    //     }
+    // }, [auth]);
+
+    useEffect(() => {
+        if (auth.userData && auth.userData.access_token) {
+            localStorage.setItem("access_token", auth.userData!.access_token);
+        }
+    }, [auth.userData?.access_token]);
+
+    const notificationsList: Array<Notification> = useAppSelector((state) => notificationsSelector.getNotificationList(state));
 
     const containerRef = useRef(null);
 
@@ -62,8 +71,8 @@ export const DashboardLayout = () => {
                     title: "Home",
                     path: "/",
                     link: "/",
-                    icon: <DashboardOutlinedIcon key="/"/>,
-                    content: <Home/>
+                    icon: <DashboardOutlinedIcon key="/" />,
+                    content: <Home />
                 }
             ]
         },
@@ -74,7 +83,7 @@ export const DashboardLayout = () => {
                     title: "CAs",
                     path: "/cas/*",
                     link: "/cas",
-                    icon: <AccountBalanceOutlinedIcon key="/1b"/>,
+                    icon: <AccountBalanceOutlinedIcon key="/1b" />,
                     content: <CAView />
                 }
                 // {
@@ -93,15 +102,15 @@ export const DashboardLayout = () => {
                     title: "Device Manufacturing Systems",
                     path: "/dms/*",
                     link: "/dms",
-                    icon: <MdOutlinePrecisionManufacturing key="/2"/>,
-                    content: <DMSView/>
+                    icon: <MdOutlinePrecisionManufacturing key="/2" />,
+                    content: <DMSView />
 
                 },
                 {
                     title: "Device Manager",
                     path: "/devmanager/*",
                     link: "/devmanager",
-                    icon: <RouterOutlinedIcon key="/3"/>,
+                    icon: <RouterOutlinedIcon key="/3" />,
                     content: <DeviceView />
                 }
             ]
@@ -113,8 +122,8 @@ export const DashboardLayout = () => {
                     title: "Alerts",
                     path: "/alerts/*",
                     link: "/alerts",
-                    icon: <MailOutlinedIcon/>,
-                    content: <AlertsView/>
+                    icon: <MailOutlinedIcon />,
+                    content: <AlertsView />
 
                 }
             ]
@@ -128,8 +137,8 @@ export const DashboardLayout = () => {
                 title: "Virtual Device",
                 path: window._env_.REACT_APP_LAMASSU_VDEVICE,
                 link: window._env_.REACT_APP_LAMASSU_VDEVICE,
-                icon: <SelectAllOutlinedIcon/>,
-                content: <DeviceView/>
+                icon: <SelectAllOutlinedIcon />,
+                content: <DeviceView />
             }
         );
     }
@@ -139,8 +148,8 @@ export const DashboardLayout = () => {
                 title: "Virtual DMS",
                 path: window._env_.REACT_APP_LAMASSU_VDMS,
                 link: window._env_.REACT_APP_LAMASSU_VDMS,
-                icon: <SelectAllOutlinedIcon/>,
-                content: <DMSView/>
+                icon: <SelectAllOutlinedIcon />,
+                content: <DMSView />
             }
         );
     }
@@ -177,7 +186,7 @@ export const DashboardLayout = () => {
                         <AppBar
                             background={"#468AEB"}
                             logo={
-                                <img src={process.env.PUBLIC_URL + "/assets/LAMASSU.svg"} height={24} style={{ marginLeft: "5px" }}/>
+                                <img src={process.env.PUBLIC_URL + "/assets/LAMASSU.svg"} height={24} style={{ marginLeft: "5px" }} />
                             }
                             notificationsCount={notificationsList.length}
                             onNotificationsClick={() => setDisplayNotifications(true)}
@@ -200,14 +209,14 @@ export const DashboardLayout = () => {
                                             return (
                                                 routeGr.menuItems.map((route, idx) => {
                                                     return (
-                                                        <Route path={route.path} element={route.content} key={idx}/>
+                                                        <Route path={route.path} element={route.content} key={idx} />
                                                     );
                                                 })
                                             );
                                         })
                                     }
-                                    <Route path="info" element={<InfoView />}/>
-                                    <Route path="*" element={<Typography>404</Typography>}/>
+                                    <Route path="info" element={<InfoView />} />
+                                    <Route path="*" element={<Typography>404</Typography>} />
                                 </Routes>
                             </Grid>
                             <Slide direction="left" in={displayNotifications} container={containerRef.current}>
@@ -223,7 +232,7 @@ export const DashboardLayout = () => {
                                         </Grid>
                                     </Grid>
                                     <Box style={{ overflowY: "auto", height: "10px", paddingLeft: 10 }} flexGrow={1}>
-                                        <LamassuNotifications notificationsList={notificationsList}/>
+                                        <LamassuNotifications notificationsList={notificationsList} />
                                     </Box>
                                 </Grid>
                             </Slide>

@@ -1,5 +1,4 @@
 import { apiRequest } from "ducks/services/api";
-import keycloak from "keycloak";
 
 export const getInfo = async (): Promise<any> => {
     return apiRequest({
@@ -17,7 +16,8 @@ export const getEvents = async (): Promise<any> => {
 };
 
 export const getSubscriptions = async (): Promise<any> => {
-    const userID = keycloak.tokenParsed?.sub;
+    const token = localStorage.getItem("access_token");
+    const userID = token;
     const url = window._env_.REACT_APP_LAMASSU_ALERTS + "/v1/subscriptions/" + userID;
 
     return apiRequest({
@@ -27,8 +27,9 @@ export const getSubscriptions = async (): Promise<any> => {
 };
 
 export const subscribe = async (eventType: string, channel: any, conditions: Array<string>): Promise<any> => {
+    const token = localStorage.getItem("access_token");
+    const userID = token;
     const url = window._env_.REACT_APP_LAMASSU_ALERTS + "/v1/subscribe";
-    const userID = keycloak.tokenParsed?.sub;
 
     return apiRequest({
         method: "POST",
@@ -43,9 +44,10 @@ export const subscribe = async (eventType: string, channel: any, conditions: Arr
 };
 
 export const unsubscribe = async (subscriptionID: string): Promise<any> => {
-    const url = window._env_.REACT_APP_LAMASSU_ALERTS + "/v1/unsubscribe";
-    const userID = keycloak.tokenParsed?.sub;
+    const token = localStorage.getItem("access_token");
+    const userID = token;
 
+    const url = window._env_.REACT_APP_LAMASSU_ALERTS + "/v1/unsubscribe";
     return apiRequest({
         method: "POST",
         url: url,
