@@ -1,4 +1,5 @@
 import { apiRequest } from "ducks/services/api";
+import { getSub } from "ducks/services/api/token";
 
 export const getInfo = async (): Promise<any> => {
     return apiRequest({
@@ -26,14 +27,11 @@ export const synchronizeCloudConnectors = async (connectorID: string, caName: st
 };
 
 export const fireEvent = async (eventType: string, eventData: any): Promise<any> => {
-    const token = localStorage.getItem("access_token");
-    const userID = token;
-
     const now = new Date();
     const event = {
         specversion: "1.0",
         id: now,
-        source: "lamassu-ui-" + userID,
+        source: "lamassu-ui-" + getSub(),
         type: eventType,
         datacontenttype: "application/json",
         time: now,

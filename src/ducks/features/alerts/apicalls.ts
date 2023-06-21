@@ -1,4 +1,5 @@
 import { apiRequest } from "ducks/services/api";
+import { getSub } from "ducks/services/api/token";
 
 export const getInfo = async (): Promise<any> => {
     return apiRequest({
@@ -16,9 +17,7 @@ export const getEvents = async (): Promise<any> => {
 };
 
 export const getSubscriptions = async (): Promise<any> => {
-    const token = localStorage.getItem("access_token");
-    const userID = token;
-    const url = window._env_.REACT_APP_LAMASSU_ALERTS + "/v1/subscriptions/" + userID;
+    const url = window._env_.REACT_APP_LAMASSU_ALERTS + "/v1/subscriptions/" + getSub();
 
     return apiRequest({
         method: "GET",
@@ -27,8 +26,6 @@ export const getSubscriptions = async (): Promise<any> => {
 };
 
 export const subscribe = async (eventType: string, channel: any, conditions: Array<string>): Promise<any> => {
-    const token = localStorage.getItem("access_token");
-    const userID = token;
     const url = window._env_.REACT_APP_LAMASSU_ALERTS + "/v1/subscribe";
 
     return apiRequest({
@@ -36,7 +33,7 @@ export const subscribe = async (eventType: string, channel: any, conditions: Arr
         url: url,
         data: {
             event_type: eventType,
-            user_id: userID,
+            user_id: getSub(),
             channel: channel,
             conditions: conditions
         }
@@ -44,15 +41,12 @@ export const subscribe = async (eventType: string, channel: any, conditions: Arr
 };
 
 export const unsubscribe = async (subscriptionID: string): Promise<any> => {
-    const token = localStorage.getItem("access_token");
-    const userID = token;
-
     const url = window._env_.REACT_APP_LAMASSU_ALERTS + "/v1/unsubscribe";
     return apiRequest({
         method: "POST",
         url: url,
         data: {
-            user_id: userID,
+            user_id: getSub(),
             subscription_id: subscriptionID
         }
     });

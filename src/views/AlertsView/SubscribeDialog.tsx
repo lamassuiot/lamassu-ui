@@ -12,7 +12,7 @@ import { getColor } from "components/utils/lamassuColors";
 import jsonschema from "jsonschema";
 import { JSONPath } from "jsonpath-plus";
 import { ColoredButton } from "components/LamassuComponents/ColoredButton";
-import { useAuth } from "oidc-react";
+import { useAuth } from "react-oidc-context";
 
 interface Props {
     event: CloudEvent | undefined,
@@ -76,11 +76,11 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
 
     useEffect(() => {
         const init = async () => {
-            console.log(auth.userData);
-            if (auth.userData) {
-                setEmail(auth.userData.profile.email);
+            console.log(auth.user);
+            if (auth.user) {
+                setEmail(auth.user.profile.email);
                 if (selectedChannelType === "email") {
-                    setSelectedSubscriptionConfig({ email_address: auth.userData.profile.email });
+                    setSelectedSubscriptionConfig({ email_address: auth.user.profile.email });
                 }
             }
         };

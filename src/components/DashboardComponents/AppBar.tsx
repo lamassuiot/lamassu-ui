@@ -1,11 +1,10 @@
 import React from "react";
 import { Box, useTheme } from "@mui/system";
-
 import { Badge } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import LogoutIcon from "@mui/icons-material/Logout";
+import { useAuth } from "react-oidc-context";
 
-import { useAuth } from "oidc-react";
 interface Props {
     background: any
     logo: any
@@ -25,7 +24,8 @@ const AppBar: React.FC<Props> = ({ background, logo, notificationsCount, onNotif
                     <NotificationsIcon style={{ color: "#F1F2F8" }} />
                 </Badge>
                 <LogoutIcon style={{ color: "#F1F2F8", cursor: "pointer" }} onClick={() => {
-                    auth.signOutRedirect();
+                    // auth.signoutRedirect();
+                    window.location.replace("https://lamassu-ikerlan.auth.eu-west-1.amazoncognito.com/logout?client_id=" + window._env_.REACT_APP_AUTH_OIDC_CLIENT_ID + "&logout_uri=" + window.location.origin + "/loggedout");
                 }} />
             </div>
         </Box>

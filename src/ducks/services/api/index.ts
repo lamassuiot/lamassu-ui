@@ -1,6 +1,7 @@
 import { map } from "rxjs/operators";
 import { from as rxjsFrom } from "rxjs";
 import { failed, success } from "ducks/actionTypes";
+import { getToken } from "./token";
 
 interface apiRequestProps {
     method: "GET" | "POST" | "PUT" | "DELETE",
@@ -11,7 +12,8 @@ interface apiRequestProps {
 }
 
 export const apiRequest = async ({ method = "GET", url, data, query, headers = {} }: apiRequestProps) => {
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
+    console.log(token);
 
     // await new Promise(r => setTimeout(r, 2000));
     console.log(Date.now(), method, url);

@@ -25,7 +25,8 @@ import { InfoView } from "./Info";
 import MailOutlinedIcon from "@mui/icons-material/MailOutlined";
 import SelectAllOutlinedIcon from "@mui/icons-material/SelectAllOutlined";
 import { AlertsView } from "./AlertsView";
-import { useAuth } from "oidc-react";
+import { useAuth } from "react-oidc-context";
+import { LoggedOutView } from "./LoggedOutView";
 
 export const DashboardLayout = () => {
     const auth = useAuth();
@@ -34,20 +35,11 @@ export const DashboardLayout = () => {
         cookies.set("paletteMode", "light", { path: "/" });
     }
 
-    // useEffect(() => {
-    //     console.log("checking user data", auth.userData);
-
-    //     if (auth.userData === null || auth.userData === undefined) {
-    //         console.log("launching auth");
-    //         auth.signIn();
-    //     }
-    // }, [auth]);
-
     useEffect(() => {
-        if (auth.userData && auth.userData.access_token) {
-            localStorage.setItem("access_token", auth.userData!.access_token);
+        if (auth.isLoading === false && !auth.isAuthenticated) {
+            auth.signinRedirect();
         }
-    }, [auth.userData?.access_token]);
+    }, [auth]);
 
     const notificationsList: Array<Notification> = useAppSelector((state) => notificationsSelector.getNotificationList(state));
 
@@ -216,6 +208,7 @@ export const DashboardLayout = () => {
                                         })
                                     }
                                     <Route path="info" element={<InfoView />} />
+                                    <Route path="loggedout" element={<LoggedOutView />} />
                                     <Route path="*" element={<Typography>404</Typography>} />
                                 </Routes>
                             </Grid>
