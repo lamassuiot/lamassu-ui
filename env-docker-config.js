@@ -1,7 +1,6 @@
 window._env_ =  {
-    REACT_APP_AUTH_ENDPOINT: "https://auth.${DOMAIN}/auth",
-    REACT_APP_AUTH_REALM: "lamassu",
-    REACT_APP_AUTH_CLIENT_ID: "frontend",
+    REACT_APP_AUTH_OIDC_AUTHORITY: "${OIDC_AUTHORITY}",
+    REACT_APP_AUTH_OIDC_CLIENT_ID: "${OIDC_CLIENT_ID}",
     REACT_APP_LAMASSU_CLOUD_PROXY_API: "https://${DOMAIN}/api/cloudproxy",
     REACT_APP_LAMASSU_CA_API: "https://${DOMAIN}/api/ca",
     REACT_APP_LAMASSU_DMS_MANAGER_API: "https://${DOMAIN}/api/dmsmanager",

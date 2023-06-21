@@ -13,7 +13,7 @@ interface Props {
     onNotificationsClick: any
 }
 
-const AppBar: React.FC<Props> = ({ background, logo, notificationsCount, onNotificationsClick = () => {} }) => {
+const AppBar: React.FC<Props> = ({ background, logo, notificationsCount, onNotificationsClick = () => { } }) => {
     const theme = useTheme();
     const auth = useAuth();
 
@@ -22,9 +22,11 @@ const AppBar: React.FC<Props> = ({ background, logo, notificationsCount, onNotif
             {logo}
             <div style={{ height: 50, display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
                 <Badge badgeContent={notificationsCount} color="secondary" onClick={onNotificationsClick} style={{ marginRight: 30, cursor: "pointer", verticalAlign: "middle" }}>
-                    <NotificationsIcon style={{ color: "#F1F2F8" }}/>
+                    <NotificationsIcon style={{ color: "#F1F2F8" }} />
                 </Badge>
-                <LogoutIcon style={{ color: "#F1F2F8", cursor: "pointer" }} onClick={() => { auth.signOutRedirect(); }}/>
+                <LogoutIcon style={{ color: "#F1F2F8", cursor: "pointer" }} onClick={() => {
+                    auth.signOutRedirect();
+                }} />
             </div>
         </Box>
     );

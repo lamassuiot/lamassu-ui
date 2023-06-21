@@ -7,8 +7,8 @@ import { AuthProvider } from "oidc-react";
 export const App = () => {
     return (
         <AuthProvider
-            authority="https://dev.lamassu.zpd.ikerlan.es/auth/realms/lms"
-            clientId="frontend"
+            authority="https://cognito-idp.eu-west-1.amazonaws.com/eu-west-1_OxnFHF2Am/"
+            clientId="55dkpv38sm3f1ivbboi4h7eahr"
             redirectUri={window.location.origin}
             postLogoutRedirectUri={window.location.origin}
             autoSignIn={true}>
