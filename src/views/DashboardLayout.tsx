@@ -36,10 +36,11 @@ export const DashboardLayout = () => {
     }
 
     useEffect(() => {
-        if (auth.isLoading === false && !auth.isAuthenticated) {
+        console.log(auth);
+        if (!auth.isLoading && !auth.isAuthenticated) {
             auth.signinRedirect();
         }
-    }, [auth]);
+    }, [auth.isAuthenticated, auth.isLoading]);
 
     const notificationsList: Array<Notification> = useAppSelector((state) => notificationsSelector.getNotificationList(state));
 
@@ -123,23 +124,23 @@ export const DashboardLayout = () => {
     ];
 
     const simulationToolsItems = [];
-    if (window._env_.REACT_APP_LAMASSU_VDMS !== "") {
+    if (window._env_.LAMASSU_VDMS !== "") {
         simulationToolsItems.push(
             {
                 title: "Virtual Device",
-                path: window._env_.REACT_APP_LAMASSU_VDEVICE,
-                link: window._env_.REACT_APP_LAMASSU_VDEVICE,
+                path: window._env_.LAMASSU_VDEVICE,
+                link: window._env_.LAMASSU_VDEVICE,
                 icon: <SelectAllOutlinedIcon />,
                 content: <DeviceView />
             }
         );
     }
-    if (window._env_.REACT_APP_LAMASSU_VDMS !== "") {
+    if (window._env_.LAMASSU_VDMS !== "") {
         simulationToolsItems.push(
             {
                 title: "Virtual DMS",
-                path: window._env_.REACT_APP_LAMASSU_VDMS,
-                link: window._env_.REACT_APP_LAMASSU_VDMS,
+                path: window._env_.LAMASSU_VDMS,
+                link: window._env_.LAMASSU_VDMS,
                 icon: <SelectAllOutlinedIcon />,
                 content: <DMSView />
             }

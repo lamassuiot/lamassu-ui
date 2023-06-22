@@ -24,8 +24,7 @@ const AppBar: React.FC<Props> = ({ background, logo, notificationsCount, onNotif
                     <NotificationsIcon style={{ color: "#F1F2F8" }} />
                 </Badge>
                 <LogoutIcon style={{ color: "#F1F2F8", cursor: "pointer" }} onClick={() => {
-                    // auth.signoutRedirect();
-                    window.location.replace("https://lamassu-ikerlan.auth.eu-west-1.amazoncognito.com/logout?client_id=" + window._env_.REACT_APP_AUTH_OIDC_CLIENT_ID + "&logout_uri=" + window.location.origin + "/loggedout");
+                    auth.signoutRedirect();
                 }} />
             </div>
         </Box>
