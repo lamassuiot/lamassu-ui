@@ -3,9 +3,6 @@ import { store } from "ducks";
 import { DashboardLayout } from "views/DashboardLayout";
 import { AuthProvider } from "react-oidc-context";
 import * as oidc from "oidc-client-ts";
-// console.log(oidc.Version);
-// oidc.Log.setLevel(oidc.Log.DEBUG);
-// oidc.Log.setLogger(console);
 
 export const App = () => {
     return (

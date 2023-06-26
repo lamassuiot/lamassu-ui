@@ -76,7 +76,6 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
 
     useEffect(() => {
         const init = async () => {
-            console.log(auth.user);
             if (auth.user) {
                 setEmail(auth.user.profile.email);
                 if (selectedChannelType === "email") {

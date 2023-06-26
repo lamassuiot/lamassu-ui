@@ -31,13 +31,10 @@ const iconsFamily = [
 var iconStrings = []
 iconsFamily.forEach(iconFamily => {
   const icons = Object.keys(iconFamily.import)
-  console.log(icons)
   icons.forEach(icon => iconStrings.push(iconFamily.prefix + "/" + icon))
 })
 
 var iconStrings = iconStrings.filter(function (str) { return str.toLowerCase().includes("smart".toLowerCase()) })
-
-console.log(iconStrings)
 
 export function IconPicker({ value, onChange, enableSearchBar = false, ...props }) {
   const theme = useTheme()
@@ -69,7 +66,6 @@ export function IconPicker({ value, onChange, enableSearchBar = false, ...props 
       setFilteredIcons(iconStrings)
     } else {
       const filtered = iconStrings.filter(function (str) { return str.toLowerCase().includes(query.toLowerCase()) })
-      console.log(filtered)
       setFilteredIcons(filtered)
     }
   }
