@@ -126,8 +126,6 @@ export const ImportCA = () => {
         };
     };
 
-    console.log(caCert);
-
     return (
 
         <Grid container spacing={3} ref={containerRef} >

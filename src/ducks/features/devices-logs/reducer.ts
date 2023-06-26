@@ -39,8 +39,6 @@ export const devicesLogsReducer = createReducer<DevicesLogsState, RootAction>(in
             const coloredLogs: Array<DeviceLog> = slotLogs[slotLogsKeys[i]]!.map((log: DeviceLog) => { log.log_type_color = logTypeToColor(log.log_type); return log; });
             newLogs = newLogs.concat(coloredLogs);
         }
-        console.log(newLogs);
-
         currentLogMap.set(action.meta.deviceID, { logs: newLogs });
         return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Success }, map: currentLogMap };
     })

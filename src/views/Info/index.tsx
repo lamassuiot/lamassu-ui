@@ -53,6 +53,9 @@ export const InfoView = () => {
     case "golang":
         crypyoEngineManufacturerImage = "assets/golang.png";
         break;
+    case "aws":
+        crypyoEngineManufacturerImage = "assets/AWS.png";
+        break;
 
     default:
         break;
@@ -62,6 +65,7 @@ export const InfoView = () => {
         ["Build Version", caApiInfo.build_version],
         ["Build Time", caApiInfo.build_time],
         ["Certificate Engine Provider", caCryptoEngine.provider],
+        ["Model", caCryptoEngine.model],
         ["Cryptoki version", caCryptoEngine.cryptoki_version],
         ["Manufacturer", caCryptoEngine.manufacturer],
         ["Library", caCryptoEngine.library]
@@ -125,7 +129,7 @@ export const InfoView = () => {
                             height: "75px",
                             width: "150px",
                             backgroundImage: "url('" + crypyoEngineManufacturerImage + "')",
-                            backgroundSize: "cover",
+                            backgroundSize: "contain",
                             backgroundPosition: "center",
                             backgroundRepeat: "no-repeat",
                             marginBottom: "20px"

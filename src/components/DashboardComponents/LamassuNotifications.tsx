@@ -33,8 +33,6 @@ const LamassuNotifications: React.FC<Props> = ({ notificationsList }) => {
 
     const notifications = [];
 
-    console.log(notificationsList);
-
     for (let index = notificationsList.length - 1; index >= 0; index--) {
         const e = notificationsList[index];
         let color = info;

@@ -25,7 +25,6 @@ export const CAView = () => {
 const RoutedCaList = () => {
     const params = useParams();
     const location = useLocation();
-    // console.log(params, location);
     return (
         <CaList preSelectedCaName={params.caName} />
     );

@@ -33,7 +33,6 @@ interface Props {
 }
 
 export const ColoredButton = styled(Button)(({ customcolor, customtextcolor }: Props) => {
-    // console.log(color);
     return ({
         color: customtextcolor,
         backgroundColor: customcolor,

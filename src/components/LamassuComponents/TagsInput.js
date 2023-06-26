@@ -50,7 +50,6 @@ export default function TagsInput({ placeholder = "", tags,onChange, ...other })
         setInputValue(event.target.value);
     }
 
-    console.log(tags);
     return (
             <Downshift
                 id="downshift-multiple"

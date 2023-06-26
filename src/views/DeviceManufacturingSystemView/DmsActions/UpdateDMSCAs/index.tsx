@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, Typography, useTheme } from "@mui/material";
 
 import { LamassuSwitch } from "components/LamassuComponents/Switch";
@@ -20,7 +19,7 @@ interface Props {
     onClose: any
 }
 
-export const ApproveDMS: React.FC<Props> = ({ dmsName, isOpen, onClose = () => { } }) => {
+export const UpdateDMSCAs: React.FC<Props> = ({ dmsName, isOpen, onClose = () => { } }) => {
     const theme = useTheme();
     const dispatch = useDispatch();
 
@@ -30,6 +29,7 @@ export const ApproveDMS: React.FC<Props> = ({ dmsName, isOpen, onClose = () => {
     const dms = useAppSelector((state) => dmsSelector.getDMS(state, dmsName)!);
 
     const [selectedCas, setSelectedCas] = useState<Array<string>>([]);
+    const [tempCa, setTempCA] = useState("");
 
     const [tableConfig, setTableConfig] = useState<LamassuTableWithDataControllerConfigProps>(
         {
@@ -71,7 +71,7 @@ export const ApproveDMS: React.FC<Props> = ({ dmsName, isOpen, onClose = () => {
 
     const casTableColumns = [
         { key: "actions", title: "", align: "start", size: 1 },
-        { key: "name", title: "Name", dataKey: "name", align: "center", query: true, size: 2 },
+        { key: "name", title: "CA Name", dataKey: "ca_name", align: "center", query: true, type: "string", size: 2 },
         { key: "serialnumber", title: "Serial Number", align: "center", size: 3 },
         { key: "status", title: "Status", align: "center", size: 1 },
         { key: "keystrength", title: "Key Strength", align: "center", size: 1 },
@@ -80,16 +80,23 @@ export const ApproveDMS: React.FC<Props> = ({ dmsName, isOpen, onClose = () => {
 
     const casRender = (ca: CertificateAuthority) => {
         return {
-            actions: <LamassuSwitch value={selectedCas.includes(ca.name)} onChange={() => {
-                setSelectedCas(prev => {
-                    if (prev.includes(ca.name)) {
-                        prev.splice(prev.indexOf(ca.name), 1);
-                    } else {
-                        prev.push(ca.name);
-                    }
-                    return prev;
-                });
-            }} />,
+            actions: (dms.host_cloud_dms
+                ? <LamassuSwitch value={selectedCas.includes(ca.name)} style={{ color: "grey" }} checked={tempCa === ca.name} onChange={() => {
+                    const temp = [];
+                    temp.push(ca.name);
+                    setSelectedCas(temp);
+                    setTempCA(ca.name);
+                }} />
+                : <LamassuSwitch value={selectedCas.includes(ca.name)} onChange={() => {
+                    setSelectedCas(prev => {
+                        if (prev.includes(ca.name)) {
+                            prev.splice(prev.indexOf(ca.name), 1);
+                        } else {
+                            prev.push(ca.name);
+                        }
+                        return prev;
+                    });
+                }} />),
             name: <Typography style={{ fontWeight: "500", fontSize: 14, color: theme.palette.text.primary }}>{ca.name}</Typography>,
             serialnumber: <Typography style={{ fontWeight: "500", fontSize: 14, color: theme.palette.text.primary }}>{ca.serial_number}</Typography>,
             status: <LamassuChip label={ca.status} color={ca.status_color} />,
@@ -100,7 +107,7 @@ export const ApproveDMS: React.FC<Props> = ({ dmsName, isOpen, onClose = () => {
 
     return (
         <Dialog open={isOpen} onClose={() => onClose()} maxWidth={"xl"}>
-            <DialogTitle>Approve DMS Enrollment: {dms.name}</DialogTitle>
+            <DialogTitle>Update DMS Enrollment: {dms.name}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
                     You are about to approve the enrollment of a new DMS instance. The DMS will only be able to enroll devices with the selects CAs from below. Please, select the enrollable CAs granted to this DMS and confirm your action.

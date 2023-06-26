@@ -1,8 +1,7 @@
 import { map } from "rxjs/operators";
 import { from as rxjsFrom } from "rxjs";
 import { failed, success } from "ducks/actionTypes";
-
-import keycloak from "keycloak";
+import { getToken } from "./token";
 
 interface apiRequestProps {
     method: "GET" | "POST" | "PUT" | "DELETE",
@@ -13,7 +12,7 @@ interface apiRequestProps {
 }
 
 export const apiRequest = async ({ method = "GET", url, data, query, headers = {} }: apiRequestProps) => {
-    const token = keycloak.token;
+    const token = getToken();
 
     // await new Promise(r => setTimeout(r, 2000));
     console.log(Date.now(), method, url);
@@ -36,7 +35,7 @@ export const apiRequest = async ({ method = "GET", url, data, query, headers = {
     const response = await fetch(url, {
         method: method,
         headers: {
-            Authorization: "Bearer " + keycloak.token,
+            Authorization: "Bearer " + token,
             ...(method === "POST" && { "Content-Type": "application/json" }),
             ...headers
         },
