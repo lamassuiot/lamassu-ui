@@ -30,7 +30,6 @@ export const ApproveDMS: React.FC<Props> = ({ dmsName, isOpen, onClose = () => {
     const dms = useAppSelector((state) => dmsSelector.getDMS(state, dmsName)!);
 
     const [selectedCas, setSelectedCas] = useState<Array<string>>([]);
-    console.log(selectedCas);
 
     const [tableConfig, setTableConfig] = useState<LamassuTableWithDataControllerConfigProps>(
         {
@@ -66,7 +65,6 @@ export const ApproveDMS: React.FC<Props> = ({ dmsName, isOpen, onClose = () => {
 
     useEffect(() => {
         if (tableConfig !== undefined) {
-            console.log("call ", tableConfig);
             refreshAction();
         }
     }, [tableConfig]);

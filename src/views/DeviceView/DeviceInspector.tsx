@@ -52,8 +52,6 @@ export const DeviceInspector: React.FC<Props> = ({ deviceID, slotID }) => {
         setAnchorDeviceActionEl(null);
     };
 
-    console.log(deviceID, slotID);
-
     const deviceActions = [
         { disabled: device?.status === ODeviceStatus.DECOMMISSIONED, label: "Edit", onClick: () => { } },
         { disabled: device?.status === ODeviceStatus.DECOMMISSIONED, label: "Decommission Device", onClick: () => { dispatch(devicesAction.decommissionDeviceAction.request({ deviceID: deviceID })); } }
@@ -63,7 +61,6 @@ export const DeviceInspector: React.FC<Props> = ({ deviceID, slotID }) => {
         deviceActions.push({ disabled: device?.status === ODeviceStatus.DECOMMISSIONED, label: "Force Slot Certificate Renewal", onClick: () => { dispatch(devicesAction.forceDeviceReenrollmentAction.request({ deviceID: deviceID, slotID: slotID })); } });
         deviceActions.push({ disabled: device?.status === ODeviceStatus.DECOMMISSIONED, label: "Revoke Slot Certificate", onClick: () => { dispatch(devicesAction.revokeActiveDeviceCertificateAction.request({ deviceID: deviceID, slotID: slotID })); } });
     }
-    console.log(device);
 
     if (requestStatus.isLoading || device !== undefined) {
         return (

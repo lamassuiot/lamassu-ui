@@ -31,8 +31,8 @@
     "history": "5.2.0",
     "jsonpath-plus": "^7.2.0",
     "jsonschema": "^1.4.1",
-    "keycloak-js": "12.0.4",
     "moment": "2.29.1",
+    "oidc-client-ts": "^2.2.4",
     "pkijs": "^3.0.11",
     "prismjs": "^1.29.0",
     "pvutils": "^1.1.3",
@@ -42,6 +42,7 @@
     "react-content-loader": "6.1.0",
     "react-dom": "^17.0.2",
     "react-icons": "^4.3.1",
+    "react-oidc-context": "^2.2.2",
     "react-redux": "7.2.6",
     "react-router-dom": "6.2.1",
     "react-scripts": "^4.0.3",
@@ -59,7 +60,7 @@
     "react-error-overlay": "6.0.9"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "react-scripts --openssl-legacy-provider start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",

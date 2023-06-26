@@ -1,12 +1,13 @@
 window._env_ =  {
-    REACT_APP_AUTH_ENDPOINT: "https://auth.${DOMAIN}/auth",
-    REACT_APP_AUTH_REALM: "lamassu",
-    REACT_APP_AUTH_CLIENT_ID: "frontend",
-    REACT_APP_LAMASSU_CLOUD_PROXY_API: "https://${DOMAIN}/api/cloudproxy",
-    REACT_APP_LAMASSU_CA_API: "https://${DOMAIN}/api/ca",
-    REACT_APP_LAMASSU_DMS_MANAGER_API: "https://${DOMAIN}/api/dmsmanager",
-    REACT_APP_LAMASSU_DEVMANAGER:"https://${DOMAIN}/api/devmanager",
-    REACT_APP_LAMASSU_ALERTS:"https://${DOMAIN}/api/alerts",
-    REACT_APP_LAMASSU_VDMS:"",
-    REACT_APP_LAMASSU_VDEVICE:""
+    AUTH_COGNITO_ENABLED: "${COGNITO_ENABLED}",
+    AUTH_COGNITO_HOSTED_UI_DOMAIN: "${COGNITO_HOSTED_UI_DOMAIN}",
+    AUTH_OIDC_AUTHORITY: "${OIDC_AUTHORITY}",
+    AUTH_OIDC_CLIENT_ID: "${OIDC_CLIENT_ID}",
+    LAMASSU_CLOUD_PROXY_API: "https://${DOMAIN}/api/cloudproxy",
+    LAMASSU_CA_API: "https://${DOMAIN}/api/ca",
+    LAMASSU_DMS_MANAGER_API: "https://${DOMAIN}/api/dmsmanager",
+    LAMASSU_DEVMANAGER:"https://${DOMAIN}/api/devmanager",
+    LAMASSU_ALERTS:"https://${DOMAIN}/api/alerts",
+    LAMASSU_VDMS:"",
+    LAMASSU_VDEVICE:""
 }

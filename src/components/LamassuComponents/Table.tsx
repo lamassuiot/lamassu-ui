@@ -659,8 +659,6 @@ export const LamassuTableWithDataController: React.FC<LamassuTableWithDataContro
                     <Grid item xs container justifyContent={"flex-end"} gap={2}>
                         {
                             config.filter.filters!.map((filter: any, idx: number) => {
-                                console.log(config.filter.filters);
-
                                 if (filter.propertyKey !== "") {
                                     return (
                                         <Grid item xs="auto" key={idx} sx={{ borderRadius: "10px", border: `1px solid ${theme.palette.divider}`, padding: "5px 10px", cursor: "pointer", display: "flex", alignItems: "center" }}>
@@ -718,7 +716,7 @@ export const LamassuTableWithDataController: React.FC<LamassuTableWithDataContro
                                     viewMode === "table"
                                         ? (
                                             <LamassuTable columnConf={columnConf} data={dataset} renderDataItem={renderDataItem} enableRowExpand={enableRowExpand}
-                                                {...config.sort.enabled && { sort: { enabled: true, mode: config.sort.selectedMode, prop: config.sort.selectedField }, onSortChange: (mode: "asc" | "desc", prop: string) => { console.log(prop, mode); onChange({ sort: { ...config.sort, selectedField: prop, selectedMode: mode } }); } }} {...tableProps} />
+                                                {...config.sort.enabled && { sort: { enabled: true, mode: config.sort.selectedMode, prop: config.sort.selectedField }, onSortChange: (mode: "asc" | "desc", prop: string) => { onChange({ sort: { ...config.sort, selectedField: prop, selectedMode: mode } }); } }} {...tableProps} />
                                         )
                                         : (
                                             <LamassuCardWrapper data={dataset} renderDataItem={cardView.renderDataItem} />
