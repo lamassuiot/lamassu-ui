@@ -108,8 +108,6 @@ export const CreateDms = () => {
     };
 
     const updateSelectedBootstrapCAs = (bootstrap_cas: any) => {
-        console.log(bootstrap_cas);
-
         setSelectedBootstrapCAs(bootstrap_cas);
     };
 

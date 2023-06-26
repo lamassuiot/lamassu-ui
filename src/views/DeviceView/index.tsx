@@ -9,7 +9,6 @@ import { CreateDevice } from "./DeviceActions/CreateDevice";
 const RoutedDeviceInspector = () => {
     const params = useParams();
     const location = useLocation();
-    // console.log(params, location);
     return (
         <DeviceInspector deviceID={params.deviceId!} slotID={params.slotId!}/>
     );

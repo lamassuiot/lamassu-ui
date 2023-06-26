@@ -86,7 +86,6 @@ export const UpdateDMSCAs: React.FC<Props> = ({ dmsName, isOpen, onClose = () =>
                     temp.push(ca.name);
                     setSelectedCas(temp);
                     setTempCA(ca.name);
-                    console.log(temp);
                 }} />
                 : <LamassuSwitch value={selectedCas.includes(ca.name)} onChange={() => {
                     setSelectedCas(prev => {
@@ -133,7 +132,6 @@ export const UpdateDMSCAs: React.FC<Props> = ({ dmsName, isOpen, onClose = () =>
                         config={tableConfig}
                         onChange={(ev: any) => {
                             if (!deepEqual(ev, tableConfig)) {
-                                console.log(tableConfig);
                                 setTableConfig(prev => ({ ...prev, ...ev }));
                                 // refreshAction();
                             }

@@ -144,8 +144,6 @@ export const cloudProxyReducer = createReducer<CloudProxyState, RootAction>(init
     })
 
     .handleAction(actions.cloudProxyActions.getCloudConnectorDeviceConfigAction.failure, (state, action) => {
-        console.log(action);
-
         return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
     });
 

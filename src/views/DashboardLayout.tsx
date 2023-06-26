@@ -36,7 +36,6 @@ export const DashboardLayout = () => {
     }
 
     useEffect(() => {
-        console.log(auth);
         if (!auth.isLoading && !auth.isAuthenticated) {
             auth.signinRedirect();
         }

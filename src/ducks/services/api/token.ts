@@ -1,18 +1,13 @@
 import { IdTokenClaims, User } from "oidc-client-ts";
 
 export const getUser = (): User | null => {
-    console.log("b");
     const storageString = `oidc.user:${window._env_.AUTH_OIDC_AUTHORITY}:${window._env_.AUTH_OIDC_CLIENT_ID}`;
-    console.log(storageString);
     const oidcStorage = localStorage.getItem(storageString);
     if (!oidcStorage) {
         return null;
     }
-    console.log(oidcStorage);
 
     const user = User.fromStorageString(oidcStorage);
-    console.log("c");
-    console.log(user);
     return user;
 };
 

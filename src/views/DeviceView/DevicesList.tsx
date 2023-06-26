@@ -54,8 +54,6 @@ export const DeviceList = () => {
         }
     );
 
-    console.log(tableConfig);
-
     const refreshAction = () => dispatch(devicesAction.getDevicesAction.request({
         offset: tableConfig.pagination.selectedPage! * tableConfig.pagination.selectedItemsPerPage!,
         limit: tableConfig.pagination.selectedItemsPerPage!,
@@ -70,7 +68,6 @@ export const DeviceList = () => {
 
     useEffect(() => {
         if (tableConfig !== undefined) {
-            console.log("call ", tableConfig);
             refreshAction();
         }
     }, [tableConfig]);
@@ -202,7 +199,6 @@ export const DeviceList = () => {
                 }
                 config={tableConfig}
                 onChange={(ev: any) => {
-                    console.log(ev, tableConfig);
                     if (!deepEqual(ev, tableConfig)) {
                         setTableConfig(prev => ({ ...prev, ...ev }));
                         // refreshAction();

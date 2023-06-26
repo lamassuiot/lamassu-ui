@@ -13,7 +13,6 @@ interface apiRequestProps {
 
 export const apiRequest = async ({ method = "GET", url, data, query, headers = {} }: apiRequestProps) => {
     const token = getToken();
-    console.log(token);
 
     // await new Promise(r => setTimeout(r, 2000));
     console.log(Date.now(), method, url);
