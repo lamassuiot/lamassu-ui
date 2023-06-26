@@ -16,6 +16,7 @@ import { Modal } from "components/Modal";
 import { materialLight, materialOceanic } from "react-syntax-highlighter/dist/esm/styles/prism";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import deepEqual from "fast-deep-equal/es6";
+import { IssueCert } from "../CaActions/IssueCertificate";
 
 interface Props {
     caName: string
@@ -27,6 +28,8 @@ export const IssuedCertificates: React.FC<Props> = ({ caName }) => {
     const requestStatus = useAppSelector((state) => caSelector.getIssuedCertsRequestStatus(state));
     const certificates = useAppSelector((state) => caSelector.getIssuedCerts(state, caName))!;
     const totalCACerts = useAppSelector((state) => caSelector.getTotalIssuedCerts(state, caName))!;
+
+    const [displayIssueCert, setDisplayIssueCert] = useState(false);
 
     const [tableConfig, setTableConfig] = useState<LamassuTableWithDataControllerConfigProps>(
         {
@@ -54,7 +57,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caName }) => {
         limit: tableConfig.pagination.selectedItemsPerPage!,
         sortField: tableConfig.sort.selectedField!,
         sortMode: tableConfig.sort.selectedMode!,
-        filterQuery: tableConfig.filter.filters!.map((f:any) => { return f.propertyKey + "[" + f.propertyOperator + "]=" + f.propertyValue; })
+        filterQuery: tableConfig.filter.filters!.map((f: any) => { return f.propertyKey + "[" + f.propertyOperator + "]=" + f.propertyValue; })
     }));
 
     useEffect(() => {
@@ -132,7 +135,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caName }) => {
                                     <DialogTitle>Revoke Certificate: {cert.serial_number}</DialogTitle>
                                     <DialogContent>
                                         <DialogContentText>
-                                                You are about to revoke a CA. By revoing the certificate, you will also revoke al issued certificates.
+                                            You are about to revoke a CA. By revoing the certificate, you will also revoke al issued certificates.
                                         </DialogContentText>
                                         <Grid container style={{ marginTop: "10px" }}>
                                             <Grid item xs={12}>
@@ -141,7 +144,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caName }) => {
                                             </Grid>
                                             <Grid item xs={12}>
                                                 <Typography variant="button">CA Serial Number: </Typography>
-                                                <Typography variant="button" style={{ background: theme.palette.mode === "light" ? "#efefef" : "#666", padding: 5, fontSize: 12 }}>{cert.serial_number }</Typography>
+                                                <Typography variant="button" style={{ background: theme.palette.mode === "light" ? "#efefef" : "#666", padding: 5, fontSize: 12 }}>{cert.serial_number}</Typography>
                                             </Grid>
                                         </Grid>
                                     </DialogContent>
@@ -159,32 +162,40 @@ export const IssuedCertificates: React.FC<Props> = ({ caName }) => {
     };
 
     return (
-        <LamassuTableWithDataController
-            columnConf={certTableColumns}
-            data={certificates}
-            totalDataItems={totalCACerts}
-            renderDataItem={renderCA}
-            invertContrast={true}
-            isLoading={requestStatus.isLoading}
-            config={tableConfig}
-            emptyContentComponent={
-                <Grid container justifyContent={"center"} alignItems={"center"} sx={{ height: "100%" }}>
-                    <Grid item xs="auto" container justifyContent={"center"} alignItems={"center"} flexDirection="column">
-                        <img src={process.env.PUBLIC_URL + "/assets/icon-faulttolerance.png"} height={150} style={{ marginBottom: "25px" }} />
-                        <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 22, lineHeight: "24px", marginRight: "10px" }}>
-                            Start Issuing certificates
-                        </Typography>
+        <>
+            <LamassuTableWithDataController
+                columnConf={certTableColumns}
+                data={certificates}
+                totalDataItems={totalCACerts}
+                renderDataItem={renderCA}
+                invertContrast={true}
+                isLoading={requestStatus.isLoading}
+                withAdd={() => { setDisplayIssueCert(true); }}
+                config={tableConfig}
+                emptyContentComponent={
+                    <Grid container justifyContent={"center"} alignItems={"center"} sx={{ height: "100%" }}>
+                        <Grid item xs="auto" container justifyContent={"center"} alignItems={"center"} flexDirection="column">
+                            <img src={process.env.PUBLIC_URL + "/assets/icon-faulttolerance.png"} height={150} style={{ marginBottom: "25px" }} />
+                            <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 22, lineHeight: "24px", marginRight: "10px" }}>
+                                Start Issuing certificates
+                            </Typography>
 
-                        <Typography>To Issue certificates, enroll your devices through your DMS</Typography>
+                            <Typography>To Issue certificates, enroll your devices through your DMS</Typography>
+                        </Grid>
                     </Grid>
-                </Grid>
-            }
-            withRefresh={() => { refreshAction(); }}
-            onChange={(ev: any) => {
-                if (!deepEqual(ev, tableConfig)) {
-                    setTableConfig(prev => ({ ...prev, ...ev }));
                 }
-            }}
-        />
+                withRefresh={() => { refreshAction(); }}
+                onChange={(ev: any) => {
+                    if (!deepEqual(ev, tableConfig)) {
+                        setTableConfig(prev => ({ ...prev, ...ev }));
+                    }
+                }}
+            />
+            {
+                displayIssueCert && (
+                    <IssueCert caName={caName} isOpen={displayIssueCert} onClose={() => { setDisplayIssueCert(false); }} />
+                )
+            }
+        </>
     );
 };

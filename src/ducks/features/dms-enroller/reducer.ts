@@ -54,7 +54,9 @@ export const dmsReducer = createReducer<DeviceManufacturingSystemStatus, RootAct
         for (let i = 0; i < dmss.length; i++) {
             dmss[i].status_color = dmsStatusToColor(dmss[i].status);
 
-            dmss[i].key_metadata.strength_color = keyStrengthToColor(dmss[i].key_metadata.strength);
+            if (!dmss[i].cloud_dms) {
+                dmss[i].remote_access_identity.key_metadata.strength_color = keyStrengthToColor(dmss[i].remote_access_identity.key_metadata.strength);
+            }
         }
         return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Success }, list: dmss, totalDMSs: action.payload.total_dmss };
     })

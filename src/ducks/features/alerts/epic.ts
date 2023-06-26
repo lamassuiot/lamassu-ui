@@ -51,9 +51,9 @@ export const subscribeEpic: Epic<RootAction, RootAction, RootState, {}> = (actio
         tap((item: any) => console.log("%c Epic ", "background:#25eee3; border-radius:5px;font-weight: bold;", "", item)),
         exhaustMap((action: PayloadAction<string, actions.SubscribeAction>) =>
             forkJoin(
-                action.payload.Channels.map(async channel => {
+                action.payload.channels.map(async channel => {
                     try {
-                        apicalls.subscribe(action.payload.EventType, channel, action.payload.Conditions);
+                        apicalls.subscribe(action.payload.eventType, channel, action.payload.condition_type, action.payload.conditions);
                         return new Promise(resolve => resolve(true));
                     } catch (er) {
                         return new Promise(resolve => resolve(true));

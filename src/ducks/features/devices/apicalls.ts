@@ -34,6 +34,17 @@ export const getDeviceByID = async (deviceID: string): Promise<any> => {
     });
 };
 
+export const assignCertificateToDevice = async (deviceID: string, slotID: string, caName: string, certSN: string): Promise<any> => {
+    return apiRequest({
+        method: "POST",
+        url: window._env_.REACT_APP_LAMASSU_DEVMANAGER + "/v1/devices/" + deviceID + "/slots/" + slotID,
+        data: {
+            serial_number: certSN,
+            ca_name: caName
+        }
+    });
+};
+
 export const revokeActiveDeviceCertificate = async (deviceID: string, slotID: string): Promise<any> => {
     return apiRequest({
         method: "DELETE",

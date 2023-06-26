@@ -40,7 +40,7 @@ export const CreateDevice: React.FC<Props> = () => {
         }));
     }, []);
 
-    const [device, setDevice] = useState<Device>(new Device({ icon_name: "Cg/CgSmartphoneChip", icon_color: "#0068D1", alias: "", tags: [], description: "" }));
+    const [device, setDevice] = useState<Device>(new Device({ id: "", icon_name: "Cg/CgSmartphoneChip", icon_color: "#0068D1", alias: "", tags: [], description: "" }));
     const [anchorElColorPicker, setAnchorElColorPicker] = useState(null);
 
     useEffect(() => {
@@ -99,9 +99,8 @@ export const CreateDevice: React.FC<Props> = () => {
                                             InputProps={{
                                                 endAdornment: (
                                                     <Tooltip title="Generate UUID">
-                                                        <IconButton onClick={() => {
-                                                            const uuid = uuidv4();
-                                                            setDevice((prevData: any) => ({ ...prevData, id: uuid }));
+                                                        <IconButton onClick={(ev) => {
+                                                            setDevice((prevData: any) => ({ ...prevData, id: uuidv4() }));
                                                         }}>
                                                             <CachedIcon />
                                                         </IconButton>

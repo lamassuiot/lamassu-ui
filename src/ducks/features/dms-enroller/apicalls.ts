@@ -1,6 +1,6 @@
 import { apiRequest } from "ducks/services/api";
 import { CreateDMSForm } from "./actions";
-import { DMSStatus } from "./models";
+import { DMSStatus, GetDMSsListAPIResponse } from "./models";
 
 export const getInfo = async (): Promise<any> => {
     return apiRequest({
@@ -9,7 +9,7 @@ export const getInfo = async (): Promise<any> => {
     });
 };
 
-export const getDMSList = async (limit: number, offset: number, sortMode: "asc" | "desc", sortField: string, filterQuery: Array<string>): Promise<any> => {
+export const getDMSList = async (limit: number, offset: number, sortMode: "asc" | "desc", sortField: string, filterQuery: Array<string>): Promise<GetDMSsListAPIResponse> => {
     let url = window._env_.REACT_APP_LAMASSU_DMS_MANAGER_API + "/v1/?" + `sort=${sortField}.${sortMode}&limit=${limit}&offset=${offset}`;
     filterQuery.forEach(filter => {
         url += `&filter=${filter}`;

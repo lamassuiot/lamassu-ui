@@ -16,42 +16,58 @@ export class GetDMSsListAPIResponse {
     }
 }
 
-export class DMS {
-    public name!: string
+export type DMS = {
+    name: string
+    creation_timestamp: Date
+    status: DMSStatus
+    status_color: string
+    cloud_dms: boolean
+    remote_access_identity: {
+        authorized_cas: Array<string>
+        key_metadata: {
+            bits: number
+            strength: KeyStrength
+            strength_color: string
+            type: KeyType
+        }
 
-    public key_metadata!: {
-        bits: number
-        strength: KeyStrength
-        strength_color: string
-        type: KeyType
+        subject: {
+            common_name?: string
+            country?: string
+            locality?: string
+            organization?: string
+            organization_unit?: string
+            state?: string
+        }
+
+        certificate: string
+        certificate_request: string
     }
 
-    public subject!: {
-        common_name?: string
-        country?: string
-        locality?: string
-        organization?: string
-        organization_unit?: string
-        state?: string
+    identity_profile: {
+        general_settings: {
+            enrollment_mode: string
+        },
+        enrollment_settings: {
+            authentication_mode: string
+            tags: Array<string>
+            icon: string
+            color: string
+            authorized_ca: string
+            bootstrap_cas: Array<string>
+        },
+        reenrollment_settings: {
+            preventive_renewal_interval: string
+        },
+        ca_distribution_settings: {
+            include_authorized_ca: boolean
+            include_bootstrap_cas: boolean
+            static_cas: Array<{
+                id: string,
+                certificate: string
+            }>
+        }
     }
-
-    public creation_timestamp!: Date
-    public last_status_update_timestamp!: Date
-    public status!: DMSStatus
-    public status_color!: string
-    public certificate!: string
-    public certificate_request!: string
-
-    public authorized_cas!: Array<string>
-
-    constructor (args?: {}) {
-        this.authorized_cas = [];
-        this.bootstrap_cas = [];
-        Object.assign(this, args);
-    }
-
-    public host_cloud_dms!: boolean
-    public bootstrap_cas!: Array<string>
 }
 
 export const ODMSStatus = {

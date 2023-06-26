@@ -1,6 +1,6 @@
 import { createTheme } from "@mui/material/styles";
 
-export const light : any = {
+export const light: any = {
     palette: {
         mode: "light",
         primary: {
@@ -65,6 +65,10 @@ export const light : any = {
             background: "#eee",
             text: "#111"
         },
+        textField: {
+            label: "#6f6f6f",
+            background: "#efefef"
+        },
         homeCharts: {
             mainCard: {
                 primary: "#3F66FE",
@@ -88,7 +92,7 @@ export const light : any = {
     }
 } as const;
 
-export const dark : any = {
+export const dark: any = {
     palette: {
         mode: "dark",
         primary: {
@@ -152,6 +156,10 @@ export const dark : any = {
             gray: "#ddd",
             background: "#22343C",
             text: "#fff"
+        },
+        textField: {
+            label: "#6f6f6f",
+            background: "#efefef"
         },
         homeCharts: {
             mainCard: {

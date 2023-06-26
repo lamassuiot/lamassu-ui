@@ -443,7 +443,7 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                                 : (
 
                                                     <Button onClick={() => {
-                                                        dispatch(eventsActions.subscribeAction.request({ EventType: event.type, Channels: channels, Conditions: [jsonFilter] }));
+                                                        dispatch(eventsActions.subscribeAction.request({ eventType: event.type, channels: channels, condition_type: selectedConditionType, conditions: [jsonFilter] }));
                                                         clean();
                                                         onClose();
                                                     }} variant="contained">Subscribe</Button>

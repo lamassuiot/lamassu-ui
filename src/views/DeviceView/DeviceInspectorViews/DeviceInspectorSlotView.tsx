@@ -40,6 +40,8 @@ interface Props {
 
 export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, deviceID }) => {
     const theme = useTheme();
+    const themeMode = theme.palette.mode;
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -176,9 +178,55 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, deviceID }) =
                 <>
                     <Box style={{ marginTop: "5px" }}>
                         <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Last connection</Typography>
-                        <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>{moment(awsDeviceConfig.last_connection).format("DD-MM-YYYY HH:mm")}</Typography>
+                        <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>{moment(awsDeviceConfig.last_connection).format("DD-MM-YYYY HH:mm")} ({moment(awsDeviceConfig.last_connection).fromNow()})</Typography>
                     </Box>
-                    <LamassuTable columnConf={awsDevicesCertificateTableColumn} data={awsDeviceConfig.certificates} renderDataItem={awsTableRenderer} style={{ marginTop: "10px" }} />
+                    <Box style={{ margin: "10px 0" }}>
+                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Shadow</Typography>
+                        <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>Version: {moment(awsDeviceConfig.last_connection).format("DD-MM-YYYY HH:mm")} ({moment(awsDeviceConfig.last_connection).fromNow()})</Typography>
+                        <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>Last Update: {moment(awsDeviceConfig.last_connection).format("DD-MM-YYYY HH:mm")} ({moment(awsDeviceConfig.last_connection).fromNow()})</Typography>
+                        <Grid container columns={9} sx={{ width: "100%" }} spacing={2}>
+                            <Grid item xs container flexDirection={"column"}>
+                                <Grid item>
+                                    <Box sx={{ background: theme.palette.background.lightContrast, padding: "5px 10px", borderRadius: "5px" }}>
+                                        <Typography variant="h5" fontWeight="500" fontSize="15px" sx={{ color: theme.palette.text.main }}>Desired</Typography>
+                                    </Box>
+                                </Grid>
+                                <Grid item>
+                                    <SyntaxHighlighter language="json" style={themeMode === "light" ? materialLight : materialOceanic} customStyle={{ fontSize: 10, padding: 20, borderRadius: 10, width: "fit-content", height: "fit-content" }} wrapLines={true} lineProps={{ style: { color: theme.palette.text.primaryLight } }}>
+                                        {`{
+    "issuer": {
+        "url": "test",
+        "not_after": "0001-01-01T00:00:00Z"
+    },
+    "certificates": {
+        "default": {
+            "serial_number": "7f-c9-03-f8-7c-2b-0b-c6-19-8f-30-8f-35-53-55-70-da-ce-11-e8",
+            "rotate": false
+        }
+    },
+    "trusted_cas": {
+        "update": false
+    }
+}`}
+                                    </SyntaxHighlighter>
+                                </Grid>
+                            </Grid>
+                            <Grid item xs container flexDirection={"column"}>
+                                <Grid item>
+                                    <Box sx={{ background: theme.palette.background.lightContrast, padding: "5px 10px", borderRadius: "5px" }}>
+                                        <Typography variant="h5" fontWeight="500" fontSize="15px" sx={{ color: theme.palette.text.main }}>Reported</Typography>
+                                    </Box>
+                                </Grid>
+                                <Grid item>
+                                    <Typography>Desired</Typography>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    </Box>
+                    <Box style={{ marginTop: "5px" }}>
+                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>AWS Certificates</Typography>
+                        <LamassuTable columnConf={awsDevicesCertificateTableColumn} data={awsDeviceConfig.certificates} renderDataItem={awsTableRenderer} style={{ marginTop: "10px" }} />
+                    </Box>
                 </>
             );
         };

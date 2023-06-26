@@ -1,15 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Button, Dialog, DialogActions, Paper, DialogContent, DialogContentText, DialogTitle, Grid, Tooltip, Typography, useTheme, IconButton } from "@mui/material";
-import { LamassuChip } from "components/LamassuComponents/Chip";
+import { Button, Dialog, DialogActions, Paper, DialogContent, DialogTitle, Grid, Tooltip, Typography, useTheme, IconButton } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "ducks/hooks";
 import * as caSelector from "ducks/features/cas/reducer";
 import * as caActions from "ducks/features/cas/actions";
-import { CertificateAuthority } from "ducks/features/cas/models";
-import * as dmsSelector from "ducks/features/dms-enroller/reducer";
-import { LamassuTableWithDataController, LamassuTableWithDataControllerConfigProps } from "components/LamassuComponents/Table";
-import deepEqual from "fast-deep-equal/es6";
-import Radio from "@mui/material/Radio";
 import Stepper from "@mui/material/Stepper/Stepper";
 import Step from "@mui/material/Step/Step";
 import StepLabel from "@mui/material/StepLabel/StepLabel";
@@ -32,34 +26,30 @@ import { ORequestStatus, ORequestType } from "ducks/reducers_utils";
 import { Certificate } from "@fidm/x509";
 
 interface Props {
-    dmsName: string,
+    caName: string,
     isOpen: boolean,
     onClose: any
 }
 
-export const GenDMSBootstrapCertificate: React.FC<Props> = ({ dmsName, isOpen, onClose = () => { } }) => {
+export const IssueCert: React.FC<Props> = ({ caName, isOpen, onClose = () => { } }) => {
     const theme = useTheme();
     const themeMode = theme.palette.mode;
     const dispatch = useDispatch();
 
     const caRequestStatus = useAppSelector((state) => caSelector.getRequestStatus(state));
-    const caList = useAppSelector((state) => caSelector.getCAs(state));
-    const totalCAs = useAppSelector((state) => caSelector.getTotalCAs(state));
-    const dms = useAppSelector((state) => dmsSelector.getDMS(state, dmsName)!);
 
     const signedCert = useAppSelector((state) => caSelector.getSignedCertificate(state));
     const [parsedSignedCert, setParsedSignedCert] = useState<undefined | Certificate>(undefined);
 
     const [step, setStep] = useState(0);
 
-    const [selectedCA, setSelectedCA] = useState<string | undefined>(undefined);
-
     const [country, setCountry] = useState<string | undefined>(undefined);
     const [state, setState] = useState<string | undefined>(undefined);
     const [city, setCity] = useState<string | undefined>(undefined);
     const [org, setOrg] = useState<string | undefined>(undefined);
     const [orgUnit, setOrgUnit] = useState<string | undefined>(undefined);
-    const [cn, setCN] = useState<string>("bootstrap");
+    const [cn, setCN] = useState<string>("");
+    const [san, setSan] = useState<string | undefined>(undefined);
 
     const rsaOptions = [
         {
@@ -107,55 +97,36 @@ export const GenDMSBootstrapCertificate: React.FC<Props> = ({ dmsName, isOpen, o
 
     const [privKeyAndCSR, setPrivKeyAndCSR] = useState<undefined | any>(undefined);
 
-    const [tableConfig, setTableConfig] = useState<LamassuTableWithDataControllerConfigProps>(
-        {
-            filter: {
-                enabled: false,
-                filters: []
-            },
-            sort: {
-                enabled: true,
-                selectedField: "name",
-                selectedMode: "asc"
-            },
-            pagination: {
-                enabled: true,
-                options: [10, 25, 50],
-                selectedItemsPerPage: 10,
-                selectedPage: 0
-            }
-        }
-    );
-
-    const refreshAction = () => dispatch(caActions.getCAsAction.request({
-        offset: tableConfig.pagination.selectedPage! * tableConfig.pagination.selectedItemsPerPage!,
-        limit: tableConfig.pagination.selectedItemsPerPage!,
-        sortField: tableConfig.sort.selectedField!,
-        sortMode: tableConfig.sort.selectedMode!,
-        filterQuery: tableConfig.filter.filters!.map((f: any) => { return f.propertyKey + "[" + f.propertyOperator + "]=" + f.propertyValue; })
-    }));
-
     useEffect(() => {
         const run = async () => {
-            if (step === 2) {
-                const pkCsr = await createPKCS10(keyType, keyBits.value, cn, {
-                    city: city,
-                    country: country,
-                    state: state,
-                    organization: org,
-                    organizationUnit: orgUnit
-                });
-                setPrivKeyAndCSR(pkCsr);
-            } else if (step === 3) {
-                dispatch(caActions.signCertAction.request({ caName: selectedCA!, csr: privKeyAndCSR.csr }));
+            if (step === 1) {
+                if (san === "") {
+                    const pkCsr = await createPKCS10(keyType, keyBits.value, cn, {
+                        city: city,
+                        country: country,
+                        state: state,
+                        organization: org,
+                        organizationUnit: orgUnit
+                    });
+                    setPrivKeyAndCSR(pkCsr);
+                } else {
+                    console.log("with san", san);
+
+                    const pkCsr = await createPKCS10(keyType, keyBits.value, cn, {
+                        city: city,
+                        country: country,
+                        state: state,
+                        organization: org,
+                        organizationUnit: orgUnit
+                    }, san);
+                    setPrivKeyAndCSR(pkCsr);
+                }
+            } else if (step === 2) {
+                dispatch(caActions.signCertAction.request({ caName: caName!, csr: privKeyAndCSR.csr }));
             }
         };
         run();
     }, [step]);
-
-    useEffect(() => {
-        refreshAction();
-    }, []);
 
     useEffect(() => {
         if (signedCert !== undefined) {
@@ -163,47 +134,19 @@ export const GenDMSBootstrapCertificate: React.FC<Props> = ({ dmsName, isOpen, o
         }
     }, [signedCert]);
 
-    useEffect(() => {
-        if (tableConfig !== undefined) {
-            refreshAction();
-        }
-    }, [tableConfig]);
-
-    const casTableColumns = [
-        { key: "actions", title: "", align: "start", size: 1 },
-        { key: "name", title: "Name", dataKey: "ca_name", align: "center", query: true, type: "string", size: 2 },
-        { key: "serialnumber", title: "Serial Number", align: "center", size: 3 },
-        { key: "status", title: "Status", align: "center", size: 1 },
-        { key: "keystrength", title: "Key Strength", align: "center", size: 1 },
-        { key: "keyprops", title: "Key Properties", align: "center", size: 1 }
-    ];
-
-    const casRender = (ca: CertificateAuthority) => {
-        return {
-            actions: <Radio onClick={() => setSelectedCA(ca.name)} checked={ca.name === selectedCA} />,
-            name: <Typography style={{ fontWeight: "500", fontSize: 14, color: theme.palette.text.primary }}>{ca.name}</Typography>,
-            serialnumber: <Typography style={{ fontWeight: "500", fontSize: 14, color: theme.palette.text.primary }}>{ca.serial_number}</Typography>,
-            status: <LamassuChip label={ca.status} color={ca.status_color} />,
-            keystrength: <LamassuChip label={ca.key_metadata.strength} color={ca.key_metadata.strength_color} />,
-            keyprops: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary, textAlign: "center" }}>{`${ca.key_metadata.type} ${ca.key_metadata.bits}`}</Typography>
-        };
-    };
-
     const keyBitsOptions = keyType === "RSA" ? rsaOptions : ecOptions;
 
-    const disableNextBtn = (step === 0 && selectedCA === undefined) || (step === 1 && cn === "");
+    const disableNextBtn = step === 0 && cn === "";
 
     return (
         <Dialog open={isOpen} onClose={() => onClose()} maxWidth={"xl"}>
-            <DialogTitle>Generate a Bootstrap Certificate for: {dms.name}</DialogTitle>
+            <DialogTitle>Issuing Certificate for CA: {caName}</DialogTitle>
             <DialogContent>
-                <DialogContentText>
-                    Generate a new temporal and generic identity to be used during the enrollment process of the device. This credentials shall be preinstalled and used by all devices belonging to the same fleet.
-                </DialogContentText>
+
                 <Grid container style={{ marginTop: "20px" }}>
                     <Grid item xs={12}>
                         <Stepper activeStep={step} alternativeLabel>
-                            {["Select CA", "Private Key & Certificate Metadata", "Issue Bootstrap Certificate", "Process completion"].map((label) => (
+                            {["Private Key & Certificate Metadata", "Issue Bootstrap Certificate", "Process completion"].map((label) => (
                                 <Step key={label}>
                                     <StepLabel>{label}</StepLabel>
                                 </Step>
@@ -214,28 +157,6 @@ export const GenDMSBootstrapCertificate: React.FC<Props> = ({ dmsName, isOpen, o
                 <Grid item xs={12} container sx={{ marginTop: "20px" }}>
                     {
                         step === 0 && (
-                            <LamassuTableWithDataController
-                                data={caList.filter(ca => dms.bootstrap_cas.includes(ca.name))}
-                                invertContrast={true}
-                                totalDataItems={totalCAs}
-                                columnConf={casTableColumns}
-                                renderDataItem={casRender}
-                                isLoading={caRequestStatus.isLoading}
-                                emptyContentComponent={
-                                    <Typography>No CAs</Typography>
-                                }
-                                config={tableConfig}
-                                onChange={(ev: any) => {
-                                    if (!deepEqual(ev, tableConfig)) {
-                                        setTableConfig(prev => ({ ...prev, ...ev }));
-                                        // refreshAction();
-                                    }
-                                }}
-                            />
-                        )
-                    }
-                    {
-                        step === 1 && (
                             <Grid container spacing={3} justifyContent="center" alignItems="center" >
                                 <Grid item xs={6}>
                                     <FormControl variant="standard" fullWidth>
@@ -300,11 +221,14 @@ export const GenDMSBootstrapCertificate: React.FC<Props> = ({ dmsName, isOpen, o
                                 <Grid item xs={6}>
                                     <TextField variant="standard" fullWidth label="Organization Unit" value={orgUnit} onChange={(ev) => setOrgUnit(ev.target.value)} />
                                 </Grid>
+                                <Grid item xs={12}>
+                                    <TextField variant="standard" fullWidth label="Subject Alternative Name" value={san} onChange={(ev) => setSan(ev.target.value)} />
+                                </Grid>
                             </Grid>
                         )
                     }
                     {
-                        step === 2 && (
+                        step === 1 && (
                             <Grid container spacing={2}>
                                 {
                                     privKeyAndCSR === undefined
@@ -342,7 +266,7 @@ export const GenDMSBootstrapCertificate: React.FC<Props> = ({ dmsName, isOpen, o
                                                         <Grid item>
                                                             <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
                                                                 <Tooltip title="Download Bootstrap Certificate">
-                                                                    <IconButton onClick={(ev) => { ev.stopPropagation(); downloadFile("bootstrap-" + selectedCA + ".key", privKeyAndCSR.privateKey); }}>
+                                                                    <IconButton onClick={(ev) => { ev.stopPropagation(); downloadFile(cn + ".key", privKeyAndCSR.privateKey); }}>
                                                                         <FileDownloadRoundedIcon fontSize={"small"} />
                                                                     </IconButton>
                                                                 </Tooltip>
@@ -369,7 +293,7 @@ export const GenDMSBootstrapCertificate: React.FC<Props> = ({ dmsName, isOpen, o
                                                         <Grid item>
                                                             <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
                                                                 <Tooltip title="Download Bootstrap CSR">
-                                                                    <IconButton onClick={(ev) => { ev.stopPropagation(); downloadFile("bootstrap-" + selectedCA + ".csr", privKeyAndCSR.csr); }}>
+                                                                    <IconButton onClick={(ev) => { ev.stopPropagation(); downloadFile(cn + ".csr", privKeyAndCSR.csr); }}>
                                                                         <FileDownloadRoundedIcon fontSize={"small"} />
                                                                     </IconButton>
                                                                 </Tooltip>
@@ -384,7 +308,7 @@ export const GenDMSBootstrapCertificate: React.FC<Props> = ({ dmsName, isOpen, o
                         )
                     }
                     {
-                        step === 3 && (
+                        step === 2 && (
                             <Grid container spacing={2}>
                                 {
                                     parsedSignedCert === undefined
@@ -448,7 +372,7 @@ export const GenDMSBootstrapCertificate: React.FC<Props> = ({ dmsName, isOpen, o
                                                         <Grid item>
                                                             <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
                                                                 <Tooltip title="Download Bootstrap Certificate">
-                                                                    <IconButton onClick={(ev) => { ev.stopPropagation(); downloadFile("bootstrap-" + selectedCA + ".key", privKeyAndCSR.privateKey); }}>
+                                                                    <IconButton onClick={(ev) => { ev.stopPropagation(); downloadFile(cn + ".key", privKeyAndCSR.privateKey); }}>
                                                                         <FileDownloadRoundedIcon fontSize={"small"} />
                                                                     </IconButton>
                                                                 </Tooltip>
@@ -478,7 +402,7 @@ export const GenDMSBootstrapCertificate: React.FC<Props> = ({ dmsName, isOpen, o
                                                                     <Grid item>
                                                                         <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
                                                                             <Tooltip title="Download Bootstrap CRT">
-                                                                                <IconButton onClick={(ev) => { ev.stopPropagation(); downloadFile("bootstrap-" + selectedCA + ".crt", window.atob(signedCert)); }}>
+                                                                                <IconButton onClick={(ev) => { ev.stopPropagation(); downloadFile(cn + ".crt", window.atob(signedCert)); }}>
                                                                                     <FileDownloadRoundedIcon fontSize={"small"} />
                                                                                 </IconButton>
                                                                             </Tooltip>
@@ -504,16 +428,16 @@ export const GenDMSBootstrapCertificate: React.FC<Props> = ({ dmsName, isOpen, o
                     </Grid>
                     <Grid item xs="auto" container spacing={2}>
                         <Grid item xs="auto">
-                            <Button onClick={() => setStep(step - 1)} disabled={step === 0 || step === 3}>Back</Button>
+                            <Button onClick={() => setStep(step - 1)} disabled={step === 0 || step === 2}>Back</Button>
                         </Grid>
                         <Grid item xs="auto">
                             <Button disabled={disableNextBtn} onClick={() => {
-                                if (step < 3) {
+                                if (step < 2) {
                                     setStep(step + 1);
                                 } else {
                                     onClose();
                                 }
-                            }} variant="contained">{step === 3 ? "Finish" : "Next"}</Button>
+                            }} variant="contained">{step === 2 ? "Finish" : "Next"}</Button>
                         </Grid>
                     </Grid>
                 </Grid>

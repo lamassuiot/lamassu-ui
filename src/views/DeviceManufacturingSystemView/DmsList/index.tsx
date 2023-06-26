@@ -23,14 +23,13 @@ import { RevokeDMS } from "../DmsActions/RevokeDms";
 import { DeclineDMS } from "../DmsActions/DeclineDms";
 import { ApproveDMS } from "../DmsActions/ApproveDms/index";
 import { capitalizeFirstLetter } from "ducks/reducers_utils";
-import EditAttributesIcon from "@mui/icons-material/EditAttributes";
-import { UpdateDMSCAs } from "../DmsActions/UpdateDMSCAs";
 import CloudIcon from "@mui/icons-material/Cloud";
 import CloudOffIcon from "@mui/icons-material/CloudOff";
 import DeleteIcon from "@mui/icons-material/Delete";
 import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
 import Tooltip from "@mui/material/Tooltip";
-import { GenDMSBootstrapCertificate } from "../DmsActions/GenDMSBootstrapCertificate";
+import EditIcon from "@mui/icons-material/Edit";
+import { IssueCertificateFromDMS } from "../DmsActions/IssueCertificateFromDMS";
 
 export const DmsList = () => {
     const theme = useTheme();
@@ -87,9 +86,6 @@ export const DmsList = () => {
         { key: "creation_timestamp", title: "Creation Date", dataKey: "creation_timestamp", type: OperandTypes.date, align: "center", size: 1 },
         { key: "cloudHosted", title: "Cloud Hosted DMS", dataKey: "status", type: OperandTypes.string, align: "center", size: 1 },
         { key: "status", title: "Status", dataKey: "status", type: OperandTypes.enum, align: "center", size: 1 },
-        { key: "expiration", title: "Expiration / Revocation / Rejection Date", dataKey: "modification_timestamp", type: OperandTypes.date, align: "center", size: 1 },
-        { key: "keyprops", title: "Key Properties", align: "center", size: 1 },
-        { key: "keystrength", title: "Key Strength", dataKey: "key_metadata.strength", type: OperandTypes.enum, align: "center", size: 1 },
         // { key: "enrolled", title: "Enrolled Devices", align: "center", size: 1 },
         { key: "actions", title: "Actions", align: "right", size: 2 }
     ];
@@ -97,7 +93,7 @@ export const DmsList = () => {
     const dmsRender = (dms: DMS) => {
         return {
             name: <Typography style={{ fontWeight: "500", fontSize: 14, color: theme.palette.text.primary }}>#{dms.name}</Typography>,
-            cloudHosted: dms.host_cloud_dms
+            cloudHosted: dms.cloud_dms
                 ? (
                     <CloudIcon sx={{ fontSize: "1.15rem", color: "#5CA36B" }} />
                 )
@@ -106,18 +102,9 @@ export const DmsList = () => {
                 ),
             status: <LamassuChip label={capitalizeFirstLetter(dms.status)} color={dms.status_color} />,
             creation_timestamp: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary, textAlign: "center" }}>{moment(dms.creation_timestamp).format("DD/MM/YYYY HH:mm")}</Typography>,
-            keystrength: <LamassuChip label={dms.key_metadata.strength} color={dms.key_metadata.strength_color} />,
-            keyprops: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary, textAlign: "center" }}>{`${dms.key_metadata.type} ${dms.key_metadata.bits}`}</Typography>,
             enrolled: (dms.status === ODMSStatus.APPROVED || dms.status === ODMSStatus.REVOKED)
                 ? (
                     <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary, textAlign: "center" }}>{50}</Typography>
-                )
-                : (
-                    <Typography>-</Typography>
-                ),
-            expiration: (dms.status === ODMSStatus.REVOKED || dms.status === ODMSStatus.APPROVED || dms.status === ODMSStatus.REJECTED)
-                ? (
-                    <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary, textAlign: "center" }}>{dms.status === ODMSStatus.REVOKED ? moment(dms.last_status_update_timestamp).format("DD/MM/YYYY HH:mm") : (dms.status === ODMSStatus.APPROVED ? moment(dms.last_status_update_timestamp).format("DD/MM/YYYY HH:mm") : moment(dms.last_status_update_timestamp).format("DD/MM/YYYY HH:mm"))}</Typography>
                 )
                 : (
                     <Typography>-</Typography>
@@ -166,35 +153,38 @@ export const DmsList = () => {
                                         ? (
                                             <>
                                                 {
-                                                    dms.host_cloud_dms && (
-                                                        <Grid item>
-                                                            <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
-                                                                <Tooltip title="Generate Bootstrap Certificates">
-                                                                    <IconButton onClick={(ev) => { ev.stopPropagation(); setIsDialogOpen({ open: true, type: "GEN_BOOTSTRAP_CERTIFICATE", id: dms.name }); }}>
-                                                                        <RocketLaunchIcon fontSize={"small"} />
-                                                                    </IconButton>
-                                                                </Tooltip>
-                                                            </Box>
-                                                        </Grid>
-                                                    )
+                                                    dms.cloud_dms
+                                                        ? (
+                                                            <Grid item>
+                                                                <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
+                                                                    <Tooltip title="Generate Bootstrap Certificates">
+                                                                        <IconButton onClick={(ev) => { ev.stopPropagation(); setIsDialogOpen({ open: true, type: "GEN_BOOTSTRAP_CERTIFICATE", id: dms.name }); }}>
+                                                                            <RocketLaunchIcon fontSize={"small"} />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                </Box>
+                                                            </Grid>
+                                                        )
+                                                        : (
+                                                            <Grid item>
+                                                                <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
+                                                                    <Tooltip title="Download DMS Certificate">
+                                                                        <IconButton onClick={(ev) => { ev.stopPropagation(); downloadFile("dms-" + dms.name + ".crt", window.atob(dms.remote_access_identity.certificate)); }}>
+                                                                            <FileDownloadRoundedIcon fontSize={"small"} />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                </Box>
+                                                            </Grid>
+                                                        )
                                                 }
-                                                <Grid item>
-                                                    <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
-                                                        <Tooltip title="Download DMS Certificate">
-                                                            <IconButton onClick={(ev) => { ev.stopPropagation(); downloadFile("dms-" + dms.name + ".crt", window.atob(dms.certificate)); }}>
-                                                                <FileDownloadRoundedIcon fontSize={"small"} />
-                                                            </IconButton>
-                                                        </Tooltip>
-                                                    </Box>
-                                                </Grid>
                                                 <Grid item>
                                                     <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
                                                         <Tooltip title="Update Associated CAs">
                                                             <IconButton onClick={(ev) => {
                                                                 ev.stopPropagation();
-                                                                setIsDialogOpen({ open: true, type: "UPDATE_CAS", id: dms.name });
+                                                                navigate(dms.name + "/edit");
                                                             }}>
-                                                                <EditAttributesIcon fontSize={"small"} />
+                                                                <EditIcon fontSize={"small"} />
                                                             </IconButton>
                                                         </Tooltip>
                                                     </Box>
@@ -229,22 +219,28 @@ export const DmsList = () => {
                                         <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Authorized CAs</Typography>
                                         <Grid container spacing={2}>
                                             {
-                                                dms.authorized_cas.map(caName => (
-                                                    <Grid item key={caName} xs="auto">
-                                                        <LamassuChip label={caName} color={"gray"} />
-                                                    </Grid>
-                                                ))
+                                                dms.cloud_dms
+                                                    ? (
+                                                        <LamassuChip label={dms.identity_profile.enrollment_settings.authorized_ca} color={"gray"} />
+                                                    )
+                                                    : (
+                                                        dms.remote_access_identity.authorized_cas.map(caName => (
+                                                            <Grid item key={caName} xs="auto">
+                                                                <LamassuChip label={caName} color={"gray"} />
+                                                            </Grid>
+                                                        ))
+                                                    )
                                             }
                                         </Grid>
                                     </Grid>
-                                    {dms.host_cloud_dms &&
+                                    {dms.cloud_dms &&
                                         (
                                             <>
                                                 <Grid item xs={12} container>
                                                     <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Bootstrap CAs</Typography>
                                                     <Grid container spacing={2}>
                                                         {
-                                                            dms.bootstrap_cas.map(caName => (
+                                                            dms.identity_profile.enrollment_settings.bootstrap_cas.map(caName => (
                                                                 <Grid item key={caName} xs="auto">
                                                                     <LamassuChip label={caName} color={"gray"} />
                                                                 </Grid>
@@ -353,13 +349,8 @@ export const DmsList = () => {
                             )
                         }
                         {
-                            isDialogOpen.type === "UPDATE_CAS" && (
-                                <UpdateDMSCAs dmsName={isDialogOpen.id} isOpen={isDialogOpen.open} onClose={() => { setIsDialogOpen((prev: any) => { return { ...prev, open: false }; }); }} />
-                            )
-                        }
-                        {
                             isDialogOpen.type === "GEN_BOOTSTRAP_CERTIFICATE" && (
-                                <GenDMSBootstrapCertificate dmsName={isDialogOpen.id} isOpen={isDialogOpen.open} onClose={() => { setIsDialogOpen((prev: any) => { return { ...prev, open: false }; }); }} />
+                                <IssueCertificateFromDMS dmsName={isDialogOpen.id} isOpen={isDialogOpen.open} onClose={() => { setIsDialogOpen((prev: any) => { return { ...prev, open: false }; }); }} />
                             )
                         }
                     </>

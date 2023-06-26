@@ -8,6 +8,7 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useNavigate } from "react-router-dom";
 import * as cloudProxyActions from "ducks/features/cloud-proxy/actions";
 import * as devicesAction from "ducks/features/devices/actions";
+import * as deviceApiCalls from "ducks/features/devices/apicalls";
 import * as devicesSelector from "ducks/features/devices/reducer";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "ducks/hooks";
@@ -17,6 +18,7 @@ import moment from "moment";
 import { capitalizeFirstLetter } from "ducks/reducers_utils";
 import SplitButton from "components/LamassuComponents/SplitButton";
 import { ODeviceStatus } from "ducks/features/devices/models";
+import { IssueCertificateFromDMS } from "views/DeviceManufacturingSystemView/DmsActions/IssueCertificateFromDMS";
 
 interface Props {
     deviceID: string,
@@ -40,6 +42,8 @@ export const DeviceInspector: React.FC<Props> = ({ deviceID, slotID }) => {
         refreshAction();
     }, []);
 
+    const [showProvisionDevice, setShowProvisionDevice] = useState(false);
+
     const [anchorDeviceActionEl, setAnchorDeviceActionEl] = useState(null);
 
     const handleDeviceActionClick = (event: any) => {
@@ -55,7 +59,7 @@ export const DeviceInspector: React.FC<Props> = ({ deviceID, slotID }) => {
     console.log(deviceID, slotID);
 
     const deviceActions = [
-        { disabled: device?.status === ODeviceStatus.DECOMMISSIONED, label: "Edit", onClick: () => { } },
+        { disabled: device?.status !== ODeviceStatus.PENDING_PROVISIONING, label: "Provision Device", onClick: () => { setShowProvisionDevice(true); } },
         { disabled: device?.status === ODeviceStatus.DECOMMISSIONED, label: "Decommission Device", onClick: () => { dispatch(devicesAction.decommissionDeviceAction.request({ deviceID: deviceID })); } }
     ];
 
@@ -176,15 +180,28 @@ export const DeviceInspector: React.FC<Props> = ({ deviceID, slotID }) => {
                 </Box>
                 {
                     device !== undefined && (
-                        slotID !== undefined
-                            ? (
-                                <DeviceInspectorSlotView slotID={slotID} deviceID={deviceID} />
-                            )
-                            : (
-                                <DeviceInspectorSlotList deviceID={deviceID} onSlotClick={(slotId: any) => {
-                                    navigate(slotId);
-                                }} />
-                            )
+                        <>
+                            {
+                                slotID !== undefined
+                                    ? (
+                                        <DeviceInspectorSlotView slotID={slotID} deviceID={deviceID} />
+                                    )
+                                    : (
+                                        <DeviceInspectorSlotList deviceID={deviceID} onSlotClick={(slotId: any) => {
+                                            navigate(slotId);
+                                        }} />
+                                    )
+                            }
+                            {
+                                showProvisionDevice && (
+                                    <IssueCertificateFromDMS dmsName={device.dms_name} defaultCN={device.id} isOpen={showProvisionDevice} onClose={() => setShowProvisionDevice(false)} onCreate={async (certSN, caName, certPEM) => {
+                                        console.log(certSN, caName, certPEM);
+                                        await deviceApiCalls.assignCertificateToDevice(device.id, "default", caName, certSN);
+                                        refreshAction();
+                                    }} />
+                                )
+                            }
+                        </>
                     )
                 }
             </Box>

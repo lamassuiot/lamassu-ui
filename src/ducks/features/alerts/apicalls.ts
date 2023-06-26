@@ -26,7 +26,7 @@ export const getSubscriptions = async (): Promise<any> => {
     });
 };
 
-export const subscribe = async (eventType: string, channel: any, conditions: Array<string>): Promise<any> => {
+export const subscribe = async (eventType: string, channel: any, condition_type: string, conditions: Array<string>): Promise<any> => {
     const url = window._env_.REACT_APP_LAMASSU_ALERTS + "/v1/subscribe";
     const userID = keycloak.tokenParsed?.sub;
 
@@ -37,7 +37,8 @@ export const subscribe = async (eventType: string, channel: any, conditions: Arr
             event_type: eventType,
             user_id: userID,
             channel: channel,
-            conditions: conditions
+            conditions: conditions,
+            condition_type: condition_type
         }
     });
 };

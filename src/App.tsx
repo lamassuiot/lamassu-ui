@@ -11,7 +11,7 @@ export const App = () => {
         <ReactKeycloakProvider
             authClient={keycloak}
             initOptions={{
-                silentCheckSsoRedirectUri: window.location.origin + "/silent-check-sso.html",
+                // silentCheckSsoRedirectUri: window.location.origin + "/silent-check-sso.html",
                 checkLoginIframe: false
             }}
             LoadingComponent={

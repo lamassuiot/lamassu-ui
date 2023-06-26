@@ -2,14 +2,18 @@ import { Divider, Grid, Paper, Tab, Tabs, Typography, useTheme } from "@mui/mate
 import { Box } from "@mui/system";
 import React, { useState } from "react";
 
-import { Link, Outlet, Route, Routes } from "react-router-dom";
+import { Link, Outlet, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { CreateDms } from "./DmsActions/CreateDms";
+import { UpdateDMS } from "./DmsActions/UpdateDMS";
 import { DmsList } from "./DmsList";
 
 export const DMSView = () => {
     return (
         <Routes>
             <Route path="/" element={<Outlet/>}>
+                <Route path=":dmsName/edit" element={
+                    <RoutedUpdateDMS />
+                }/>
                 <Route path="create" element={<DmsActionWrapper />} >
                     <Route path="import" element={<CreateDms />} />
                     <Route index element={<CreateDms />} />
@@ -17,6 +21,15 @@ export const DMSView = () => {
                 <Route index element={<DmsList />} />
             </Route>
         </Routes>
+    );
+};
+
+const RoutedUpdateDMS = () => {
+    const params = useParams();
+    const location = useLocation();
+    // console.log(params, location);
+    return (
+        <UpdateDMS dmsName={params.dmsName!}/>
     );
 };
 
@@ -40,8 +53,7 @@ const DmsActionWrapper = () => {
                     </Grid>
                     <Box style={{ marginTop: 15, position: "relative", left: "-15px" }}>
                         <Tabs value={selectedTab} onChange={(ev, newValue) => setSelectedTab(newValue)}>
-                            <Tab component={Link} to="create" label="Backend Provision" />
-                            <Tab component={Link} to="import" label="Import CSR" />
+                            <Tab component={Link} to="create" label="Default Provision" />
                         </Tabs>
                     </Box>
                 </Box>

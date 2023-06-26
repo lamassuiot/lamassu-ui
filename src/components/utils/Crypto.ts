@@ -10,7 +10,7 @@ const signAlg = "ECDSA";
  * createPKCS10({ enrollmentID: 'user1', organizationUnit: 'Marketing', organization: 'Farmer Market', state: 'M', country: 'V' })
  *  .then(({csr, privateKey} => {...}))
  */
-export async function createPKCS10 (keyAlg: "RSA" | "ECDSA", keySize: number, cn: string, subj: { organizationUnit?: string, organization?: string, city?: string, state?: string, country?: string }) {
+export async function createPKCS10 (keyAlg: "RSA" | "ECDSA", keySize: number, cn: string, subj: { organizationUnit?: string, organization?: string, city?: string, state?: string, country?: string }, san?: string) {
     const crypto = getWebCrypto();
     if (crypto === null) {
         throw Error("WebCrypto is null. Browser not supported");
@@ -36,7 +36,7 @@ export async function createPKCS10 (keyAlg: "RSA" | "ECDSA", keySize: number, cn
         csr: `-----BEGIN CERTIFICATE REQUEST-----\n${formatPEM(
             toBase64(
                 arrayBufferToString(
-                    await createCSR(keyPair, hashAlg, cn, subj)
+                    await createCSR(keyPair, hashAlg, cn, subj, san)
                 )
             )
         )}\n-----END CERTIFICATE REQUEST-----`,
@@ -44,7 +44,7 @@ export async function createPKCS10 (keyAlg: "RSA" | "ECDSA", keySize: number, cn
     };
 }
 
-async function createCSR (keyPair: { publicKey: CryptoKey; privateKey: CryptoKey; }, hashAlg: string | undefined, cn: string, subj: { organizationUnit?: string, organization?: string, city?: string, state?: string, country?: string }) {
+async function createCSR (keyPair: { publicKey: CryptoKey; privateKey: CryptoKey; }, hashAlg: string | undefined, cn: string, subj: { organizationUnit?: string, organization?: string, city?: string, state?: string, country?: string }, san?: string) {
     const pkcs10 = new CertificationRequest();
     pkcs10.version = 0;
     // list of OID reference: http://oidref.com/2.5.4
@@ -78,6 +78,12 @@ async function createCSR (keyPair: { publicKey: CryptoKey; privateKey: CryptoKey
             value: new asn1js.Utf8String({ value: subj.organizationUnit })
         }));
     }
+    if (san) {
+        pkcs10.subject.typesAndValues.push(new AttributeTypeAndValue({
+            type: "2.5.29.17", // SAN
+            value: new asn1js.Utf8String({ value: san })
+        }));
+    }
     pkcs10.subject.typesAndValues.push(new AttributeTypeAndValue({
         type: "2.5.4.3", // commonName
         value: new asn1js.Utf8String({ value: cn })
@@ -101,7 +107,9 @@ function formatPEM (pemString: string) {
 
 function getWebCrypto () {
     const crypto = getCrypto();
-    if (typeof crypto === "undefined") { throw Error("No WebCrypto extension found"); };
+    if (typeof crypto === "undefined") {
+        throw Error("No WebCrypto extension found");
+    };
     return crypto;
 }
 

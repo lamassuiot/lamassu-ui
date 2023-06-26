@@ -19,6 +19,7 @@ export const EnabledConnectorSynchronizationModal: React.FC<Props> = ({ caName, 
 
     const caData = useAppSelector((state) => caSelector.getCA(state, caName)!);
     const cloudConnector = useAppSelector((state) => cloudProxySelector.getCloudConnector(state, connectorID)!);
+
     return (
         isOpen
             ? (
