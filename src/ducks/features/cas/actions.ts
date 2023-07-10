@@ -88,8 +88,9 @@ export type CreateCA = {
             type: string,
             bits: number
         },
-        ca_duration: number
-        issuance_duration: number,
+        ca_expiration: string
+        issuance_expiration: string,
+        expiration_type: "DATE" | "DURATION"
     }
 }
 

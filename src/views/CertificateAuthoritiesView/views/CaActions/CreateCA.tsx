@@ -1,13 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { FormControl, Grid, InputAdornment, InputLabel, MenuItem, Select, TextField, Typography, useTheme } from "@mui/material";
+import { Button, Divider, Grid, MenuItem, Paper, Typography, useTheme } from "@mui/material";
 import { LamassuSwitch } from "components/LamassuComponents/Switch";
 import { Box } from "@mui/system";
-import { RiShieldKeyholeLine } from "react-icons/ri";
 import { CloudProviderIcon } from "components/CloudProviderIcons";
-import LoadingButton from "@mui/lab/LoadingButton";
-import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
-import { LamassuTable } from "components/LamassuComponents/Table";
 import { LamassuStatusChip } from "components/LamassuComponents/Chip";
 import * as caSelector from "ducks/features/cas/reducer";
 import * as caActions from "ducks/features/cas/actions";
@@ -17,6 +13,38 @@ import * as cloudProxyActions from "ducks/features/cloud-proxy/actions";
 import * as cloudProxySelector from "ducks/features/cloud-proxy/reducer";
 import { ORequestStatus, ORequestType } from "ducks/reducers_utils";
 import { CloudConnector } from "ducks/features/cloud-proxy/models";
+import { useForm } from "react-hook-form";
+import moment, { Moment } from "moment";
+import { FormSelect } from "components/LamassuComponents/dui/form/Select";
+import { FormTextField } from "components/LamassuComponents/dui/form/TextField";
+import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
+import DateInput from "components/LamassuComponents/dui/DateInput";
+
+type FormData = {
+    cryptoEngine: string
+    subject: {
+        commonName: string;
+        country: string;
+        state: string;
+        locality: string;
+        organization: string;
+        organizationUnit: string;
+    }
+    privateKey: {
+        type: "RSA" | "ECDSA"
+        size: number
+    }
+    caExpiration: {
+        type: "duration" | "date" | "date-infinity",
+        date: Moment,
+        duration: number
+    },
+    issuerExpiration: {
+        type: "duration" | "date" | "date-infinity",
+        date: Moment,
+        duration: number
+    },
+};
 
 export const CreateCA = () => {
     const theme = useTheme();
@@ -26,104 +54,83 @@ export const CreateCA = () => {
     const cloudProxyRequestStatus = useAppSelector((state) => caSelector.getRequestStatus(state));
     const caRequestStatus = useAppSelector((state) => caSelector.getRequestStatus(state));
     const cloudConnectors = useAppSelector((state) => cloudProxySelector.getCloudConnectors(state)!);
+
     useEffect(() => {
         dispatch(cloudProxyActions.getConnectorsAction.request());
     }, []);
 
-    const rsaOptions = [
-        {
-            label: "2048",
-            value: 2048,
-            color: theme.palette.warning.main
-        },
-        {
-            label: "3072",
-            value: 3072,
-            color: theme.palette.success.main
-        },
-        {
-            label: "7680",
-            value: 7680,
-            color: theme.palette.success.main
-        }
-    ];
-
-    const ecOptions = [
-        {
-            label: "224",
-            value: 224,
-            color: theme.palette.warning.main
-        },
-        {
-            label: "256",
-            value: 256,
-            color: theme.palette.success.main
-        },
-        {
-            label: "384",
-            value: 384,
-            color: theme.palette.success.main
-        }
-    ];
-
     const [selectedCloudConnectors, setSelectedCloudConnectors] = useState<Array<string>>([]);
+    const { control, getValues, setValue, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
+        defaultValues: {
+            cryptoEngine: "",
+            subject: {
+                commonName: "",
+                country: "",
+                state: "",
+                locality: "",
+                organization: "",
+                organizationUnit: ""
+            },
+            privateKey: {
+                type: "RSA",
+                size: 4096
+            },
+            caExpiration: {
+                type: "duration",
+                duration: 300
+            },
+            issuerExpiration: {
+                type: "duration",
+                duration: 100
+            }
+        }
+    });
 
-    const [caName, setCaName] = useState("");
-    const [country, setCountry] = useState("");
-    const [state, setState] = useState("");
-    const [city, setCity] = useState("");
-    const [org, setOrg] = useState("");
-    const [orgUnit, setOrgUnit] = useState("");
-    const [cn, setCN] = useState("");
-    const [caExpirationValue, setCaExpirationValue] = useState(365);
-    const [caExpirationUnit, setCaExpirationUnit] = useState(60 * 60 * 24);// 24 = days | 24*365 = years
-    const [issuanceDurationValue, setIssuanceDurationValue] = useState(100);
-    const [isuanceDurationUnit, setIsuanceDurationUnit] = useState(60 * 60 * 24);// 24 = days | 24*365 = years
-    const [keyType, setKeyType] = useState("RSA");
-    const [keyBits, setKeyBits] = useState(rsaOptions[1]);
+    const watchSubject = watch("subject");
+    const watchKeyType = watch("privateKey.type");
+    const watchCAExpirationType = watch("caExpiration.type");
+    const watchIssuanceExpirationType = watch("issuerExpiration.type");
 
-    useEffect(() => {
-        setCN(caName);
-    }, [caName]);
+    const handleCreateCA = (formData: FormData) => {
+        console.log(moment.duration(100, "days").asSeconds());
+        console.log(formData);
 
-    const disabledCreateCaButton = caName === "" || cloudProxyRequestStatus.isLoading;
-
-    const handleCreateCa = () => {
         dispatch(caActions.createCAAction.request({
             selectedConnectorIDs: selectedCloudConnectors,
             body: {
                 subject: {
-                    country: country,
-                    state: state,
-                    locality: city,
-                    organization: org,
-                    organization_unit: orgUnit,
-                    common_name: cn
+                    country: formData.subject.country,
+                    state: formData.subject.state,
+                    locality: formData.subject.locality,
+                    organization: formData.subject.organization,
+                    organization_unit: formData.subject.organizationUnit,
+                    common_name: formData.subject.commonName
                 },
                 key_metadata: {
-                    type: keyType,
-                    bits: keyBits.value
+                    type: formData.privateKey.type,
+                    bits: formData.privateKey.size
                 },
-                ca_duration: caExpirationValue * caExpirationUnit,
-                issuance_duration: issuanceDurationValue * isuanceDurationUnit
+                ca_expiration: moment.duration(formData.caExpiration.duration, "days").asSeconds() + "",
+                issuance_expiration: moment.duration(formData.issuerExpiration.duration, "days").asSeconds() + "",
+                expiration_type: "DURATION"
             }
         }));
     };
 
     useEffect(() => {
-        if (keyType === "RSA") {
-            setKeyBits(rsaOptions[1]);
-        } else {
-            setKeyBits(ecOptions[1]);
-        }
-    }, [keyType]);
-
-    useEffect(() => {
         if (caRequestStatus.status === ORequestStatus.Success && caRequestStatus.type === ORequestType.Create) {
-            navigate("/cas/" + caName);
+            navigate("/cas/" + getValues("subject.commonName"));
             dispatch(caActions.resetStateAction());
         }
     }, [caRequestStatus]);
+
+    useEffect(() => {
+        if (watchKeyType === "RSA") {
+            setValue("privateKey.size", 4096);
+        } else {
+            setValue("privateKey.size", 256);
+        }
+    }, [watchKeyType]);
 
     const cloudConnectorsColumnConf = [
         { key: "settings", title: "", align: "start", size: 1 },
@@ -167,147 +174,171 @@ export const CreateCA = () => {
         };
     };
 
-    const keyBitsOptions = keyType === "RSA" ? rsaOptions : ecOptions;
+    const onSubmit = handleSubmit(data => handleCreateCA(data));
 
     return (
-        <Grid container spacing={3} justifyContent="center" alignItems="center" >
-            <Grid item xs={4}>
-                <TextField variant="standard" fullWidth label="CA Name" required value={caName} onChange={(ev) => setCaName(ev.target.value)} />
-            </Grid>
-            <Grid item xs={4}>
-                <FormControl variant="standard" fullWidth>
-                    <InputLabel id="pk-type-simple-select-label">Private Key Type</InputLabel>
-                    <Select
-                        labelId="pk-type-simple-select-label"
-                        id="pk-type-simple-select"
-                        label="Private Key Type"
-                        value={keyType}
-                        onChange={(ev) => setKeyType(ev.target.value)}
-                    >
-                        <MenuItem value="RSA">RSA</MenuItem>
-                        <MenuItem value="ECDSA">ECDSA</MenuItem>
-                    </Select>
-                </FormControl>
-            </Grid>
-            <Grid item xs={4}>
-                <FormControl variant="standard" fullWidth>
-                    <InputLabel id="pk-length-simple-select-label">Private Key Length</InputLabel>
-                    <Select
-                        labelId="pk-length-simple-select-label"
-                        id="pk-length-simple-select"
-                        label="Private Key Length"
-                        value={keyBits.value}
-                        onChange={(ev) => {
-                            setKeyBits(keyBitsOptions.filter(option => option.value === ev.target.value)[0]);
-                        }}
-                        endAdornment={
-                            <InputAdornment position="end" style={{ marginRight: "25px" }}>
-                                <RiShieldKeyholeLine color={keyBits ? keyBits.color : ""} />
-                            </InputAdornment>
-                        }
-                        sx={{ color: keyBits ? keyBits.color : "" }}
-                    >
+        <form onSubmit={onSubmit}>
+            <Grid container spacing={2} justifyContent="center" alignItems="center" sx={{ width: "100%", paddingY: "20px" }}>
+                <Grid item container spacing={2}>
+                    <Grid item xs={12}>
+                        <SubsectionTitle>CA Settings</SubsectionTitle>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <FormSelect control={control} name="cryptoEngine" label="Crypto Engine" value={"aws"}>
+                            <MenuItem value={"aws"}>
+                                <Grid container spacing={2} alignItems={"center"}>
+                                    <Grid item xs={"auto"}>
+                                        <Box component={Paper} sx={{ height: "40px", width: "40px" }}>
+                                            <img src={process.env.PUBLIC_URL + "/assets/AWS-SM.png"} height={"100%"} width={"100%"} />
+                                        </Box>
+                                    </Grid>
+                                    <Grid item xs container spacing={4} alignItems={"center"}>
+                                        <Grid item>
+                                            <Typography fontWeight={"500"} fontSize={"14px"}>Amazon Web Services</Typography>
+                                            <Typography fontWeight={"400"} fontSize={"14px"}>Secrets Manager</Typography>
+                                        </Grid>
+                                        <Grid item>
+                                            <Typography fontWeight={"400"} fontSize={"12px"}></Typography>
+                                            <Typography fontWeight={"400"} fontSize={"12px"}></Typography>
+                                        </Grid>
+                                    </Grid>
+                                </Grid>
+                            </MenuItem>
+                        </FormSelect>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <FormTextField label="CA Name" control={control} name="subject.commonName" />
+                    </Grid>
+                    <Grid item xs={4}>
+                        <FormSelect control={control} name="privateKey.type" label="Key Type">
+                            <MenuItem value={"RSA"}>RSA</MenuItem>
+                            <MenuItem value={"ECDSA"}>ECDSA</MenuItem>
+                        </FormSelect>
+                    </Grid>
+                    <Grid item xs={4}>
                         {
-                            keyBitsOptions.map(option => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)
+                            watchKeyType === "RSA"
+                                ? (
+                                    <FormSelect control={control} name="privateKey.size" label="Key Size">
+                                        <MenuItem value={2048}>2048</MenuItem>
+                                        <MenuItem value={3072}>3072</MenuItem>
+                                        <MenuItem value={4096}>4096</MenuItem>
+                                    </FormSelect>
+                                )
+                                : (
+                                    <FormSelect control={control} name="privateKey.size" label="Key Size">
+                                        <MenuItem value={224}>224</MenuItem>
+                                        <MenuItem value={256}>256</MenuItem>
+                                        <MenuItem value={384}>384</MenuItem>
+                                    </FormSelect>
+                                )
                         }
-                    </Select>
-                </FormControl>
-            </Grid>
-            <Grid item xs={4}>
-                <TextField variant="standard" fullWidth label="Country" value={country} onChange={(ev) => setCountry(ev.target.value)} />
-            </Grid>
-            <Grid item xs={4}>
-                <TextField variant="standard" fullWidth label="State/Province" value={state} onChange={(ev) => setState(ev.target.value)} />
-            </Grid>
-            <Grid item xs={4}>
-                <TextField variant="standard" fullWidth label="Locality" value={city} onChange={(ev) => setCity(ev.target.value)} />
-            </Grid>
-            <Grid item xs={4}>
-                <TextField variant="standard" fullWidth label="Organization" value={org} onChange={(ev) => setOrg(ev.target.value)} />
-            </Grid>
-            <Grid item xs={4}>
-                <TextField variant="standard" fullWidth label="Organization Unit" value={orgUnit} onChange={(ev) => setOrgUnit(ev.target.value)} />
-            </Grid>
-            <Grid item xs={4}>
-                <TextField variant="standard" fullWidth label="Common Name" value={cn} onChange={(ev) => setCN(ev.target.value)} disabled />
-            </Grid>
-
-            <Grid item xs={12} spacing={4} container>
-                <Grid item container alignItems="center" spacing={4}>
-                    <Grid item xs={6}>
-                        <TextField variant="standard" type="number" fullWidth label="CA expiration time" value={caExpirationValue} onChange={(ev) => setCaExpirationValue(parseInt(ev.target.value))} />
-                    </Grid>
-                    <Grid item xs={6}>
-                        <FormControl variant="standard" fullWidth>
-                            <InputLabel id="ca-exp-simple-select-label">CA expiration time units</InputLabel>
-                            <Select
-                                labelId="ca-exp-simple-select-label"
-                                id="ca-exp-simple-select"
-                                label="CA expiration time units"
-                                value={caExpirationUnit}
-                                onChange={(ev) => setCaExpirationUnit(parseInt(ev.target.value + ""))}
-
-                            >
-                                <MenuItem value={1}>Seconds</MenuItem>
-                                <MenuItem value={60}>Minutes</MenuItem>
-                                <MenuItem value={60 * 60}>Hours</MenuItem>
-                                <MenuItem value={60 * 60 * 24}>Days</MenuItem>
-                                <MenuItem value={60 * 60 * 24 * 30}>Months</MenuItem>
-                                <MenuItem value={60 * 60 * 24 * 365}>Years</MenuItem>
-                            </Select>
-                        </FormControl>
                     </Grid>
                 </Grid>
 
-                <Grid item container alignItems="center" spacing={4}>
-                    <Grid item xs={6}>
-                        <TextField variant="standard" type="number" fullWidth label="Issuance expiration time" value={issuanceDurationValue} onChange={(ev) => setIssuanceDurationValue(parseInt(ev.target.value))} />
+                <Grid item sx={{ width: "100%" }}>
+                    <Divider />
+                </Grid>
+
+                <Grid item container spacing={2}>
+                    <Grid item xs={12}>
+                        <SubsectionTitle>Subject</SubsectionTitle>
                     </Grid>
-                    <Grid item xs={6}>
-                        <FormControl variant="standard" fullWidth>
-                            <InputLabel id="ca-exp-units-simple-select-label">Issuance expiration time units</InputLabel>
-                            <Select
-                                labelId="ca-exp-units-simple-select-label"
-                                id="ca-exp-units-simple-select"
-                                label="CA expiration time units"
-                                value={isuanceDurationUnit}
-                                onChange={(ev) => setIsuanceDurationUnit(parseInt(ev.target.value + ""))}
-                            >
-                                <MenuItem value={1}>Seconds</MenuItem>
-                                <MenuItem value={60}>Minutes</MenuItem>
-                                <MenuItem value={60 * 60}>Hours</MenuItem>
-                                <MenuItem value={60 * 60 * 24}>Days</MenuItem>
-                                <MenuItem value={60 * 60 * 24 * 30}>Months</MenuItem>
-                                <MenuItem value={60 * 60 * 24 * 365}>Years</MenuItem>
-                            </Select>
-                        </FormControl>
+                    <Grid item xs={4}>
+                        <FormTextField label="Country" control={control} name="subject.country" />
+                    </Grid>
+                    <Grid item xs={4}>
+                        <FormTextField label="State / Province" control={control} name="subject.state" />
+                    </Grid>
+                    <Grid item xs={4}>
+                        <FormTextField label="Locality" control={control} name="subject.locality" />
+                    </Grid>
+                    <Grid item xs={4}>
+                        <FormTextField label="Organization" control={control} name="subject.organization" />
+                    </Grid>
+                    <Grid item xs={4}>
+                        <FormTextField label="Organization Unit" control={control} name="subject.organizationUnit" />
+                    </Grid>
+                    <Grid item xs={4}>
+                        <FormTextField label="Common Name" control={control} name="subject.commonName" disabled />
                     </Grid>
                 </Grid>
 
-                <Grid item container>
+                <Grid item sx={{ width: "100%" }}>
+                    <Divider />
+                </Grid>
+
+                <Grid item container spacing={2}>
+                    <Grid item xs={12}>
+                        <SubsectionTitle>CA Expiration Settings</SubsectionTitle>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <FormSelect control={control} name="caExpiration.type" label="Expiration By">
+                            <MenuItem value={"duration"}>Duration</MenuItem>
+                            <MenuItem value={"date"} disabled>End Date</MenuItem>
+                            <MenuItem value={"date-infinity"} disabled>End Date - Infinity</MenuItem>
+                        </FormSelect>
+                    </Grid>
+                    <Grid item xs={9} />
                     {
-                        cloudConnectors.length > 0 && (
-                            <Grid item container>
-                                <LamassuTable columnConf={cloudConnectorsColumnConf} data={cloudConnectors} renderDataItem={cloudConnectorRender} />
+                        watchCAExpirationType === "duration" && (
+                            <Grid item xs={4}>
+                                <FormTextField label="Duration (in days)" control={control} name="caExpiration.duration" />
+                            </Grid>
+                        )
+                    }
+                    {
+                        watchCAExpirationType === "date" && (
+                            <Grid item xs={4}>
+                                <DateInput label="Expiration Date" value="" onChange={ev => console.log(ev)} />
                             </Grid>
                         )
                     }
                 </Grid>
 
-                <Grid item container>
-                    <LoadingButton
-                        variant="contained"
-                        endIcon={<AddIcon />}
-                        onClick={() => { handleCreateCa(); }}
-                        loading={caRequestStatus.isLoading && caRequestStatus.type === ORequestType.Create}
-                        loadingPosition="end"
-                        disabled={disabledCreateCaButton}
-                    >
-                        Create CA
-                    </LoadingButton>
+                <Grid item sx={{ width: "100%" }}>
+                    <Divider />
+                </Grid>
+
+                <Grid item container spacing={2}>
+                    <Grid item xs={12}>
+                        <SubsectionTitle>Issuance Expiration Settings</SubsectionTitle>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <FormSelect control={control} name="issuerExpiration.type" label="Expiration By">
+                            <MenuItem value={"duration"}>Duration</MenuItem>
+                            <MenuItem value={"date"} disabled>End Date</MenuItem>
+                            <MenuItem value={"date-infinity"} disabled>End Date - Infinity</MenuItem>
+                        </FormSelect>
+                    </Grid>
+                    <Grid item xs={9} />
+                    {
+                        watchIssuanceExpirationType === "duration" && (
+                            <Grid item xs={4}>
+                                <FormTextField label="Duration (in days)" control={control} name="issuerExpiration.duration" />
+                            </Grid>
+                        )
+                    }
+                    {
+                        watchIssuanceExpirationType === "date" && (
+                            <Grid item xs={4}>
+                                <DateInput label="Expiration Date" value="" onChange={ev => console.log(ev)} />
+                            </Grid>
+                        )
+                    }
+                </Grid>
+
+                <Grid item sx={{ width: "100%" }}>
+                    <Divider />
+                </Grid>
+
+                <Grid item container spacing={2}>
+                    <Grid item>
+                        <Button variant="contained" type="submit" disabled={watchSubject.commonName === ""}>Create CA</Button>
+                    </Grid>
                 </Grid>
             </Grid>
-        </Grid>
+        </form>
 
     );
 };

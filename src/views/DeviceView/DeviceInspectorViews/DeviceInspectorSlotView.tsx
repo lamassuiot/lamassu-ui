@@ -180,7 +180,7 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, deviceID }) =
                         <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Last connection</Typography>
                         <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>{moment(awsDeviceConfig.last_connection).format("DD-MM-YYYY HH:mm")} ({moment(awsDeviceConfig.last_connection).fromNow()})</Typography>
                     </Box>
-                    <Box style={{ margin: "10px 0" }}>
+                    {/* <Box style={{ margin: "10px 0" }}>
                         <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Shadow</Typography>
                         <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>Version: {moment(awsDeviceConfig.last_connection).format("DD-MM-YYYY HH:mm")} ({moment(awsDeviceConfig.last_connection).fromNow()})</Typography>
                         <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>Last Update: {moment(awsDeviceConfig.last_connection).format("DD-MM-YYYY HH:mm")} ({moment(awsDeviceConfig.last_connection).fromNow()})</Typography>
@@ -222,7 +222,7 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, deviceID }) =
                                 </Grid>
                             </Grid>
                         </Grid>
-                    </Box>
+                    </Box> */}
                     <Box style={{ marginTop: "5px" }}>
                         <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>AWS Certificates</Typography>
                         <LamassuTable columnConf={awsDevicesCertificateTableColumn} data={awsDeviceConfig.certificates} renderDataItem={awsTableRenderer} style={{ marginTop: "10px" }} />

@@ -80,7 +80,7 @@ export const UpdateDMSCAs: React.FC<Props> = ({ dmsName, isOpen, onClose = () =>
 
     const casRender = (ca: CertificateAuthority) => {
         return {
-            actions: (dms.host_cloud_dms
+            actions: (dms.cloud_dms
                 ? <LamassuSwitch value={selectedCas.includes(ca.name)} style={{ color: "grey" }} checked={tempCa === ca.name} onChange={() => {
                     const temp = [];
                     temp.push(ca.name);

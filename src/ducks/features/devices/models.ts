@@ -60,6 +60,8 @@ export class Device {
     public slots!: Array<DeviceSlot>
     public icon_name!: string
     public icon_color!: string
+    public icon_color_fg!: string
+    public icon_color_bg!: string
     public status!: DeviceStatus
     public status_color!: DeviceStatus
     public dms_name!: string
@@ -67,7 +69,19 @@ export class Device {
     public creation_timestamp!: Date
 
     constructor (args?: {}) {
+        console.log(args);
+
         Object.assign(this, args);
+        const splitColors = this.icon_color.split("-");
+        console.log(splitColors);
+
+        if (splitColors.length === 2) {
+            this.icon_color_bg = splitColors[0];
+            this.icon_color_fg = splitColors[1];
+        } else {
+            this.icon_color_bg = this.icon_color;
+            this.icon_color_fg = this.icon_color;
+        }
     }
 }
 

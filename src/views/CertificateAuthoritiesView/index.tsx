@@ -54,13 +54,13 @@ const CaCreationActionsWrapper = () => {
                         <Tab component={Link} to="import" label="Import" />
                     </Tabs>
                 </Box>
-                <Divider sx={{ width: "100" }}/>
-                <Box style={{ overflowY: "auto", display: "flex", flexDirection: "column", height: "100%", marginTop: "15px" }}>
-                    <Box sx={{ flexGrow: 1, overflowY: "auto" }}>
+                <Divider sx={{ width: "100" }} />
+                <Box style={{ display: "flex", height: "100%", marginTop: "15px" }}>
+                    <Box sx={{ flexGrow: 1 }}>
                         <Outlet />
                     </Box>
                 </Box>
             </>
-        </FormattedView >
+        </FormattedView>
     );
 };

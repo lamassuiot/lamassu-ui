@@ -17,13 +17,15 @@ export const DeviceCard: React.FC<Props> = ({ device, ...props }) => {
     const alertColorBg = theme.palette.warning.light;
     const alertColorIcon = theme.palette.warning.main;
 
+    console.log(device);
+
     return (
         <Box component={Paper} sx={{ padding: "10px", minHeight: "120px", display: "flex", flexDirection: "column" }} {...props}>
             <Box sx={{ flexGrow: 1 }}>
                 <Grid container alignItems="center" spacing={2}>
                     <Grid item xs="auto">
-                        <Box component={Paper} sx={{ padding: "5px", background: device.icon_color, borderRadius: 2, width: 25, height: 25, display: "flex", justifyContent: "center", alignItems: "center" }}>
-                            <DynamicIcon icon={device.icon_name} size={22} color="#fff" />
+                        <Box component={Paper} sx={{ padding: "5px", background: device.icon_color_bg, borderRadius: 2, width: 25, height: 25, display: "flex", justifyContent: "center", alignItems: "center" }}>
+                            <DynamicIcon icon={device.icon_name} size={22} color={device.icon_color_fg} />
                         </Box>
                     </Grid>
                     <Grid item>

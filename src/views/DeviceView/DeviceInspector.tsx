@@ -78,8 +78,8 @@ export const DeviceInspector: React.FC<Props> = ({ deviceID, slotID }) => {
                                         <Skeleton variant="rectangular" width={"40px"} height={"40px"} sx={{ borderRadius: "10px", marginBottom: "20px" }} />
                                     )
                                     : (
-                                        <Box component={Paper} sx={{ padding: "5px", background: device!.icon_color, borderRadius: 2, width: 40, height: 40, display: "flex", justifyContent: "center", alignItems: "center" }}>
-                                            <DynamicIcon icon={device!.icon_name} size={30} color="#fff" />
+                                        <Box component={Paper} sx={{ padding: "5px", background: device!.icon_color_bg, borderRadius: 2, width: 40, height: 40, display: "flex", justifyContent: "center", alignItems: "center" }}>
+                                            <DynamicIcon icon={device!.icon_name} size={30} color={device!.icon_color_fg} />
                                         </Box>
                                     )
                             }

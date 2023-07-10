@@ -85,11 +85,11 @@ export const DeviceList = () => {
 
     const deviceRender = (device: Device) => {
         const dmsContent = device.dms_name;
-
+        console.log(device);
         return {
             icon: (
-                <Box component={Paper} sx={{ padding: "5px", background: device.icon_color, borderRadius: 2, width: 20, height: 20, display: "flex", justifyContent: "center", alignItems: "center" }}>
-                    <DynamicIcon icon={device.icon_name} size={16} color="#fff" />
+                <Box component={Paper} sx={{ padding: "5px", background: device.icon_color_bg, borderRadius: 2, width: 20, height: 20, display: "flex", justifyContent: "center", alignItems: "center" }}>
+                    <DynamicIcon icon={device.icon_name} size={16} color={device.icon_color_fg} />
                 </Box>
             ),
             id: <Typography style={{ fontWeight: "700", fontSize: 14, color: theme.palette.text.primary }}>#{device.id}</Typography>,

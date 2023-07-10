@@ -1,5 +1,40 @@
 import { createTheme } from "@mui/material/styles";
 
+const componentsTheme = (theme: CustomTheme) => {
+    return {
+        // Name of the component
+        MuiTextField: {
+            defaultProps: {
+                // The props to change the default for.
+                variant: "filled" // No more ripple, on the whole application 💣!
+            }
+        },
+        MuiFilledInput: {
+            defaultProps: {
+                // The props to change the default for.
+                disableUnderline: true,
+                fullWidth: true
+            },
+            styleOverrides: {
+                root: {
+                    borderRadius: "5px",
+                    fontSize: "14px"
+                },
+                input: {
+                    padding: "10px"
+                }
+            }
+        },
+        MuiDivider: {
+            styleOverrides: {
+                root: {
+                    background: theme.palette.divider
+                }
+            }
+        }
+    };
+};
+
 export const light: any = {
     palette: {
         mode: "light",
@@ -181,15 +216,6 @@ export const dark: any = {
                 text: "#eee"
             }
         }
-    },
-    components: {
-        MuiPaper: {
-            styleOverrides: {
-                root: {
-                    backgroundImage: "none"
-                }
-            }
-        }
     }
 } as const;
 
@@ -215,5 +241,5 @@ declare module "@mui/material/styles/createPalette" {
     interface TypeText extends CustomTypeText { }
 }
 
-export const createLightTheme = () => createTheme(light);
-export const createDarkTheme = () => createTheme(dark);
+export const createLightTheme = () => createTheme({ ...light, components: componentsTheme(light) });
+export const createDarkTheme = () => createTheme({ ...dark, components: componentsTheme(dark) });

@@ -4,6 +4,7 @@ import { DMS, DMSManagerInfo, GetDMSsListAPIResponse } from "./models";
 
 export const actionTypes = {
     GET_INFO_DMS_MANAGER_API: "GET_INFO_DMS_MANAGER_API",
+    GET_DMS: "GET_DMS",
     GET_DMS_LIST: "GET_DMS_LIST",
     CREATE_DMS: "CREATE_DMS",
     APPROVE_DMS_REQUEST: "APPROVE_DMS_REQUEST",
@@ -16,6 +17,13 @@ export const getInfoAction = createAsyncAction(
     [actionTypes.GET_INFO_DMS_MANAGER_API, () => { }],
     [success(actionTypes.GET_INFO_DMS_MANAGER_API), (req: DMSManagerInfo) => req],
     [failed(actionTypes.GET_INFO_DMS_MANAGER_API), (req: Error) => req]
+)();
+export type GetDMSAction = {name: string}
+
+export const getDMSAction = createAsyncAction(
+    [actionTypes.GET_DMS, (req: GetDMSAction) => req],
+    [success(actionTypes.GET_DMS), (req: DMS) => { return req; }],
+    [failed(actionTypes.GET_DMS), (req: Error) => req]
 )();
 
 export type GetDMSsAction = {
@@ -32,33 +40,13 @@ export const getDMSListAction = createAsyncAction(
     [failed(actionTypes.GET_DMS_LIST), (req: Error) => req]
 )();
 
-export type CreateDMSForm= {
-    subject: {
-        country: string,
-        state: string,
-        locality: string,
-        organization: string,
-        organization_unit: string,
-        common_name: string
-    },
-    key_metadata: {
-        type: "RSA" | "ECDSA",
-        bits: number
-    },
-    host_cloud_dms: boolean,
-    bootstrap_cas: Array<string>
-}
-export type CreateDMSRequest = {
-    form: CreateDMSForm
-}
-
 export type CreateDMSRequestSuccess = {
     dms: DMS
     private_key: string
 }
 
 export const createDMSWithFormAction = createAsyncAction(
-    [actionTypes.CREATE_DMS, (req: CreateDMSRequest) => req],
+    [actionTypes.CREATE_DMS, (req: any) => req],
     [success(actionTypes.CREATE_DMS), (req: CreateDMSRequestSuccess) => req],
     [failed(actionTypes.CREATE_DMS), (req: Error) => req]
 )();

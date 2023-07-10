@@ -216,5 +216,5 @@ const parseDevice = (newDevice: Device) => {
             newDevice.slots[i].archive_certificates[j].key_metadata.strength_color = keyStrengthToColor(newDevice.slots[i].archive_certificates[j].key_metadata.strength);
         }
     }
-    return newDevice;
+    return new Device({ ...newDevice });
 };

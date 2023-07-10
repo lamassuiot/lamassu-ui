@@ -8,7 +8,7 @@ interface TabsListProps {
     contentStyle?: React.CSSProperties
 }
 
-interface TabsListItemsProps {
+export interface TabsListItemsProps {
     label: React.ReactNode;
     element: React.ReactNode;
 }

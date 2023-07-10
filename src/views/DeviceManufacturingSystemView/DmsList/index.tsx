@@ -217,7 +217,7 @@ export const DmsList = () => {
                                 <Grid container spacing={1}>
                                     <Grid item xs={12} container>
                                         <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Authorized CAs</Typography>
-                                        <Grid container spacing={2}>
+                                        <Grid container>
                                             {
                                                 dms.cloud_dms
                                                     ? (

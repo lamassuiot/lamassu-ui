@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Autocomplete, AutocompleteProps, AutocompleteRenderInputParams, useTheme } from "@mui/material";
 import { TextField } from "./TextField";
 
@@ -17,12 +17,15 @@ const RenderInputAutocomplete: React.FC<AutocompleteRenderInputParamsProps> = ({
     onClick = (ev: React.MouseEvent<HTMLElement>) => { },
     ...other
 }) => {
+    console.log(other);
+
     return (
         <div ref={InputProps.ref} >
             <TextField
                 {...InputProps}
                 {...other}
                 label={label}
+
                 onClick={onClick}
                 placeholder={placeholder}
             />
@@ -36,16 +39,27 @@ interface MultiTextInputProps extends Omit<AutocompleteProps<any, true, true, tr
 }
 
 const MultiTextInput: React.FC<MultiTextInputProps> = ({ label, ...rest }) => {
+    console.log(rest);
+    const [opts, setOpts] = useState([]);
     const theme = useTheme();
     return (
         <Autocomplete
-            id="tags-standard"
-            ChipProps={{ sx: { borderRadius: "5px", fontSize: "12px", color: "#fff", background: "#555" } }}
-            renderInput={(params) => {
-                return (
-                    <RenderInputAutocomplete {...params} label={label} placeholder={rest.placeholder} />
-                );
+            value={opts}
+            onChange={(ev) => {
+                console.log(ev);
+                // @ts-ignore
+                console.log(ev.target.value);
             }}
+            ChipProps={{ sx: { borderRadius: "5px", fontSize: "12px", color: "#fff", background: "#555" } }}
+            getOptionLabel={(option) => option.name}
+            renderInput={(params) => (
+                <TextField
+                    {...params}
+                    label={label}
+                    placeholder={rest.placeholder}
+
+                />
+            )}
             {...rest}
         />
     );

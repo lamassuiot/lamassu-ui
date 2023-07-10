@@ -1,11 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
-import { Button, Chip, Dialog, DialogContent, DialogTitle, Divider, Grid, MenuItem, Typography, useTheme } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { useAppSelector } from "ducks/hooks";
-import * as dmsSelector from "ducks/features/dms-enroller/reducer";
-import * as dmsApicalls from "ducks/features/dms-enroller/apicalls";
-import { useDispatch } from "react-redux";
+import { Button, Chip, Dialog, DialogContent, DialogTitle, Divider, Grid, MenuItem, Skeleton, Typography, useTheme } from "@mui/material";
 import * as CG from "react-icons/cg";
 import { useForm } from "react-hook-form";
 import { Icon } from "components/LamassuComponents/dui/IconInput";
@@ -17,10 +12,13 @@ import { FormSwitch } from "components/LamassuComponents/dui/form/Switch";
 import Label from "components/LamassuComponents/dui/typographies/Label";
 import CertificateImporter from "components/LamassuComponents/composed/CreateCAForm/CertificateImporter";
 import { TextField } from "components/LamassuComponents/dui/TextField";
-
+import * as caApicalls from "ducks/features/cas/apicalls";
 import CASelector from "components/LamassuComponents/lamassu/CASelector";
 import { FormMultiTextInput } from "components/LamassuComponents/dui/form/MultiTextInput";
 import { CertificateAuthority } from "ducks/features/cas/models";
+import { DMS } from "ducks/features/dms-enroller/models";
+import { useDispatch } from "react-redux";
+
 type StaticCertificate = {
     name: string
     certificate: string
@@ -84,8 +82,8 @@ type FormData = {
         protocol: "EST"
         estAuthMode: "BOOTSTRAP_MTLS";
         enrollmentCA: undefined | CertificateAuthority;
-        validationCA: undefined | CertificateAuthority;
-        overrideEnrollment: false,
+        validationCAs: CertificateAuthority[];
+        overrideEnrollment: boolean,
     }
     enrollDeviceRegistration: {
         icon: Icon,
@@ -108,15 +106,19 @@ type FormData = {
     }
 };
 
-export const CreateDms = () => {
+interface Props {
+    dms?: DMS,
+    onSubmit: (dms: any) => void
+}
+
+export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
     const theme = useTheme();
-    const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    const requestSt1tus = useAppSelector((state) => dmsSelector.getRequestStatus(state)!);
-    const privateKey = useAppSelector((state) => dmsSelector.getLastCreatedDMSPrivateKey(state)!);
+    const editMode = dms !== undefined;
+    const [loading, setLoading] = useState(true);
 
-    const { control, setValue, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
+    const { control, setValue, reset, getValues, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
         defaultValues: {
             dmsDefinition: {
                 name: "",
@@ -127,7 +129,7 @@ export const CreateDms = () => {
                 estAuthMode: "BOOTSTRAP_MTLS",
                 overrideEnrollment: false,
                 enrollmentCA: undefined,
-                validationCA: undefined
+                validationCAs: []
             },
             enrollDeviceRegistration: {
                 icon: {
@@ -143,6 +145,7 @@ export const CreateDms = () => {
             },
             caDistribution: {
                 includeDownstream: true,
+                includeAuthorized: true,
                 managedCAs: [],
                 staticCAs: []
             },
@@ -154,9 +157,69 @@ export const CreateDms = () => {
         }
     });
 
-    const onSubmit = handleSubmit(data => {
+    useEffect(() => {
         const run = async () => {
-            console.log(data);
+            if (!editMode) {
+                setLoading(false);
+            } else {
+                const casResp = await caApicalls.getCAs(100, 0, "asc", "name", []);
+                console.log(dms);
+                const updateDMS : FormData = {
+                    dmsDefinition: {
+                        name: dms.name,
+                        deploymentMode: dms.cloud_dms ? "cloud" : "onpremise"
+                    },
+                    enrollProtocol: {
+                        protocol: "EST",
+                        estAuthMode: dms!.identity_profile.general_setting.enrollment_mode === "BOOTSTRAP_MTLS" ? "BOOTSTRAP_MTLS" : "BOOTSTRAP_MTLS",
+                        overrideEnrollment: dms!.identity_profile.enrollment_settings.allow_new_auto_enrollment,
+                        enrollmentCA: casResp.cas.find(ca => ca.name === dms!.identity_profile.enrollment_settings.authorized_ca)!,
+                        validationCAs: dms!.identity_profile.enrollment_settings.bootstrap_cas.map(ca => casResp.cas.find(caF => caF.name === ca)!)
+                    },
+                    enrollDeviceRegistration: {
+                        icon: {
+                            bg: dms!.identity_profile.enrollment_settings.color.split("-")[0],
+                            fg: dms!.identity_profile.enrollment_settings.color.split("-")[1],
+                            icon: { icon: CG.CgSmartphoneChip, name: "CgSmartphoneChip" }
+                        },
+                        tags: dms!.identity_profile.enrollment_settings.tags
+                    },
+                    reEnroll: {
+                        allowedRenewalDelta: dms!.identity_profile.reenrollment_settings.preventive_renewal_interval,
+                        allowExpired: dms!.identity_profile.reenrollment_settings.allow_expired_renewal
+                    },
+                    caDistribution: {
+                        includeAuthorized: true,
+                        includeDownstream: dms!.identity_profile.ca_distribution_settings.include_lamassu_downstream_ca,
+                        managedCAs: dms!.identity_profile.ca_distribution_settings.managed_cas.map(ca => casResp.cas.find(caF => caF.name === ca)!),
+                        staticCAs: []
+                    },
+                    iotIntegrations: {
+                        enableShadow: true,
+                        enableCADistributionSync: dms!.identity_profile.aws_iotcore_publish,
+                        shadowType: dms!.aws.shadow_type.toLowerCase() === "classic" ? "classic" : "named"
+                    }
+                };
+                console.log(updateDMS);
+                setLoading(false);
+                reset(updateDMS);
+            }
+        };
+        run();
+    }, []);
+
+    if (loading) {
+        return (
+            <>
+                <Skeleton variant="rectangular" width={"100%"} height={25} sx={{ borderRadius: "5px", marginBottom: "20px" }} />
+                <Skeleton variant="rectangular" width={"100%"} height={25} sx={{ borderRadius: "5px", marginBottom: "20px" }} />
+                <Skeleton variant="rectangular" width={"100%"} height={25} sx={{ borderRadius: "5px", marginBottom: "20px" }} />
+            </>
+        );
+    }
+
+    const submit = handleSubmit(data => {
+        const run = async () => {
             const actionPayload = {
                 name: data.dmsDefinition.name,
                 cloud_dms: data.dmsDefinition.deploymentMode === "cloud",
@@ -174,9 +237,7 @@ export const CreateDms = () => {
                         icon: data.enrollDeviceRegistration.icon.icon.name,
                         color: `${data.enrollDeviceRegistration.icon.bg}-${data.enrollDeviceRegistration.icon.fg}`,
                         authorized_ca: data.enrollProtocol.enrollmentCA?.name,
-                        bootstrap_cas: [
-                            data.enrollProtocol.validationCA?.name
-                        ]
+                        bootstrap_cas: data.enrollProtocol.validationCAs.map(ca => ca.name)
                     },
                     reenrollment_settings: {
                         allow_expired_renewal: data.reEnroll.allowExpired,
@@ -196,26 +257,23 @@ export const CreateDms = () => {
                     aws_iotcore_publish: data.iotIntegrations.enableCADistributionSync
                 }
             };
-            console.log(actionPayload);
-            await dmsApicalls.createDMS(actionPayload);
-            await dmsApicalls.updateDMS({ ...actionPayload, status: "APPROVED" });
-            navigate("/dms");
+            onSubmit(actionPayload);
         };
         run();
     });
 
     return (
-        <form onSubmit={onSubmit}>
+        <form onSubmit={submit}>
             <Grid container spacing={2} justifyContent="center" alignItems="center" sx={{ width: "100%", paddingY: "20px" }}>
                 <Grid item container spacing={2}>
                     <Grid item xs={12}>
                         <SubsectionTitle>Device Manufacturing Definition</SubsectionTitle>
                     </Grid>
                     <Grid item xs={12}>
-                        <FormTextField label="DMS Name" control={control} name="dmsDefinition.name" />
+                        <FormTextField label="DMS Name" control={control} name="dmsDefinition.name" disabled={editMode} />
                     </Grid>
                     <Grid item xs={12}>
-                        <FormSelect control={control} name="dmsDefinition.deploymentMode" label="Deployment Mode">
+                        <FormSelect control={control} name="dmsDefinition.deploymentMode" label="Deployment Mode" disabled={editMode}>
                             <MenuItem value={"cloud"}>Hosted by Lamassu</MenuItem>
                             <MenuItem disabled value={"onpremise"}>On Premise</MenuItem>
                         </FormSelect>
@@ -259,7 +317,7 @@ export const CreateDms = () => {
                         </FormSelect>
                     </Grid>
                     <Grid item xs={12}>
-                        <CASelector onSelect={(elems) => {
+                        <CASelector value={getValues("enrollProtocol.enrollmentCA")} onSelect={(elems) => {
                             if (!Array.isArray(elems)) {
                                 setValue("enrollProtocol.enrollmentCA", elems);
                             }
@@ -267,11 +325,11 @@ export const CreateDms = () => {
                         />
                     </Grid>
                     <Grid item xs={12}>
-                        <CASelector onSelect={(elems) => {
-                            if (!Array.isArray(elems)) {
-                                setValue("enrollProtocol.validationCA", elems);
+                        <CASelector value={getValues("enrollProtocol.validationCAs")} onSelect={(elems) => {
+                            if (Array.isArray(elems)) {
+                                setValue("enrollProtocol.validationCAs", elems);
                             }
-                        }} multiple={false} label="Validation CA (Bootstrap CA)" />
+                        }} multiple={true} label="Validation CA (Bootstrap CA)" />
                     </Grid>
                     <Grid item xs={12}>
                         <FormSwitch control={control} name="enrollProtocol.overrideEnrollment" label="Allow Override Enrollment" />

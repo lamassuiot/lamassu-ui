@@ -21,6 +21,20 @@ export const getInfoEpic: Epic<RootAction, RootAction, RootState, {}> = (action$
         )
     );
 
+export const getDMSEpic: Epic<RootAction, RootAction, RootState, {}> = (action$, store$) =>
+    action$.pipe(
+        filter(isActionOf(actions.getDMSAction.request)),
+        tap((item: any) => console.log("%c Epic ", "background:#399999; border-radius:5px;font-weight: bold;", "", item)),
+        exhaustMap((action: PayloadAction<string, actions.GetDMSAction>) =>
+            from(apicalls.getDMS(
+                action.payload.name
+            )).pipe(
+                map(actions.getDMSAction.success),
+                catchError((message) => of(actions.getDMSAction.failure(message)))
+            )
+        )
+    );
+
 export const getDMSListEpic: Epic<RootAction, RootAction, RootState, {}> = (action$, store$) =>
     action$.pipe(
         filter(isActionOf(actions.getDMSListAction.request)),
@@ -42,8 +56,8 @@ export const createDMSEpic: Epic<RootAction, RootAction, RootState, {}> = (actio
     action$.pipe(
         filter(isActionOf(actions.createDMSWithFormAction.request)),
         tap((item: any) => console.log("%c Epic ", "background:#399999; border-radius:5px;font-weight: bold;", "", item)),
-        exhaustMap((action: PayloadAction<string, actions.CreateDMSRequest>) =>
-            from(apicalls.createDMS(action.payload.form)).pipe(
+        exhaustMap((action: PayloadAction<string, any>) =>
+            from(apicalls.createDMS(action.payload)).pipe(
                 map(actions.createDMSWithFormAction.success),
                 catchError((message) => of(actions.createDMSWithFormAction.failure(message)))
             )

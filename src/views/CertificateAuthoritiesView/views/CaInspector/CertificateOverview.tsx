@@ -25,7 +25,7 @@ export const CerificateOverview: React.FC<Props> = ({ caName }) => {
         common_name: "Common Name"
     };
 
-    const issuanceDuration = moment.duration(caData.issuance_duration * 1000);
+    const issuanceDuration = moment.duration(caData.issuance_expiration * 1000);
     let issuanceDurationString = "";
     if (issuanceDuration.asSeconds() > 60) {
         if (issuanceDuration.asMinutes() > 60) {

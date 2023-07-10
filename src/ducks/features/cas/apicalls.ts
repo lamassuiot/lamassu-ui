@@ -1,4 +1,5 @@
 import { apiRequest } from "ducks/services/api";
+import { GetCAsListAPIResponse } from "./models";
 
 export const getInfo = async (): Promise<any> => {
     return apiRequest({
@@ -21,7 +22,7 @@ export const getCryptoEngine = async (): Promise<any> => {
     });
 };
 
-export const getCAs = async (limit: number, offset: number, sortMode: "asc" | "desc", sortField: string, filterQuery: Array<string>): Promise<any> => {
+export const getCAs = async (limit: number, offset: number, sortMode: "asc" | "desc", sortField: string, filterQuery: Array<string>): Promise<GetCAsListAPIResponse> => {
     let url = window._env_.LAMASSU_CA_API + `/v1/pki?sort_by=${sortField}.${sortMode}&limit=${limit}&offset=${offset}`;
     filterQuery.forEach(filter => {
         url += `&filter=${filter}`;
@@ -56,8 +57,8 @@ type CreateCA = {
         type: string,
         bits: number
     },
-    ca_duration: number,
-    issuance_duration: number
+    ca_expiration: string,
+    issuance_expiration: string
 }
 
 export const createCA = async (payload: CreateCA) => {

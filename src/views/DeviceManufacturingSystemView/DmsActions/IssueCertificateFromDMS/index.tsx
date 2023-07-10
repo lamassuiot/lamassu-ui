@@ -136,7 +136,7 @@ export const IssueCertificateFromDMS: React.FC<Props> = ({ dmsName, defaultCN = 
 
     const refreshAction = async () => {
         const dmsList = await dmsApiCalls.getDMSList(20, 0, "asc", "", []);
-        const filteredDMSList = dmsList.dmss.filter(dms => dms.name === dmsName);
+        const filteredDMSList = dmsList.dmss.filter((dms: any) => dms.name === dmsName);
         if (filteredDMSList.length === 1) {
             setDMS(filteredDMSList[0]);
             dispatch(caActions.getCAsAction.request({

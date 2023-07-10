@@ -3,9 +3,12 @@ import { IconContext } from "react-icons"
 import loadable from "@loadable/component"
 
 export const DynamicIcon = ({ icon, ...props }) => {
-  const [library, iconComponent] = icon.split("/")
+  const library = icon.substring(0, 2)
+  const iconComponent = icon
 
   if (!library || !iconComponent) return <div>Could Not Find Icon</div>
+
+  console.log(props);
 
   const lib = library.toLowerCase()
   const Icon = loadable(() => import(`react-icons/${lib}/index.js`), {

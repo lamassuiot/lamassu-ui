@@ -22,6 +22,9 @@ export type DMS = {
     status: DMSStatus
     status_color: string
     cloud_dms: boolean
+    aws: {
+        shadow_type: string
+    },
     remote_access_identity: {
         authorized_cas: Array<string>
         key_metadata: {
@@ -45,11 +48,12 @@ export type DMS = {
     }
 
     identity_profile: {
-        general_settings: {
+        general_setting: {
             enrollment_mode: string
         },
         enrollment_settings: {
             authentication_mode: string
+            allow_new_auto_enrollment: boolean
             tags: Array<string>
             icon: string
             color: string
@@ -57,16 +61,20 @@ export type DMS = {
             bootstrap_cas: Array<string>
         },
         reenrollment_settings: {
+            allow_expired_renewal: boolean
             preventive_renewal_interval: string
         },
         ca_distribution_settings: {
             include_authorized_ca: boolean
+            include_lamassu_downstream_ca: boolean
             include_bootstrap_cas: boolean
+            managed_cas: string[]
             static_cas: Array<{
                 id: string,
                 certificate: string
             }>
         }
+        aws_iotcore_publish: boolean
     }
 }
 

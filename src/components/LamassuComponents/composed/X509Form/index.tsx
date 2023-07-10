@@ -95,7 +95,7 @@ const X509Form: React.FC<X509FormProps> = ({ value, onChange }) => {
                     <SubsectionTitle>Subject</SubsectionTitle>
                 </Grid>
                 <Grid item xs={12}>
-                    <TextField label="Common Name" value={value.subject.cn} onChange={ev => onChange({ ...value, subject: { ...value.subject, cn: ev.target.value } })} validateFunc={(value) => { return value !== undefined && value !== ""; }} />
+                    <TextField label="Common Name" value={value.subject.cn} onChange={ev => onChange({ ...value, subject: { ...value.subject, cn: ev.target.value } })} />
                 </Grid>
                 <Grid item xs={12} md={4}>
                     <TextField label="Country" value={value.subject.country} onChange={ev => onChange({ ...value, subject: { ...value.subject, country: ev.target.value } })} />
