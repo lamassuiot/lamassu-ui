@@ -9,10 +9,10 @@ on:
         
 jobs:
   build_aws_connector_docker_image:
-    name: AWS Connector - Release docker images
+    name: Release docker images
     runs-on: ubuntu-latest
     steps:        
-    - name: Login to DockerHub
+    - name: Login to Github Registry
       uses: docker/login-action@v1 
       with:
           registry: ghcr.io
@@ -22,11 +22,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@master
 
-    - name: Build AWS Connector docker image
+    - name: Build Docker image
       uses: docker/build-push-action@v2
       with:
-        context: ./aws-connector
-        file: aws-connector/Dockerfile
+        context: .
         build-args: |
           BASE_IMAGE=alpine:3.14
         tags: |
