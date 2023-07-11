@@ -55,9 +55,12 @@ interface IconInputProps {
     label: string,
     value?: Icon,
     onChange?: (newIcon: Icon) => void
+    readonly?: boolean
+    size?: number
+    iconSize?: number
 }
 
-const IconInput: React.FC<IconInputProps> = ({ label, value = { bg: "#25ee32", fg: "#222222", icon: { icon: CG.CgSmartphoneChip, name: "CgSmartphoneChip" } }, onChange }) => {
+const IconInput: React.FC<IconInputProps> = ({ label, size = 45, iconSize = size - 15, readonly = false, value = { bg: "#25ee32", fg: "#222222", icon: { icon: CG.CgSmartphoneChip, name: "CgSmartphoneChip" } }, onChange }) => {
     const theme = useTheme();
     const [icon, setIcon] = useState<Icon | undefined>(value);
     const [open, setOpen] = useState(false);
@@ -100,9 +103,13 @@ const IconInput: React.FC<IconInputProps> = ({ label, value = { bg: "#25ee32", f
                         icon !== undefined
                             ? (
                                 <Grid item>
-                                    <Box onClick={() => setOpen(true)} sx={{ display: "flex", alignItems: "center", justifyContent: "center", width: "45px", height: "45px", background: icon.bg, cursor: "pointer" }} component={Paper}>
+                                    <Box onClick={() => {
+                                        if (!readonly) {
+                                            setOpen(true);
+                                        }
+                                    }} sx={{ display: "flex", alignItems: "center", justifyContent: "center", width: size, height: size, background: icon.bg, cursor: !readonly ? "pointer" : "inherit", borderRadius: "8px" }} component={Paper}>
                                         {
-                                            icon.icon.icon({ fontSize: "25px", color: icon.fg })
+                                            icon.icon.icon({ fontSize: iconSize, color: icon.fg })
                                         }
                                     </Box>
                                 </Grid>

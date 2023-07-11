@@ -24,7 +24,7 @@ const CSRImporter: React.FC<CSRImporterProps> = ({ onCreate }) => {
     const [csr, setCsr] = useState<string | undefined>();
 
     return (
-        <Grid container spacing={1}>
+        <Grid container spacing={1} sx={{ minWidth: "475px" }}>
             <Grid item xs={12}>
                 <TextField label="Paste CSR" value={csr} onChange={(ev) => setCsr(ev.target.value)} multiline placeholder={csrPlaceHolder} sx={{ fontFamily: "monospace", fontSize: "0.7rem" }} />
             </Grid>

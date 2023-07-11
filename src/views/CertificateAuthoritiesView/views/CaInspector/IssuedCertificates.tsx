@@ -193,7 +193,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caName }) => {
             />
             {
                 displayIssueCert && (
-                    <IssueCert caName={caName} isOpen={displayIssueCert} onClose={() => { setDisplayIssueCert(false); }} />
+                    <IssueCert caName={caName} isOpen={displayIssueCert} onClose={() => { setDisplayIssueCert(false); refreshAction(); }} />
                 )
             }
         </>
