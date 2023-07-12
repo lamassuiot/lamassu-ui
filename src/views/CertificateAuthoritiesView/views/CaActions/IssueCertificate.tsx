@@ -5,8 +5,6 @@ import * as caApicalls from "ducks/features/cas/apicalls";
 import Stepper from "@mui/material/Stepper/Stepper";
 import Step from "@mui/material/Step/Step";
 import StepLabel from "@mui/material/StepLabel/StepLabel";
-import { materialLight, materialOceanic } from "react-syntax-highlighter/dist/esm/styles/prism";
-import SyntaxHighlighter from "react-syntax-highlighter";
 import { Skeleton } from "@mui/lab";
 import Box from "@mui/material/Box/Box";
 import FileDownloadRoundedIcon from "@mui/icons-material/FileDownloadRounded";
@@ -14,6 +12,7 @@ import downloadFile from "components/utils/FileDownloader";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import { Certificate } from "@fidm/x509";
 import CertRequestForm from "components/LamassuComponents/composed/CertRequestForm";
+import { CodeCopier } from "components/LamassuComponents/dui/CodeCopier";
 
 interface Props {
     caName: string,
@@ -140,9 +139,7 @@ export const IssueCert: React.FC<Props> = ({ caName, isOpen, onClose = () => { }
                                                         rawCrt !== undefined && (
                                                             <>
                                                                 <Grid item xs="auto">
-                                                                    <SyntaxHighlighter language="json" style={themeMode === "light" ? materialLight : materialOceanic} customStyle={{ fontSize: 10, padding: 20, borderRadius: 10, width: "fit-content", height: "fit-content" }} wrapLines={true} lineProps={{ style: { color: theme.palette.text.primaryLight } }}>
-                                                                        {window.atob(rawCrt)}
-                                                                    </SyntaxHighlighter>
+                                                                    <CodeCopier code={rawCrt} />
                                                                 </Grid>
                                                                 <Grid item xs="auto" container flexDirection={"column"} spacing={1}>
                                                                     <Grid item>

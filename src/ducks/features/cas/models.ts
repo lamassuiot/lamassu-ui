@@ -68,7 +68,7 @@ export class CertificateAuthority {
     public valid_from!: number
     public valid_to!: number
 
-    public issuance_expiration!: number
+    public issuance_duration!: number
     public ca_expiration!: number
 
     public total_issued_certificates!: number

@@ -110,9 +110,9 @@ export const CreateCA = () => {
                     type: formData.privateKey.type,
                     bits: formData.privateKey.size
                 },
-                ca_expiration: moment.duration(formData.caExpiration.duration, "days").asSeconds() + "",
-                issuance_expiration: moment.duration(formData.issuerExpiration.duration, "days").asSeconds() + "",
-                expiration_type: "DURATION"
+                ca_expiration: formData.caExpiration.type === "duration" ? moment.duration(formData.caExpiration.duration, "days").asSeconds() + "" : "99991231T235959Z",
+                issuance_expiration: formData.issuerExpiration.type === "duration" ? moment.duration(formData.issuerExpiration.duration, "days").asSeconds() + "" : "99991231T235959Z",
+                expiration_type: formData.caExpiration.type === "duration" ? "DURATION" : "DATE"
             }
         }));
     };
@@ -276,7 +276,7 @@ export const CreateCA = () => {
                         <FormSelect control={control} name="caExpiration.type" label="Expiration By">
                             <MenuItem value={"duration"}>Duration</MenuItem>
                             <MenuItem value={"date"} disabled>End Date</MenuItem>
-                            <MenuItem value={"date-infinity"} disabled>End Date - Infinity</MenuItem>
+                            <MenuItem value={"date-infinity"}>End Date - Infinity</MenuItem>
                         </FormSelect>
                     </Grid>
                     <Grid item xs={9} />
@@ -308,7 +308,7 @@ export const CreateCA = () => {
                         <FormSelect control={control} name="issuerExpiration.type" label="Expiration By">
                             <MenuItem value={"duration"}>Duration</MenuItem>
                             <MenuItem value={"date"} disabled>End Date</MenuItem>
-                            <MenuItem value={"date-infinity"} disabled>End Date - Infinity</MenuItem>
+                            <MenuItem value={"date-infinity"}>End Date - Infinity</MenuItem>
                         </FormSelect>
                     </Grid>
                     <Grid item xs={9} />
