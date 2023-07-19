@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Dialog, DialogActions, Paper, DialogContent, DialogTitle, Grid, Tooltip, Typography, useTheme, IconButton } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Typography, useTheme } from "@mui/material";
 import { useDispatch } from "react-redux";
 import * as caApicalls from "ducks/features/cas/apicalls";
 import Stepper from "@mui/material/Stepper/Stepper";
@@ -7,12 +7,10 @@ import Step from "@mui/material/Step/Step";
 import StepLabel from "@mui/material/StepLabel/StepLabel";
 import { Skeleton } from "@mui/lab";
 import Box from "@mui/material/Box/Box";
-import FileDownloadRoundedIcon from "@mui/icons-material/FileDownloadRounded";
-import downloadFile from "components/utils/FileDownloader";
-import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 import { Certificate } from "@fidm/x509";
 import CertRequestForm from "components/LamassuComponents/composed/CertRequestForm";
 import { CodeCopier } from "components/LamassuComponents/dui/CodeCopier";
+import CertificateDecoder from "components/LamassuComponents/composed/CreateCAForm/CertificateDecoder";
 
 interface Props {
     caName: string,
@@ -134,37 +132,18 @@ export const IssueCert: React.FC<Props> = ({ caName, isOpen, onClose = () => { }
 
                                                         )
                                                 }
-                                                <Grid item xs={6} container justifyContent={"center"} spacing={1}>
-                                                    {
-                                                        rawCrt !== undefined && (
-                                                            <>
-                                                                <Grid item xs="auto">
-                                                                    <CodeCopier code={rawCrt} />
-                                                                </Grid>
-                                                                <Grid item xs="auto" container flexDirection={"column"} spacing={1}>
-                                                                    <Grid item>
-                                                                        <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
-                                                                            <Tooltip title="Copy to Clipboard">
-                                                                                <IconButton onClick={(ev) => { ev.stopPropagation(); navigator.clipboard.writeText(window.atob(rawCrt)); }}>
-                                                                                    <ContentPasteIcon fontSize={"small"} />
-                                                                                </IconButton>
-                                                                            </Tooltip>
-                                                                        </Box>
-                                                                    </Grid>
-                                                                    <Grid item>
-                                                                        <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
-                                                                            <Tooltip title="Download Bootstrap CRT">
-                                                                                <IconButton onClick={(ev) => { ev.stopPropagation(); downloadFile(caName + "issued-cert.crt", window.atob(rawCrt)); }}>
-                                                                                    <FileDownloadRoundedIcon fontSize={"small"} />
-                                                                                </IconButton>
-                                                                            </Tooltip>
-                                                                        </Box>
-                                                                    </Grid>
-                                                                </Grid>
-                                                            </>
-                                                        )
-                                                    }
-                                                </Grid>
+                                                {
+                                                    rawCrt !== undefined && (
+                                                        <>
+                                                            <Grid item xs={6} justifyContent={"center"} spacing={1}>
+                                                                <CodeCopier code={atob(rawCrt)} enableDownload downloadFileName={caName + "_" + parsedSignedCert.subject.commonName + "crt"} />
+                                                            </Grid>
+                                                            <Grid item xs={6} justifyContent={"center"} spacing={1}>
+                                                                <CertificateDecoder crt={atob(rawCrt)} />
+                                                            </Grid>
+                                                        </>
+                                                    )
+                                                }
                                             </>
                                         )
                                 }

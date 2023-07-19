@@ -3,21 +3,18 @@ import { TextField } from "components/LamassuComponents/dui/TextField";
 import React, { useState } from "react";
 import CertificateImporter from "./CertificateImporter";
 
-const keyPlaceHolder = `-----BEGIN CERTIFICATE REQUEST-----
-MIIBNzCB3QIBADBTMVEwCQYDVQQLEwJJVDAUBgNVBAoTDUxLUyAtIElrZXJsYW4w
-CQYDVQQGEwJFUzAPBgNVBAgTCEdpcHV6a29hMBIGA1UEAxMLTGFtYXNzdSBJb1Qw
-WTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAT9GpFufUkIQ0JBFVhN55diPm/UWamx
-YwDMAxw/TmgX6aBFzbsJOc8GIqyIzUxUWSdAo32OGrfnCfQza6DHmy2JoCgwJgYJ
-KoZIhvcNAQkOMRkwFzAVBgNVHREEDjAMggpsYW1hc3N1LmlvMAoGCCqGSM49BAMC
-A0kAMEYCIQCrBQ/UOec1aHPeKE962EvIvzqZitQAeSf6yCzElTZ9IAIhALUMuz+0
-C3Rzdw39eIksMyCphq82zihsSZpa8pZPWz6v
------END CERTIFICATE REQUEST-----`;
+const keyPlaceHolder = `-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIOUXa254YMYXWksCADpHFdJ+ly+nrQFsa0ozEuTZXmP5oAoGCCqGSM49
+AwEHoUQDQgAEuLp+SvdUZJTXqCHivs3BpwfkKSAZl9ug9590zn7Hec2dLZj1tPG6
+uywNx1FjrBpX2j6DBnyp1owBUY0Y1RVWpw==
+-----END EC PRIVATE KEY-----
+`;
 
 interface CAImporterProps {
-    onCreate: (crt: string) => void
+    onCreate: (crt: string, key: string) => void
 }
 
-const CAImporter: React.FC<CAImporterProps> = ({ onCreate }) => {
+export const CAImporter: React.FC<CAImporterProps> = ({ onCreate }) => {
     const theme = useTheme();
 
     const [crt, setCrt] = useState<string | undefined>();
@@ -46,8 +43,8 @@ const CAImporter: React.FC<CAImporterProps> = ({ onCreate }) => {
             </Grid>
 
             <Grid item xs container>
-                <Grid item xs={12}>
-                    <TextField label="Private Key" value={privKey} onChange={(ev) => setPrivKey(ev.target.value)} multiline placeholder={keyPlaceHolder} sx={{ fontFamily: "monospace", fontSize: "0.7rem", width: "400px" }} />
+                <Grid item xs={12} >
+                    <TextField fullWidth label="Private Key" value={privKey} onChange={(ev) => setPrivKey(ev.target.value)} multiline placeholder={keyPlaceHolder} sx={{ fontFamily: "monospace", fontSize: "0.7rem", minWidth: "450px", width: "100%" }} />
                 </Grid>
                 {/* {
                     privKey && crt && (

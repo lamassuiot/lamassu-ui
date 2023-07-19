@@ -14,10 +14,10 @@ import CertificateImporter from "components/LamassuComponents/composed/CreateCAF
 import { TextField } from "components/LamassuComponents/dui/TextField";
 import * as caApicalls from "ducks/features/cas/apicalls";
 import CASelector from "components/LamassuComponents/lamassu/CASelector";
-import { FormMultiTextInput } from "components/LamassuComponents/dui/form/MultiTextInput";
 import { CertificateAuthority } from "ducks/features/cas/models";
 import { DMS } from "ducks/features/dms-enroller/models";
 import { useDispatch } from "react-redux";
+import { FormMultiTextInput } from "components/LamassuComponents/dui/form/MultiTextInput";
 
 type StaticCertificate = {
     name: string
@@ -164,7 +164,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
             } else {
                 const casResp = await caApicalls.getCAs(100, 0, "asc", "name", []);
                 console.log(dms);
-                const updateDMS : FormData = {
+                const updateDMS: FormData = {
                     dmsDefinition: {
                         name: dms.name,
                         deploymentMode: dms.cloud_dms ? "cloud" : "onpremise"
@@ -292,8 +292,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
                         <FormIconInput control={control} name="enrollDeviceRegistration.icon" label="Icon" />
                     </Grid>
                     <Grid item xs>
-                        <FormMultiTextInput control={control} name="enrollDeviceRegistration.tags" label="Tags" multiple freeSolo options={[]} disabled />
-                        {/* <MultiTextInput label="Tags" multiple freeSolo options={[]} disabl /> */}
+                        <FormMultiTextInput control={control} name="enrollDeviceRegistration.tags" label="Tags"/>
                     </Grid>
                 </Grid>
 

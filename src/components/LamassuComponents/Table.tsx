@@ -59,13 +59,13 @@ interface LamassuTableRowProps {
     maxCols: number
     columnConf: Array<ColumnConfItem>
     dataItem: any,
-    renderDataItem: any,
+    renderFunc: any,
     enableRowExpand?: any,
 }
 
-const LamassuTableRow: React.FC<LamassuTableRowProps> = ({ maxCols, dataItem, renderDataItem, enableRowExpand, columnConf }) => {
+const LamassuTableRow: React.FC<LamassuTableRowProps> = ({ maxCols, dataItem, renderFunc, enableRowExpand, columnConf }) => {
     const [isRowExpanded, setIsRowExpanded] = useState(false);
-    const renderedItem = renderDataItem(dataItem);
+    const renderedItem = renderFunc(dataItem);
     const theme = useTheme();
     const containerRef = React.useRef(null);
 
@@ -111,10 +111,12 @@ interface ColumnConfItem {
 }
 
 interface LamassuTableProps {
-    columnConf: Array<ColumnConfItem>
     data: Array<any>
-    renderDataItem: any,
-    enableRowExpand?: any,
+    listRender: {
+        columnConf: Array<ColumnConfItem>
+        renderFunc: (item: any) => any
+        enableRowExpand: any,
+    }
     style?: any,
     sort?: {
         enabled: boolean
@@ -125,7 +127,7 @@ interface LamassuTableProps {
     [x: string]: any
 }
 
-export const LamassuTable: React.FC<LamassuTableProps> = ({ columnConf, data, renderDataItem, sortProperties, onSortChange, enableRowExpand = false, sort = { enabled: false, mode: "asc", prop: "" }, style = {}, ...props }) => {
+export const LamassuTable: React.FC<LamassuTableProps> = ({ data, sortProperties, listRender, onSortChange, sort = { enabled: false, mode: "asc", prop: "" }, style = {}, ...props }) => {
     const theme = useTheme();
     // const [selectedSortColumn, setSelectedSortColumn] = useState(() => {
     //     const filtered = columnConf.filter(column => column.type !== undefined);
@@ -134,15 +136,15 @@ export const LamassuTable: React.FC<LamassuTableProps> = ({ columnConf, data, re
     //     }
     //     return "";
     // });
-    const maxCols = columnConf.reduce((prev: number, item: ColumnConfItem) => prev + item.size, 0);
+    const maxCols = listRender.columnConf.reduce((prev: number, item: ColumnConfItem) => prev + item.size, 0);
 
     return (
         <Box style={{ width: "100%", ...style }} {...props}>
             <Grid container spacing={0}>
                 {
-                    <Grid item columns={columnConf.reduce((prev: number, item: any) => prev + item.size, 0)} container alignItems="center" style={{ padding: "0 10px 0 10px" }}>
+                    <Grid item columns={listRender.columnConf.reduce((prev: number, item: any) => prev + item.size, 0)} container alignItems="center" style={{ padding: "0 10px 0 10px" }}>
                         {
-                            columnConf.map((item: any, idx: number) => (
+                            listRender.columnConf.map((item: any, idx: number) => (
                                 <Grid item xs={item.size} container justifyContent="center" style={{ marginBottom: 15, cursor: sort.enabled ? "pointer" : "initial" }} key={idx + "-col"} alignItems="initial" onClick={() => {
                                     if (sort.enabled) {
                                         if (item.key === sort.prop) {
@@ -178,7 +180,7 @@ export const LamassuTable: React.FC<LamassuTableProps> = ({ columnConf, data, re
                         ? (
                             data.map((dataItem: any, idx: number) => {
                                 return (
-                                    <LamassuTableRow columnConf={columnConf} dataItem={dataItem} maxCols={maxCols} renderDataItem={renderDataItem} enableRowExpand={enableRowExpand} key={idx} />
+                                    <LamassuTableRow columnConf={listRender.columnConf} dataItem={dataItem} maxCols={maxCols} renderFunc={listRender.renderFunc} enableRowExpand={listRender.enableRowExpand} key={idx} />
                                 );
                             })
                         )
@@ -195,20 +197,20 @@ export const LamassuTable: React.FC<LamassuTableProps> = ({ columnConf, data, re
 
 interface LamassuCardWrapperProps {
     data: Array<any>
-    renderDataItem: any
+    renderFunc: any
     style?: any
     [x: string]: any
 
 }
-export const LamassuCardWrapper: React.FC<LamassuCardWrapperProps> = ({ data, renderDataItem, style = {}, ...props }) => {
+export const LamassuCardWrapper: React.FC<LamassuCardWrapperProps> = ({ data, renderFunc, style = {}, ...props }) => {
     const theme = useTheme();
     const [renderedData, setRenderedData] = useState([<></>]);
 
     const renderCard = () => (
         data.map((dataItem: any, idx: number) => (
-            <Grid item xs={3} key={idx}>
-                {renderDataItem(dataItem)}
-            </Grid>
+            <>
+                {renderFunc(dataItem)}
+            </>
         ))
     );
 
@@ -243,7 +245,7 @@ const LamassuQueryInput: React.FC<LamassuQueryInputProps> = ({ queryPlaceholder,
     return <InputBase fullWidth={true} style={{ color: "#555", fontSize: 14 }} placeholder={queryPlaceholder} value={fastTypeQuery} onChange={(ev) => setFastTypeQuery(ev.target.value)} />;
 };
 
-export interface LamassuTableWithDataControllerConfigProps {
+export interface ListWithDataControllerConfigProps {
     sort: {
         enabled: boolean,
         selectedField?: string,
@@ -260,30 +262,37 @@ export interface LamassuTableWithDataControllerConfigProps {
         selectedPage?: number
     },
 }
-interface LamassuTableWithDataControllerProps extends LamassuTableProps {
+interface ListWithDataControllerProps extends Omit<LamassuTableProps, "listRender"> {
     tableProps?: any
     totalDataItems: number,
     invertContrast?: boolean,
     isLoading: boolean,
     emptyContentComponent: any,
     withRefresh?: any
-    config?: LamassuTableWithDataControllerConfigProps
+    config?: ListWithDataControllerConfigProps
     onChange: any,
-    cardView?: {
-        enabled: boolean,
-        renderDataItem: any
+    defaultRender?: "TABLE" | "CARD",
+    listConf: Array<ColumnConfItem>
+    listRender?: {
+        renderFunc: (item: any) => any
+        enableRowExpand: any,
     }
+    cardRender?: {
+        renderFunc: (item: any) => any
+    },
     enableRowExpand?: boolean
     withAdd?: any
     [x: string]: any
 }
-export const LamassuTableWithDataController: React.FC<LamassuTableWithDataControllerProps> = ({
-    columnConf, data, renderDataItem, style = {},
+
+export const ListWithDataController: React.FC<ListWithDataControllerProps> = ({
+    listConf, data, style = {},
     totalDataItems,
     tableProps = {},
     isLoading,
     emptyContentComponent,
     invertContrast,
+    defaultRender = "TABLE",
     config = {
         filter: {
             enabled: false,
@@ -298,12 +307,9 @@ export const LamassuTableWithDataController: React.FC<LamassuTableWithDataContro
     },
     onChange,
     withRefresh,
-    enableRowExpand = false,
     withAdd,
-    cardView = {
-        enabled: false,
-        renderDataItem: () => { }
-    }
+    cardRender,
+    listRender
 }) => {
     const theme = useTheme();
 
@@ -313,7 +319,7 @@ export const LamassuTableWithDataController: React.FC<LamassuTableWithDataContro
     }, [data]);
 
     let queryPlaceholder = "";
-    const queryableColumns: Array<ColumnConfItem> = columnConf.filter((columnConfItem: ColumnConfItem) => { return columnConfItem.query && columnConfItem.type === OperandTypes.string; });
+    const queryableColumns: Array<ColumnConfItem> = listConf.filter((columnConfItem: ColumnConfItem) => { return columnConfItem.query && columnConfItem.type === OperandTypes.string; });
     if (queryableColumns.length === 1) {
         queryPlaceholder = queryableColumns[0].title;
     } else {
@@ -330,27 +336,6 @@ export const LamassuTableWithDataController: React.FC<LamassuTableWithDataContro
 
     const [query, setQuery] = useState("");
 
-    // useEffect(() => {
-    //     let newDataset: Array<any> = [];
-    //     if (query === "") {
-    //         newDataset = data;
-    //     } else {
-    //         data.forEach(datasetItem => {
-    //             for (let i = 0; i < queryableColumns.length; i++) {
-    //                 const queryableColumn = queryableColumns[i];
-    //                 if (queryableColumn.dataKey) {
-    //                     const opt = ObjectByString(datasetItem, queryableColumn.dataKey);
-    //                     if (opt && opt.toLowerCase().includes(query.toLowerCase())) {
-    //                         newDataset.push(datasetItem);
-    //                         break;
-    //                     }
-    //                 }
-    //             }
-    //         });
-    //     }
-    //     setDataset(newDataset);
-    // }, [query]);
-
     const [newFilter, setNewFiler] = useState({
         propertyKey: "",
         propertyOperator: "",
@@ -358,7 +343,7 @@ export const LamassuTableWithDataController: React.FC<LamassuTableWithDataContro
         propertyValue: ""
     });
 
-    const [viewMode, setViewMode] = useState<"table" | "card">("table");
+    const [viewMode, setViewMode] = useState<"TABLE" | "CARD">(defaultRender);
 
     const [itemsPerPageEl, setItemsPerPageEl] = useState(null);
 
@@ -388,7 +373,7 @@ export const LamassuTableWithDataController: React.FC<LamassuTableWithDataContro
     };
 
     useEffect(() => {
-        const queryableColumns: Array<ColumnConfItem> = columnConf.filter((columnConfItem: ColumnConfItem) => { return columnConfItem.query && columnConfItem.type === OperandTypes.string; });
+        const queryableColumns: Array<ColumnConfItem> = listConf.filter((columnConfItem: ColumnConfItem) => { return columnConfItem.query && columnConfItem.type === OperandTypes.string; });
         if (queryableColumns.length > 0) {
             const newFilter = {
                 propertyKey: queryableColumns[0].dataKey,
@@ -416,7 +401,7 @@ export const LamassuTableWithDataController: React.FC<LamassuTableWithDataContro
 
     const loadOptionsForPropertyKey = (key: string) => {
         if (key !== "") {
-            const propType = columnConf.filter((columnConfItem: ColumnConfItem) => columnConfItem.key === key)[0].type!;
+            const propType = listConf.filter((columnConfItem: ColumnConfItem) => columnConfItem.key === key)[0].type!;
             const operandKeys = Object.keys((Operands as any)[propType]);
 
             return operandKeys.map((key: string) => {
@@ -427,7 +412,7 @@ export const LamassuTableWithDataController: React.FC<LamassuTableWithDataContro
     };
     const loadInputForPropertyKey = (key: string, operator: string) => {
         if (key !== "") {
-            const prop = columnConf.filter((columnConfItem: ColumnConfItem) => columnConfItem.key === key)[0];
+            const prop = listConf.filter((columnConfItem: ColumnConfItem) => columnConfItem.key === key)[0];
             const propType = prop.type;
             switch (propType) {
             case "string":
@@ -573,7 +558,7 @@ export const LamassuTableWithDataController: React.FC<LamassuTableWithDataContro
                                 )
                             }
                             {
-                                cardView.enabled && (
+                                cardRender && (
                                     <Grid item xs="auto">
                                         <ToggleButtonGroup
                                             value={viewMode}
@@ -613,7 +598,7 @@ export const LamassuTableWithDataController: React.FC<LamassuTableWithDataContro
                                                             onChange={(ev) => setNewFiler({ propertyKey: ev.target.value, propertyOperator: "", propertyValue: "", propertyOperatorType: "" })}
                                                         >
                                                             {
-                                                                columnConf.map((columnConfItem: ColumnConfItem) => {
+                                                                listConf.map((columnConfItem: ColumnConfItem) => {
                                                                     return columnConfItem.type && <MenuItem key={columnConfItem.key} value={columnConfItem.key}>{columnConfItem.title}</MenuItem>;
                                                                 })
                                                             }
@@ -663,7 +648,7 @@ export const LamassuTableWithDataController: React.FC<LamassuTableWithDataContro
                                     return (
                                         <Grid item xs="auto" key={idx} sx={{ borderRadius: "10px", border: `1px solid ${theme.palette.divider}`, padding: "5px 10px", cursor: "pointer", display: "flex", alignItems: "center" }}>
                                             {renderFilterTypeIcon(filter.propertyOperatorType)}
-                                            <Typography fontWeight={500} sx={{ marginRight: "10px", color: theme.palette.text.primaryLight, fontSize: "14px" }}>{columnConf.filter(item => item.dataKey === filter.propertyKey)[0].title}</Typography>
+                                            <Typography fontWeight={500} sx={{ marginRight: "10px", color: theme.palette.text.primaryLight, fontSize: "14px" }}>{listConf.filter((item) => item.dataKey === filter.propertyKey)[0].title}</Typography>
                                             <Typography fontWeight={400} sx={{ marginRight: "10px", fontSize: "12px", lineHeight: "10px" }}>{`(${filter.propertyOperator.toLowerCase()}) ${filter.propertyValue}`}</Typography>
                                             <IconButton size="small" onClick={() => { removeFilter(idx); }}>
                                                 <CloseRoundedIcon sx={{ fontSize: "16px" }} />
@@ -713,13 +698,29 @@ export const LamassuTableWithDataController: React.FC<LamassuTableWithDataContro
                         : (
                             data.length > 0
                                 ? (
-                                    viewMode === "table"
+                                    viewMode === "TABLE"
                                         ? (
-                                            <LamassuTable columnConf={columnConf} data={dataset} renderDataItem={renderDataItem} enableRowExpand={enableRowExpand}
-                                                {...config.sort.enabled && { sort: { enabled: true, mode: config.sort.selectedMode, prop: config.sort.selectedField }, onSortChange: (mode: "asc" | "desc", prop: string) => { onChange({ sort: { ...config.sort, selectedField: prop, selectedMode: mode } }); } }} {...tableProps} />
+                                            listRender !== undefined
+                                                ? (
+                                                    <LamassuTable listRender={{
+                                                        columnConf: listConf,
+                                                        renderFunc: listRender.renderFunc,
+                                                        enableRowExpand: listRender.enableRowExpand
+                                                    }} data={dataset}
+                                                    {...config.sort.enabled && { sort: { enabled: true, mode: config.sort.selectedMode, prop: config.sort.selectedField }, onSortChange: (mode: "asc" | "desc", prop: string) => { onChange({ sort: { ...config.sort, selectedField: prop, selectedMode: mode } }); } }} {...tableProps} />
+                                                )
+                                                : (
+                                                    <>ops no content was defined</>
+                                                )
                                         )
                                         : (
-                                            <LamassuCardWrapper data={dataset} renderDataItem={cardView.renderDataItem} />
+                                            cardRender !== undefined
+                                                ? (
+                                                    <LamassuCardWrapper data={dataset} renderFunc={cardRender.renderFunc} />
+                                                )
+                                                : (
+                                                    <>ops no content was defined</>
+                                                )
                                         )
                                 )
                                 : (

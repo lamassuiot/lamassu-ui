@@ -42,11 +42,16 @@ export const apiRequest = async ({ method = "GET", url, data, query, headers = {
         ...({ body: JSON.stringify(data) })
     });
 
-    console.log("resp", response);
-
+    // OR you can do this
     if (response.status >= 200 && response.status < 300) {
-        const json = await response.json();
-        return json;
+        if (response.headers.has("Content-Type") && response.headers.get("Content-Type")!.includes("application/json")) {
+            const json = await response.json();
+            return json;
+        }
+        console.log("no JSOn");
+
+        const text = await response.text();
+        return text;
     }
     throw Error(await parseErrorResponse(response));
 };

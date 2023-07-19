@@ -4,7 +4,7 @@ import FormatAlignJustifyIcon from "@mui/icons-material/FormatAlignJustify";
 import { Link, useNavigate } from "react-router-dom";
 import { DynamicIcon } from "components/IconDisplayer/DynamicIcon";
 import { LamassuChip } from "components/LamassuComponents/Chip";
-import { LamassuTableWithDataController, LamassuTableWithDataControllerConfigProps, OperandTypes } from "components/LamassuComponents/Table";
+import { ListWithDataController, ListWithDataControllerConfigProps, OperandTypes } from "components/LamassuComponents/Table";
 import { GoLinkExternal } from "react-icons/go";
 import { Device } from "ducks/features/devices/models";
 import { useDispatch } from "react-redux";
@@ -34,7 +34,7 @@ export const DeviceList = () => {
     const [isESTDialogOpen, setIsESTDialogOpen] = useState<{ open: boolean, id: string, selectedTab: number }>({ open: false, id: "", selectedTab: 0 });
     const [isValidateCertOpen, setIsValidateCertOpen] = useState<{ open: boolean, device: Device | null }>({ open: false, device: null });
 
-    const [tableConfig, setTableConfig] = useState<LamassuTableWithDataControllerConfigProps>(
+    const [tableConfig, setTableConfig] = useState<ListWithDataControllerConfigProps>(
         {
             filter: {
                 enabled: true,
@@ -169,11 +169,18 @@ export const DeviceList = () => {
 
     return (
         <Box sx={{ padding: "20px", height: "calc(100% - 40px)" }}>
-            <LamassuTableWithDataController
+            <ListWithDataController
                 data={deviceList}
                 totalDataItems={totalDevices}
-                columnConf={devicesTableColumns}
-                renderDataItem={deviceRender}
+                listConf={devicesTableColumns}
+                cardView={{
+                    enabled: true,
+                    renderDataItem: renderCardDevice
+                }}
+                listRender={{
+                    renderFunc: deviceRender,
+                    enableRowExpand: false
+                }}
                 isLoading={requestStatus.isLoading}
                 withAdd={() => { navigate("create"); }}
                 emptyContentComponent={
@@ -205,10 +212,6 @@ export const DeviceList = () => {
                     }
                 }}
                 withRefresh={() => { refreshAction(); }}
-                cardView={{
-                    enabled: true,
-                    renderDataItem: renderCardDevice
-                }}
                 tableProps={{
                     component: Paper,
                     style: {

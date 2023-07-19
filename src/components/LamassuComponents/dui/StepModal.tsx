@@ -4,6 +4,7 @@ import { MonoChromaticButton } from "./MonoChromaticButton";
 import CheckIcon from "@mui/icons-material/Check";
 
 interface StepModalProps {
+    title: string,
     open: boolean,
     onClose: () => void,
     steps: StepProps[]
@@ -42,7 +43,7 @@ const DuiStepIcon = (props: StepIconProps) => {
     );
     ;
 };
-const StepModal: React.FC<StepModalProps> = ({ open, onClose, steps }) => {
+const StepModal: React.FC<StepModalProps> = ({ title, open, onClose, steps }) => {
     const [activeStep, setActiveStep] = useState(0);
 
     return (
@@ -50,7 +51,7 @@ const StepModal: React.FC<StepModalProps> = ({ open, onClose, steps }) => {
             <DialogTitle>
                 <Grid container spacing={"40px"}>
                     <Grid item xs="auto">
-                        <Typography variant="h2" sx={{ fontWeight: "500", fontSize: "1.25rem" }}>Subscribe</Typography>
+                        <Typography variant="h2" sx={{ fontWeight: "500", fontSize: "1.25rem" }}>{title}</Typography>
                     </Grid>
                     <Grid item xs>
                         <Stepper activeStep={activeStep}>

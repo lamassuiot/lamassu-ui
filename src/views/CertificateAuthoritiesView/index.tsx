@@ -51,7 +51,8 @@ const CaCreationActionsWrapper = () => {
                 <Box style={{ position: "relative", left: "-15px" }}>
                     <Tabs value={selectedTab} onChange={(ev, newValue) => setSelectedTab(newValue)}>
                         <Tab component={Link} to="create" label="Standard" />
-                        <Tab component={Link} to="import" label="Import" />
+                        <Tab component={Link} to="import" label="Import (With Private Key)" />
+                        <Tab component={Link} to="import" label="Import (Without Private Key)" />
                     </Tabs>
                 </Box>
                 <Divider sx={{ width: "100" }} />

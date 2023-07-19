@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Autocomplete, AutocompleteProps, AutocompleteRenderInputParams, useTheme } from "@mui/material";
 import { TextField } from "./TextField";
 
@@ -40,16 +40,18 @@ interface MultiTextInputProps extends Omit<AutocompleteProps<any, true, true, tr
 
 const MultiTextInput: React.FC<MultiTextInputProps> = ({ label, ...rest }) => {
     console.log(rest);
-    const [opts, setOpts] = useState([]);
     const theme = useTheme();
     return (
         <Autocomplete
-            value={opts}
+            value={rest.value}
             onChange={(ev) => {
                 console.log(ev);
                 // @ts-ignore
                 console.log(ev.target.value);
+                // @ts-ignore
+                rest.onChange(ev);
             }}
+            multiple
             ChipProps={{ sx: { borderRadius: "5px", fontSize: "12px", color: "#fff", background: "#555" } }}
             getOptionLabel={(option) => option.name}
             renderInput={(params) => (

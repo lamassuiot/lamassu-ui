@@ -1,5 +1,5 @@
 import { apiRequest } from "ducks/services/api";
-import { GetCAsListAPIResponse } from "./models";
+import { CertificateAuthority, GetCAsListAPIResponse } from "./models";
 
 export const getInfo = async (): Promise<any> => {
     return apiRequest({
@@ -27,6 +27,14 @@ export const getCAs = async (limit: number, offset: number, sortMode: "asc" | "d
     filterQuery.forEach(filter => {
         url += `&filter=${filter}`;
     });
+    return apiRequest({
+        method: "GET",
+        url: url
+    });
+};
+
+export const getCA = async (caName: string): Promise<CertificateAuthority> => {
+    const url = window._env_.LAMASSU_CA_API + "/v1/pki/" + caName;
     return apiRequest({
         method: "GET",
         url: url

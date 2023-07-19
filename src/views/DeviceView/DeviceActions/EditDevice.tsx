@@ -124,11 +124,9 @@ export const EditDevice: React.FC<Props> = ({ deviceID }) => {
                                             : (
                                                 <TagsInput
                                                     tags={editableDevice!.tags}
-                                                    selectedTags={(tags: string) => { }}
-                                                    fullWidth
-                                                    label="Tags"
+                                                    placeholder=""
+                                                    label=""
                                                     onChange={(tags: any) => { setEditableDevice((prevData: any) => ({ ...prevData, tags: tags })); }}
-                                                    variant="standard"
                                                 />
                                             )
                                     }

@@ -184,10 +184,9 @@ export const CreateDevice: React.FC<Props> = () => {
                                     : (
                                         <TagsInput
                                             tags={device!.tags}
-                                            label={"Tags"}
-                                            fullWidth
+                                            placeholder=""
+                                            label=""
                                             onChange={(tags: any) => { setDevice((prevData: any) => ({ ...prevData, tags: tags })); }}
-                                            variant="standard"
                                         />
                                     )
                             }

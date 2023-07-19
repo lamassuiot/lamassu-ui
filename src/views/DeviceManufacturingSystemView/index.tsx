@@ -1,8 +1,7 @@
-import { Divider, Grid, Paper, Skeleton, Tab, Tabs, Typography, useTheme } from "@mui/material";
-import { Box } from "@mui/system";
-import React, { useEffect, useState } from "react";
+import { Skeleton } from "@mui/material";
+import React, { useEffect } from "react";
 
-import { Link, Outlet, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import { Outlet, Route, Routes, useNavigate, useParams } from "react-router-dom";
 import { DmsList } from "./DmsList";
 import { DMSForm } from "./DmsActions/DMSForm";
 import * as dmsSelector from "ducks/features/dms-enroller/reducer";
@@ -11,6 +10,8 @@ import * as dmsActions from "ducks/features/dms-enroller/actions";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "ducks/hooks";
 import { ORequestStatus } from "ducks/reducers_utils";
+import StandardWrapperView from "views/StandardWrapperView";
+import { DMSCACertificates } from "./DmsActions/CACertificates";
 
 export const DMSView = () => {
     const navigate = useNavigate();
@@ -18,21 +19,44 @@ export const DMSView = () => {
     return (
         <Routes>
             <Route path="/" element={<Outlet />}>
-                <Route path=":dmsName/edit" element={<DMSViewWrapper
+                <Route path=":dmsName/edit" element={<StandardWrapperView
                     title="Update Device Manufacturing System"
                     subtitle=""
+                    tabs={[
+                        {
+                            element: <UpdateDMSFormWrapper />,
+                            label: "default"
+                        }
+                    ]}
+                />} >
+                </Route>
+                <Route path=":dmsName/cacerts" element={<StandardWrapperView
+                    title="CA Certificates"
+                    subtitle="Obtain the list of trusted CAs that are configured for this DMS Instance"
+                    tabs={[
+                        {
+                            element: <DMSCACertificatesWrapper />,
+                            label: "default"
+                        }
+                    ]}
                 />} >
                     <Route index element={<UpdateDMSFormWrapper />} />
                 </Route>
-                <Route path="create" element={<DMSViewWrapper
+                <Route path="create" element={<StandardWrapperView
                     title="Create a new Device Manufacturing System"
                     subtitle="To create a new DMS instance, please provide the appropriate information"
+                    tabs={[
+                        {
+                            element: <DMSForm onSubmit={async (dms) => {
+                                await dmsApicalls.createDMS(dms);
+                                await dmsApicalls.updateDMS({ ...dms, status: "APPROVED" });
+                                navigate("/dms");
+                            }} />,
+                            label: "default"
+                        }
+                    ]}
+
                 />} >
-                    <Route index element={<DMSForm onSubmit={async (dms) => {
-                        await dmsApicalls.createDMS(dms);
-                        await dmsApicalls.updateDMS({ ...dms, status: "APPROVED" });
-                        navigate("/dms");
-                    }} />} />
                 </Route>
                 <Route index element={<DmsList />} />
             </Route>
@@ -44,7 +68,15 @@ const UpdateDMSFormWrapper = () => {
     const params = useParams();
 
     return (
-        <UpdateDMSForm dmsName={params.dmsName!}/>
+        <UpdateDMSForm dmsName={params.dmsName!} />
+    );
+};
+
+const DMSCACertificatesWrapper = () => {
+    const params = useParams();
+
+    return (
+        <DMSCACertificates dmsName={params.dmsName!} />
     );
 };
 
@@ -83,44 +115,4 @@ const UpdateDMSForm: React.FC<UpdateDMSFormProps> = ({ dmsName }) => {
             }} />;
     }
     return <>something went wrong</>;
-};
-
-interface Props {
-    title: string
-    subtitle: string
-}
-
-const DMSViewWrapper: React.FC<Props> = ({ title, subtitle }) => {
-    const theme = useTheme();
-    const [selectedTab, setSelectedTab] = useState(0);
-
-    return (
-        <Box sx={{ height: "100%" }} component={Paper}>
-            <Box style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                <Box style={{ padding: "40px 40px 0 40px" }}>
-                    <Grid item container spacing={2} justifyContent="flex-start">
-                        <Grid item xs={12}>
-                            <Box style={{ display: "flex", alignItems: "center" }}>
-                                <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 26, lineHeight: "24px", marginRight: "10px" }}>{title}</Typography>
-                            </Box>
-                        </Grid>
-                    </Grid>
-                    <Grid>
-                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13, marginTop: "10px" }}>{subtitle}</Typography>
-                    </Grid>
-                    <Box style={{ marginTop: 15, position: "relative", left: "-15px" }}>
-                        <Tabs value={selectedTab} onChange={(ev, newValue) => setSelectedTab(newValue)}>
-                            <Tab component={Link} to="create" label="Default Provision" />
-                        </Tabs>
-                    </Box>
-                </Box>
-                <Divider />
-                <Box style={{ padding: "20px 40px 20px 40px", /* flexGrow: 1, */ overflowY: "auto", /* height: "100%", */ display: "flex" }}>
-                    <Grid container style={{ width: "300px", flexGrow: 1 }}>
-                        <Outlet />
-                    </Grid>
-                </Box>
-            </Box>
-        </Box>
-    );
 };

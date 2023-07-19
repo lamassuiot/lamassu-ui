@@ -225,7 +225,11 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, deviceID }) =
                     </Box> */}
                     <Box style={{ marginTop: "5px" }}>
                         <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>AWS Certificates</Typography>
-                        <LamassuTable columnConf={awsDevicesCertificateTableColumn} data={awsDeviceConfig.certificates} renderDataItem={awsTableRenderer} style={{ marginTop: "10px" }} />
+                        <LamassuTable data={awsDeviceConfig.certificates} listRender={{
+                            columnConf: awsDevicesCertificateTableColumn,
+                            renderFunc: awsTableRenderer,
+                            enableRowExpand: false
+                        }} style={{ marginTop: "10px" }} />
                     </Box>
                 </>
             );
@@ -405,7 +409,12 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, deviceID }) =
                                         </Box>
                                         <Divider />
                                         <Box sx={{ height: "100%", padding: "20px" }}>
-                                            <LamassuTable columnConf={certTableColumns} data={[...slot!.archive_certificates, slot!.active_certificate]} renderDataItem={certificatesRenderer} />
+                                            <LamassuTable listRender={{
+                                                columnConf: certTableColumns,
+                                                renderFunc: certificatesRenderer,
+                                                enableRowExpand: false
+                                            }}
+                                            data={[...slot!.archive_certificates, slot!.active_certificate]} />
                                         </Box>
                                     </Box>
                                 </Grid>
@@ -427,7 +436,11 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, deviceID }) =
                                                         </>
                                                     )
                                                     : (
-                                                        <LamassuTable columnConf={connectorsTableColumns} data={connectors} renderDataItem={cloudConnectorsRender} enableRowExpand={true} />
+                                                        <LamassuTable listRender={{
+                                                            columnConf: connectorsTableColumns,
+                                                            renderFunc: cloudConnectorsRender,
+                                                            enableRowExpand: true
+                                                        }} data={connectors} />
                                                     )
                                             }
                                         </Box>

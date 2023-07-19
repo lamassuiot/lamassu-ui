@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, IconButton, Paper, Typography } from "@mui/material";
 import { LamassuChip } from "components/LamassuComponents/Chip";
-import { LamassuTableWithDataController, LamassuTableWithDataControllerConfigProps, OperandTypes } from "components/LamassuComponents/Table";
+import { ListWithDataController, ListWithDataControllerConfigProps, OperandTypes } from "components/LamassuComponents/Table";
 import FileDownloadRoundedIcon from "@mui/icons-material/FileDownloadRounded";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -31,7 +31,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caName }) => {
 
     const [displayIssueCert, setDisplayIssueCert] = useState(false);
 
-    const [tableConfig, setTableConfig] = useState<LamassuTableWithDataControllerConfigProps>(
+    const [tableConfig, setTableConfig] = useState<ListWithDataControllerConfigProps>(
         {
             filter: {
                 enabled: false,
@@ -163,8 +163,12 @@ export const IssuedCertificates: React.FC<Props> = ({ caName }) => {
 
     return (
         <>
-            <LamassuTableWithDataController
-                columnConf={certTableColumns}
+            <ListWithDataController
+                listConf={certTableColumns}
+                listRender={{
+                    renderFunc: renderCA,
+                    enableRowExpand: false
+                }}
                 data={certificates}
                 totalDataItems={totalCACerts}
                 renderDataItem={renderCA}

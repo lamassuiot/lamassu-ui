@@ -276,7 +276,7 @@ export const CreateCA = () => {
                         <FormSelect control={control} name="caExpiration.type" label="Expiration By">
                             <MenuItem value={"duration"}>Duration</MenuItem>
                             <MenuItem value={"date"} disabled>End Date</MenuItem>
-                            <MenuItem value={"date-infinity"}>End Date - Infinity</MenuItem>
+                            <MenuItem value={"date-infinity"}>Indefinite Validity</MenuItem>
                         </FormSelect>
                     </Grid>
                     <Grid item xs={9} />
@@ -308,7 +308,7 @@ export const CreateCA = () => {
                         <FormSelect control={control} name="issuerExpiration.type" label="Expiration By">
                             <MenuItem value={"duration"}>Duration</MenuItem>
                             <MenuItem value={"date"} disabled>End Date</MenuItem>
-                            <MenuItem value={"date-infinity"}>End Date - Infinity</MenuItem>
+                            <MenuItem value={"date-infinity"}>Indefinite Validity</MenuItem>
                         </FormSelect>
                     </Grid>
                     <Grid item xs={9} />

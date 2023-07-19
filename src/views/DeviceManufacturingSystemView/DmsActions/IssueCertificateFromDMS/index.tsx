@@ -7,7 +7,7 @@ import * as caSelector from "ducks/features/cas/reducer";
 import * as caActions from "ducks/features/cas/actions";
 import * as dmsApiCalls from "ducks/features/dms-enroller/apicalls";
 import { CertificateAuthority } from "ducks/features/cas/models";
-import { LamassuTableWithDataController, LamassuTableWithDataControllerConfigProps } from "components/LamassuComponents/Table";
+import { ListWithDataController, ListWithDataControllerConfigProps } from "components/LamassuComponents/Table";
 import deepEqual from "fast-deep-equal/es6";
 import Radio from "@mui/material/Radio";
 import Stepper from "@mui/material/Stepper/Stepper";
@@ -114,7 +114,7 @@ export const IssueCertificateFromDMS: React.FC<Props> = ({ dmsName, defaultCN = 
 
     const [privKeyAndCSR, setPrivKeyAndCSR] = useState<undefined | any>(undefined);
 
-    const [tableConfig, setTableConfig] = useState<LamassuTableWithDataControllerConfigProps>(
+    const [tableConfig, setTableConfig] = useState<ListWithDataControllerConfigProps>(
         {
             filter: {
                 enabled: false,
@@ -230,12 +230,15 @@ export const IssueCertificateFromDMS: React.FC<Props> = ({ dmsName, defaultCN = 
                                     <></>
                                 )
                                 : (
-                                    <LamassuTableWithDataController
+                                    <ListWithDataController
                                         data={caList.filter(ca => dms.identity_profile.enrollment_settings.bootstrap_cas.includes(ca.name) || dms.identity_profile.enrollment_settings.authorized_ca === ca.name)}
                                         invertContrast={true}
                                         totalDataItems={totalCAs}
-                                        columnConf={casTableColumns}
-                                        renderDataItem={casRender}
+                                        listConf={casTableColumns}
+                                        listRender={{
+                                            renderFunc: casRender,
+                                            enableRowExpand: false
+                                        }}
                                         isLoading={caRequestStatus.isLoading}
                                         emptyContentComponent={
                                             <Typography>No CAs</Typography>

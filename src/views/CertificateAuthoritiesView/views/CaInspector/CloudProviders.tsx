@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import { Box, Button, Grid, IconButton, Paper, Typography, useTheme } from "@mui/material";
 import { LamassuStatusChip } from "components/LamassuComponents/Chip";
-import { LamassuTableWithDataController, OperandTypes } from "components/LamassuComponents/Table";
+import { ListWithDataController, OperandTypes } from "components/LamassuComponents/Table";
 import FormatAlignJustifyIcon from "@mui/icons-material/FormatAlignJustify";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { CloudProviderIcon } from "components/CloudProviderIcons";
@@ -175,11 +175,10 @@ export const CloudProviderSelector: React.FC<Props> = ({ caName }) => {
 
     return (
         <>
-            <LamassuTableWithDataController
-                columnConf={cloudConnectorTableColumns}
+            <ListWithDataController
                 data={cloudConnectors}
+                listConf={cloudConnectorTableColumns}
                 totalDataItems={cloudConnectors.length}
-                renderDataItem={cloudConnectorsRender}
                 invertContrast={true}
                 isLoading={requestStatus.isLoading}
                 onChange={(ev: any) => { console.log("callback", ev); }}
@@ -204,8 +203,11 @@ export const CloudProviderSelector: React.FC<Props> = ({ caName }) => {
                         </Grid>
                     </Grid>
                 }
+                listRender={{
+                    renderFunc: cloudConnectorsRender,
+                    enableRowExpand: false
+                }}
                 withRefresh={() => { dispatch(cloudProxyActions.getConnectorsAction.request()); }}
-
             />
             <EnabledConnectorSynchronizationModal isOpen={isEnableConnectorOpen.isOpen} connectorID={isEnableConnectorOpen.connectorId} caName={caName} onClose={() => setIsEnableConnectorOpen({ isOpen: false, connectorId: "" })} />
         </>

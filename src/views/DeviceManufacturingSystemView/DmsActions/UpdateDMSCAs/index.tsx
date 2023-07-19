@@ -10,7 +10,7 @@ import * as caActions from "ducks/features/cas/actions";
 import { CertificateAuthority } from "ducks/features/cas/models";
 import * as dmsSelector from "ducks/features/dms-enroller/reducer";
 import * as dmsAction from "ducks/features/dms-enroller/actions";
-import { LamassuTableWithDataController, LamassuTableWithDataControllerConfigProps } from "components/LamassuComponents/Table";
+import { ListWithDataController, ListWithDataControllerConfigProps } from "components/LamassuComponents/Table";
 import deepEqual from "fast-deep-equal/es6";
 
 interface Props {
@@ -31,7 +31,7 @@ export const UpdateDMSCAs: React.FC<Props> = ({ dmsName, isOpen, onClose = () =>
     const [selectedCas, setSelectedCas] = useState<Array<string>>([]);
     const [tempCa, setTempCA] = useState("");
 
-    const [tableConfig, setTableConfig] = useState<LamassuTableWithDataControllerConfigProps>(
+    const [tableConfig, setTableConfig] = useState<ListWithDataControllerConfigProps>(
         {
             filter: {
                 enabled: false,
@@ -119,12 +119,15 @@ export const UpdateDMSCAs: React.FC<Props> = ({ dmsName, isOpen, onClose = () =>
                     </Grid>
                 </Grid>
                 <Grid item xs={12} container sx={{ marginTop: "20px" }}>
-                    <LamassuTableWithDataController
+                    <ListWithDataController
                         data={caList}
                         invertContrast={true}
                         totalDataItems={totalCAs}
-                        columnConf={casTableColumns}
-                        renderDataItem={casRender}
+                        listConf={casTableColumns}
+                        listRender={{
+                            renderFunc: casRender,
+                            enableRowExpand: false
+                        }}
                         isLoading={caRequestStatus.isLoading}
                         emptyContentComponent={
                             <Typography>No CAs</Typography>
