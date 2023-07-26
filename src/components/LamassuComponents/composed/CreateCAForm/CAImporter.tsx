@@ -2,6 +2,10 @@ import { Grid, useTheme } from "@mui/material";
 import { TextField } from "components/LamassuComponents/dui/TextField";
 import React, { useState } from "react";
 import CertificateImporter from "./CertificateImporter";
+import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
+import { LoadingButton, Alert } from "@mui/lab";
+import { importCA } from "ducks/features/cas/apicalls";
+import moment from "moment";
 
 const keyPlaceHolder = `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIOUXa254YMYXWksCADpHFdJ+ly+nrQFsa0ozEuTZXmP5oAoGCCqGSM49
@@ -10,52 +14,65 @@ uywNx1FjrBpX2j6DBnyp1owBUY0Y1RVWpw==
 -----END EC PRIVATE KEY-----
 `;
 
-interface CAImporterProps {
-    onCreate: (crt: string, key: string) => void
-}
-
-export const CAImporter: React.FC<CAImporterProps> = ({ onCreate }) => {
+export const CAImporter = () => {
     const theme = useTheme();
 
     const [crt, setCrt] = useState<string | undefined>();
     const [privKey, setPrivKey] = useState<string | undefined>();
+    const [issuanceDur, setIssuanceDur] = useState<string>("100");
 
-    // const validateCertWithKey = () => {
-    //     if (!crt || !privKey) {
-    //         return false;
-    //     }
+    const [isLoading, setIsLoading] = useState(false);
+    const [hasError, setHasError] = useState(false);
 
-    //     const certificate = pkijs.Certificate.fromBER(fromPEM(crt));
-    //     const privateKey = pkijs.PrivateKeyInfo.fromBER(fromPEM(privKey));
+    const handleImport = async () => {
+        setIsLoading(true);
+        try {
+            const issuanceDuration = moment.duration(issuanceDur, "days").asSeconds();
+            await importCA(window.btoa(crt!), window.btoa(privKey!), `${issuanceDuration}`);
+        } catch (error) {
+            console.log(error);
 
-    //     // Get the public key values from the private key and certificate
-    //     const privateKeyPublicValue = privateKey.publicKey;
-    //     const certificatePublicValue = certificate.subjectPublicKeyInfo.subjectPublicKey;
-
-    //     // Compare the public key values to check if they match
-    //     const privateKeyMatchesCertificate = privateKeyPublicValue.isEqual(certificatePublicValue);
-    // };
+            setHasError(true);
+        }
+        setIsLoading(false);
+    };
 
     return (
         <Grid container spacing={2}>
             <Grid item xs container spacing={1}>
-                <CertificateImporter onCreate={(crt) => { setCrt(crt); }} />
+                <CertificateImporter onChange={(crt) => { setCrt(crt); }} />
             </Grid>
 
             <Grid item xs container>
                 <Grid item xs={12} >
                     <TextField fullWidth label="Private Key" value={privKey} onChange={(ev) => setPrivKey(ev.target.value)} multiline placeholder={keyPlaceHolder} sx={{ fontFamily: "monospace", fontSize: "0.7rem", minWidth: "450px", width: "100%" }} />
                 </Grid>
-                {/* {
-                    privKey && crt && (
-                        <Grid item xs={12}>
-                            <Box sx={{ background: theme.palette.primary.light, padding: "5px 10px", borderRadius: "5px" }}>
-                                <Typography fontSize="0.8rem">Decoded Certificate</Typography>
-                            </Box>
-                        </Grid>
-                    )
-                } */}
             </Grid>
+
+            <Grid item container spacing={1}>
+                <Grid item xs={12}>
+                    <SubsectionTitle>Issuance Expiration Settings</SubsectionTitle>
+                </Grid>
+                <Grid item xs={9} />
+                <Grid item xs={4}>
+                    <TextField label="Duration (in days)" value={issuanceDur} onChange={(ev) => setIssuanceDur(ev.target.value)} />
+                </Grid>
+            </Grid>
+
+            <Grid item xs={12}>
+                <LoadingButton loading={isLoading} variant="contained" disabled={!crt || !privKey} onClick={() => handleImport()}>Import CA</LoadingButton>
+            </Grid>
+
+            <Grid item xs={12}>
+                {
+                    hasError && (
+                        <Alert severity="error">
+                            Could not import CA
+                        </Alert>
+                    )
+                }
+            </Grid>
+
         </Grid>
     );
 };

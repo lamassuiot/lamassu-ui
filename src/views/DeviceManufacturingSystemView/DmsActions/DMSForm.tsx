@@ -27,6 +27,7 @@ type StaticCertificate = {
 const StaticCertificateListInput = () => {
     const [openAddCertModal, setOpenAddCertModal] = useState(false);
     const [certificates, setCertificates] = useState<StaticCertificate[]>([]);
+    const [newCrt, setNewCrt] = useState<string | undefined>();
 
     const [newCertificateName, setNewCertificateName] = useState("");
 
@@ -58,11 +59,16 @@ const StaticCertificateListInput = () => {
                                     <TextField label="Name" value={newCertificateName} onChange={(ev) => setNewCertificateName(ev.target.value)} />
                                 </Grid>
                                 <Grid item>
-                                    <CertificateImporter onCreate={(crt) => {
-                                        setCertificates([...certificates, { certificate: crt, name: newCertificateName }]);
+                                    <CertificateImporter onChange={(crt) => {
+                                        setNewCrt(crt);
+                                    }} />
+                                </Grid>
+                                <Grid item>
+                                    <Button variant="contained" disabled={newCertificateName === "" || !newCrt} onClick={() => {
+                                        setCertificates([...certificates, { certificate: newCrt!, name: newCertificateName }]);
                                         setOpenAddCertModal(false);
                                         setNewCertificateName("");
-                                    }} />
+                                    }}>Confirm</Button>
                                 </Grid>
                             </Grid>
                         </DialogContent>
@@ -292,7 +298,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
                         <FormIconInput control={control} name="enrollDeviceRegistration.icon" label="Icon" />
                     </Grid>
                     <Grid item xs>
-                        <FormMultiTextInput control={control} name="enrollDeviceRegistration.tags" label="Tags"/>
+                        <FormMultiTextInput control={control} name="enrollDeviceRegistration.tags" label="Tags" />
                     </Grid>
                 </Grid>
 

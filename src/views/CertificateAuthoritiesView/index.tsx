@@ -5,8 +5,9 @@ import { Divider, Tab, Tabs, useTheme } from "@mui/material";
 import { CaList } from "./views/CaList";
 import { CaInspector } from "./views/CaInspector";
 import { CreateCA } from "./views/CaActions/CreateCA";
-import { ImportCA } from "./views/CaActions/ImportCA";
 import { FormattedView } from "components/DashboardComponents/FormattedView";
+import { CAReadonlyImporter } from "components/LamassuComponents/composed/CreateCAForm/CAImporterRadonly";
+import { CAImporter } from "components/LamassuComponents/composed/CreateCAForm/CAImporter";
 
 export const CAView = () => {
     return (
@@ -14,7 +15,8 @@ export const CAView = () => {
             <Route path="/" element={<RoutedCaList />}>
                 <Route path="actions" element={<CaCreationActionsWrapper />} >
                     <Route path="create" element={<CreateCA />} />
-                    <Route path="import" element={<ImportCA />} />
+                    <Route path="import" element={<CAImporter />} />
+                    <Route path="roimport" element={<CAReadonlyImporter />} />
                 </Route>
                 <Route path=":caName/*" element={<RoutedCaInspector />} />
             </Route>
@@ -51,12 +53,12 @@ const CaCreationActionsWrapper = () => {
                 <Box style={{ position: "relative", left: "-15px" }}>
                     <Tabs value={selectedTab} onChange={(ev, newValue) => setSelectedTab(newValue)}>
                         <Tab component={Link} to="create" label="Standard" />
-                        <Tab component={Link} to="import" label="Import (With Private Key)" />
-                        <Tab component={Link} to="import" label="Import (Without Private Key)" />
+                        <Tab component={Link} to="import" label="Import" />
+                        <Tab component={Link} to="roimport" label="Read-only Import" />
                     </Tabs>
                 </Box>
                 <Divider sx={{ width: "100" }} />
-                <Box style={{ display: "flex", height: "100%", marginTop: "15px" }}>
+                <Box style={{ display: "flex", height: "100%", marginTop: "15px", width: "100%" }}>
                     <Box sx={{ flexGrow: 1 }}>
                         <Outlet />
                     </Box>

@@ -1,10 +1,10 @@
 import { Divider, Grid, useTheme } from "@mui/material";
 import { TextField } from "components/LamassuComponents/dui/TextField";
-import React, { useState } from "react";
-import { MonoChromaticButton } from "components/LamassuComponents/dui/MonoChromaticButton";
+import React, { useEffect, useState } from "react";
 import CertificateDecoder from "./CertificateDecoder";
+import { parseCRT } from "components/utils/cryptoUtils/crt";
 
-const crtPlaceHolder = `-----BEGIN CERTIFICATE REQUEST-----
+const crtPlaceHolder = `-----BEGIN CERTIFICATE-----
 MIIBNzCB3QIBADBTMVEwCQYDVQQLEwJJVDAUBgNVBAoTDUxLUyAtIElrZXJsYW4w
 CQYDVQQGEwJFUzAPBgNVBAgTCEdpcHV6a29hMBIGA1UEAxMLTGFtYXNzdSBJb1Qw
 WTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAT9GpFufUkIQ0JBFVhN55diPm/UWamx
@@ -12,32 +12,36 @@ YwDMAxw/TmgX6aBFzbsJOc8GIqyIzUxUWSdAo32OGrfnCfQza6DHmy2JoCgwJgYJ
 KoZIhvcNAQkOMRkwFzAVBgNVHREEDjAMggpsYW1hc3N1LmlvMAoGCCqGSM49BAMC
 A0kAMEYCIQCrBQ/UOec1aHPeKE962EvIvzqZitQAeSf6yCzElTZ9IAIhALUMuz+0
 C3Rzdw39eIksMyCphq82zihsSZpa8pZPWz6v
------END CERTIFICATE REQUEST-----`;
+-----END CERTIFICATE-----`;
 
 interface CertificateImporterProps {
-    onCreate: (crt: string) => void
+    onChange: (crt: string | undefined) => void
 }
 
-const CertificateImporter: React.FC<CertificateImporterProps> = ({ onCreate }) => {
+const CertificateImporter: React.FC<CertificateImporterProps> = ({ onChange }) => {
     const theme = useTheme();
 
     const [crt, setCrt] = useState<string | undefined>();
 
-    // const validateCertWithKey = () => {
-    //     if (!crt || !privKey) {
-    //         return false;
-    //     }
+    const [isValid, setIsValid] = useState<boolean>(false);
 
-    //     const certificate = pkijs.Certificate.fromBER(fromPEM(crt));
-    //     const privateKey = pkijs.PrivateKeyInfo.fromBER(fromPEM(privKey));
+    useEffect(() => {
+        const run = async () => {
+            if (crt !== undefined) {
+                try {
+                    await parseCRT(crt);
+                    setIsValid(true);
+                    onChange(crt);
+                } catch (err) {
+                    console.log(err);
+                    setIsValid(false);
+                    onChange(undefined);
+                }
+            }
+        };
 
-    //     // Get the public key values from the private key and certificate
-    //     const privateKeyPublicValue = privateKey.publicKey;
-    //     const certificatePublicValue = certificate.subjectPublicKeyInfo.subjectPublicKey;
-
-    //     // Compare the public key values to check if they match
-    //     const privateKeyMatchesCertificate = privateKeyPublicValue.isEqual(certificatePublicValue);
-    // };
+        run();
+    }, [crt]);
 
     return (
         <Grid item xs container spacing={1}>
@@ -52,12 +56,6 @@ const CertificateImporter: React.FC<CertificateImporterProps> = ({ onCreate }) =
                         </Grid>
                         <Grid item xs={12}>
                             <CertificateDecoder crt={crt} />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Divider />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <MonoChromaticButton onClick={() => onCreate(crt)}>Confirm</MonoChromaticButton>
                         </Grid>
                     </>
                 )
