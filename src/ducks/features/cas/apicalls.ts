@@ -131,3 +131,28 @@ export const signCertificate = async (caName: string, csr: string) : Promise<any
         }
     });
 };
+
+export const signPayload = async (caName: string, message: string, messageType: string, algorithm: string): Promise<SignPayloadResponse> => {
+    return apiRequest({
+        method: "POST",
+        url: window._env_.LAMASSU_CA_API + "/v1/ca/" + caName + "/signature/sign",
+        data: {
+            message: message,
+            message_type: messageType,
+            signing_algorithm: algorithm
+        }
+    });
+};
+
+export const verifyPayload = async (caName: string, signature: string, message: string, messageType: string, algorithm: string): Promise<VerifyPayloadResponse> => {
+    return apiRequest({
+        method: "POST",
+        url: window._env_.LAMASSU_CA_API + "/v1/ca/" + caName + "/signature/verify",
+        data: {
+            signature: signature,
+            message: message,
+            message_type: messageType,
+            signing_algorithm: algorithm
+        }
+    });
+};
