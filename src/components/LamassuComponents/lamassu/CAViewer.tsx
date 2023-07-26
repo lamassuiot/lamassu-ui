@@ -5,17 +5,21 @@ import Label from "../dui/typographies/Label";
 import moment from "moment";
 import CertificateDecoder from "../composed/CreateCAForm/CertificateDecoder";
 import { CodeCopier } from "../dui/CodeCopier";
+import { LamassuChip } from "../Chip";
 
 type Props = {
     caData: CertificateAuthority,
+    actions?: React.ReactNode[]
+    elevation?: boolean
+    clickDisplay?: boolean
 }
 
-const CAViewer: React.FC<Props> = ({ caData }) => {
+const CAViewer: React.FC<Props> = ({ caData, actions = [], elevation = true, clickDisplay = false }) => {
     const theme = useTheme();
     const [displayCA, setDisplayCA] = React.useState<CertificateAuthority | undefined>(undefined);
 
     return (
-        <Box component={Paper} sx={{ padding: "5px", background: theme.palette.textField.background, cursor: "pointer" }} onClick={() => setDisplayCA(caData)}>
+        <Box {...elevation && { component: Paper }} sx={{ padding: "5px", background: elevation ? theme.palette.textField.background : "none", cursor: "pointer", width: "100%" }} onClick={() => setDisplayCA(caData)}>
             <Grid container columnGap={2} alignItems={"center"}>
                 <Grid item xs={"auto"} height={"40px"}>
                     <img src={process.env.PUBLIC_URL + "/assets/AWS-SM.png"} height={"40px"} width={"40px"} />
@@ -28,9 +32,31 @@ const CAViewer: React.FC<Props> = ({ caData }) => {
                         <Label>{moment.duration(moment(caData.valid_to).diff(moment())).humanize(true)}</Label>
                     </Grid>
                 </Grid>
+                {
+                    !caData.with_private_key && (
+                        <Grid item xs>
+                            <LamassuChip label={"READ-ONLY CA"} color={[theme.palette.primary.main, theme.palette.primary.light]} />
+                        </Grid>
+                    )
+                }
+                {
+                    actions.length > 1 && (
+                        <Grid item xs container spacing={1}>
+                            {
+                                actions.map((action, idx) => {
+                                    return (
+                                        <Grid item key={idx}>
+                                            {action}
+                                        </Grid>
+                                    );
+                                })
+                            }
+                        </Grid>
+                    )
+                }
             </Grid>
             {
-                displayCA && (
+                clickDisplay && displayCA && (
                     <Dialog open={true} onClose={() => setDisplayCA(undefined)} maxWidth={"md"}>
                         <DialogTitle>
                             <Typography variant="h2" sx={{ fontWeight: "500", fontSize: "1.25rem" }}>{displayCA.name}</Typography>

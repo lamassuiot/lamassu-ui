@@ -15,18 +15,20 @@ import { IssuedCertificates } from "./IssuedCertificates";
 import { CloudProviders } from "./CloudProviders";
 import { CerificateOverview } from "./CertificateOverview";
 import { useDispatch } from "react-redux";
+import { SignVerifyView } from "./SignVerify";
 
 interface CaInspectorProps {
     caName: string | undefined
 }
-export const CaInspector : React.FC<CaInspectorProps> = ({ caName }) => {
+export const CaInspector: React.FC<CaInspectorProps> = ({ caName }) => {
     return (
         <Routes>
-            <Route path="/" element={<RoutedCaInspectorHeader caName={caName}/>}>
-                <Route path="cert" element={ <CertificateView caName={caName!}/>} />
-                <Route path="issued" element={ <IssuedCertificates caName={caName!}/>} />
-                <Route path="cloud-providers/*" element={<CloudProviders caName={caName!}/>} />
-                <Route index element={<CerificateOverview caName={caName!}/>} />
+            <Route path="/" element={<RoutedCaInspectorHeader caName={caName} />}>
+                <Route path="cert" element={<CertificateView caName={caName!} />} />
+                <Route path="issued" element={<IssuedCertificates caName={caName!} />} />
+                <Route path="signverify" element={<SignVerifyWrapper caName={caName!} />} />
+                <Route path="cloud-providers/*" element={<CloudProviders caName={caName!} />} />
+                <Route index element={<CerificateOverview caName={caName!} />} />
             </Route>
         </Routes>
     );
@@ -35,18 +37,20 @@ export const CaInspector : React.FC<CaInspectorProps> = ({ caName }) => {
 interface RoutedCaInspectorHeaderProps {
     caName: string | undefined
 }
-const RoutedCaInspectorHeader : React.FC<RoutedCaInspectorHeaderProps> = ({ caName }) => {
+const RoutedCaInspectorHeader: React.FC<RoutedCaInspectorHeaderProps> = ({ caName }) => {
     const location = useLocation();
     let selectedTab = 0;
     if (location.pathname.includes("cert")) {
         selectedTab = 1;
     } else if (location.pathname.includes("issued")) {
         selectedTab = 2;
-    } else if (location.pathname.includes("cloud-providers")) {
+    } else if (location.pathname.includes("signverify")) {
         selectedTab = 3;
+    } else if (location.pathname.includes("cloud-providers")) {
+        selectedTab = 4;
     }
     return (
-        <CaInspectorHeader preSelectedTabIndex={selectedTab} caName={caName}/>
+        <CaInspectorHeader preSelectedTabIndex={selectedTab} caName={caName} />
     );
 };
 
@@ -54,6 +58,7 @@ interface Props {
     caName: string | undefined
     preSelectedTabIndex: number | undefined
 }
+
 const CaInspectorHeader: React.FC<Props> = ({ caName, preSelectedTabIndex }) => {
     const theme = useTheme();
     const dispatch = useDispatch();
@@ -86,11 +91,26 @@ const CaInspectorHeader: React.FC<Props> = ({ caName, preSelectedTabIndex }) => 
                                                         <Skeleton variant="rectangular" width={350} height={22} sx={{ borderRadius: "5px" }} />
                                                     )
                                                     : (
-                                                        <>
-                                                            <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 26, lineHeight: "24px", marginRight: "10px" }}>{caData.name}</Typography>
-                                                            <LamassuChip color={caData.key_metadata.strength_color} label={caData.key_metadata.strength} rounded />
-                                                            <LamassuChip color={caData.status_color} label={caData.status} rounded style={{ marginLeft: "5px" }} />
-                                                        </>
+                                                        <Grid container spacing={2}>
+                                                            <Grid item xs="auto">
+                                                                <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 26, lineHeight: "24px", marginRight: "10px" }}>{caData.name}</Typography>
+                                                            </Grid>
+                                                            <Grid item xs="auto">
+                                                                {
+                                                                    !caData.with_private_key && (
+                                                                        <LamassuChip label={"READ-ONLY CA"} color={[theme.palette.primary.main, theme.palette.primary.light]} />
+                                                                    )
+                                                                }
+                                                            </Grid>
+                                                            <Grid item xs="auto" container spacing={"5px"}>
+                                                                <Grid item xs="auto">
+                                                                    <LamassuChip color={caData.key_metadata.strength_color} label={caData.key_metadata.strength} rounded />
+                                                                </Grid>
+                                                                <Grid item xs="auto">
+                                                                    <LamassuChip color={caData.status_color} label={caData.status} rounded style={{ marginLeft: "5px" }} />
+                                                                </Grid>
+                                                            </Grid>
+                                                        </Grid>
                                                     )
                                             }
                                         </Box>
@@ -137,6 +157,7 @@ const CaInspectorHeader: React.FC<Props> = ({ caName, preSelectedTabIndex }) => 
                                                 <Tab component={Link} to={""} label="Overview" />
                                                 <Tab component={Link} to={"cert"} label="Root Certificate" />
                                                 <Tab component={Link} to={"issued"} label="Issued Certificates" />
+                                                <Tab component={Link} to={"signverify"} label="Sign & Verify" />
                                                 <Tab component={Link} to={"cloud-providers"} label="Cloud Providers" />
                                             </Tabs>
                                         )
@@ -186,4 +207,21 @@ const CaInspectorHeader: React.FC<Props> = ({ caName, preSelectedTabIndex }) => 
 
         </Box>
     );
+};
+
+interface SignVerifyWrapperProps {
+    caName: string | undefined
+}
+
+const SignVerifyWrapper: React.FC<SignVerifyWrapperProps> = ({ caName }) => {
+    const theme = useTheme();
+    const dispatch = useDispatch();
+
+    const caData = useAppSelector((state) => caSelector.getCA(state, caName!));
+
+    if (!caData) {
+        return <></>;
+    }
+
+    return <SignVerifyView caData={caData} />;
 };

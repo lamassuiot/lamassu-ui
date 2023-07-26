@@ -70,6 +70,7 @@ export class CertificateAuthority {
 
     public issuance_duration!: number
     public ca_expiration!: number
+    public with_private_key!: boolean
 
     public total_issued_certificates!: number
     public issued_certs!: Array<Certificate>
@@ -134,6 +135,23 @@ export type CAStatus = typeof OCAStatus[keyof typeof OCAStatus];
 export class SignResponse {
     public certificate!: string
     public ca_certificate!: string
+
+    constructor (args?: {}) {
+        Object.assign(this, args);
+    }
+}
+
+export class SignPayloadResponse {
+    public signature!: string
+    public signing_algorithm!: string
+
+    constructor (args?: {}) {
+        Object.assign(this, args);
+    }
+}
+
+export class VerifyPayloadResponse {
+    public verification!: boolean
 
     constructor (args?: {}) {
         Object.assign(this, args);

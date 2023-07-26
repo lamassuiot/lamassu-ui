@@ -45,6 +45,7 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
     const [isVerifyLoading, setIsVerifyLoading] = useState(false);
     const [verifyResult, setVerifyResult] = useState<boolean | undefined>();
     const [verifyError, setVerifyError] = useState<string | undefined>();
+    const [warnVerifyInputPayload, setWarnVerifyInputPayload] = useState<string | undefined>();
 
     const { control, setValue, reset, getValues, handleSubmit, formState: { errors }, watch } = useForm<SignVerifyFormData>({
         defaultValues: {
@@ -71,19 +72,63 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
         if (watchSign.messageType === "HASH") {
             let msg = watchSign.message;
             if (watchSign.messageTypeEncoding === "Base64") {
-                msg = window.atob(msg);
+                try {
+                    msg = window.atob(msg);
+                    const splitAlg = watchSign.algorithm.split("_");
+                    const shaAlgoLength = parseInt(splitAlg[splitAlg.length - 1]);
+                    if (msg.length * 4 !== shaAlgoLength) {
+                        setWarnSignInputPayload(`The payload is not a valid hash. Make sure to hash the data to sign with SHA${shaAlgoLength}`);
+                    } else {
+                        setWarnSignInputPayload(undefined);
+                    }
+                } catch (error) {
+                    setWarnSignInputPayload("The payload is not a valid Base64. Make sure to encode the input in Base64 or switch to 'PlainText' encoding format");
+                }
             }
-
-            const splitAlg = watchSign.algorithm.split("_");
-            const shaAlgoLength = parseInt(splitAlg[splitAlg.length - 1]);
-
-            if (msg.length * 4 !== shaAlgoLength) {
-                setWarnSignInputPayload(`The payload is not a valid hash. Make sure to hash the data to sign with SHA${shaAlgoLength}`);
+        } else {
+            if (watchSign.messageTypeEncoding === "Base64") {
+                try {
+                    window.atob(watchSign.message);
+                    setWarnSignInputPayload(undefined);
+                } catch (error) {
+                    setWarnSignInputPayload("The payload is not a valid Base64. Make sure to encode the input in Base64 or switch to 'PlainText' encoding format");
+                }
             } else {
                 setWarnSignInputPayload(undefined);
             }
         }
     }, [watchSign.algorithm, watchSign.message, watchSign.messageTypeEncoding, watchSign.messageType]);
+
+    useEffect(() => {
+        if (watchVerify.messageType === "HASH") {
+            let msg = watchVerify.message;
+            if (watchVerify.messageTypeEncoding === "Base64") {
+                try {
+                    msg = window.atob(msg);
+                    const splitAlg = watchVerify.algorithm.split("_");
+                    const shaAlgoLength = parseInt(splitAlg[splitAlg.length - 1]);
+                    if (msg.length * 4 !== shaAlgoLength) {
+                        setWarnVerifyInputPayload(`The payload is not a valid hash. Make sure to hash the data to sign with SHA${shaAlgoLength}`);
+                    } else {
+                        setWarnVerifyInputPayload(undefined);
+                    }
+                } catch (error) {
+                    setWarnVerifyInputPayload("The payload is not a valid Base64. Make sure to encode the input in Base64 or switch to 'PlainText' encoding format");
+                }
+            }
+        } else {
+            if (watchVerify.messageTypeEncoding === "Base64") {
+                try {
+                    window.atob(watchVerify.message);
+                    setWarnVerifyInputPayload(undefined);
+                } catch (error) {
+                    setWarnVerifyInputPayload("The payload is not a valid Base64. Make sure to encode the input in Base64 or switch to 'PlainText' encoding format");
+                }
+            } else {
+                setWarnVerifyInputPayload(undefined);
+            }
+        }
+    }, [watchVerify.algorithm, watchVerify.message, watchVerify.messageTypeEncoding, watchVerify.messageType]);
 
     const handleSignSubmit = handleSubmit(data => {
         const run = async () => {
@@ -91,7 +136,11 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
             setSignError(undefined);
             try {
                 setIsSignLoading(true);
-                const resp = await caApiCalls.signPayload(caData.name, data.sign.message, data.sign.messageType, data.sign.algorithm);
+                let msg = data.sign.message;
+                if (data.sign.messageTypeEncoding === "PlainText") {
+                    msg = window.btoa(msg);
+                }
+                const resp = await caApiCalls.signPayload(caData.name, msg, data.sign.messageType, data.sign.algorithm);
                 setSignResult(resp.signature);
             } catch (error) {
                 if (typeof error === "string") {
@@ -114,7 +163,11 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
             setVerifyResult(undefined);
             try {
                 setIsVerifyLoading(true);
-                const resp = await caApiCalls.verifyPayload(caData.name, data.verify.signature, data.verify.message, data.verify.messageType, data.verify.algorithm);
+                let msg = data.verify.message;
+                if (data.verify.messageTypeEncoding === "PlainText") {
+                    msg = window.btoa(msg);
+                }
+                const resp = await caApiCalls.verifyPayload(caData.name, data.verify.signature, msg, data.verify.messageType, data.verify.algorithm);
                 setVerifyResult(resp.verification);
             } catch (error) {
                 if (typeof error === "string") {
@@ -165,7 +218,7 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
                             </FormSelect>
                         </Grid>
                         <Grid item xs>
-                            <FormTextField label="Payload to Sign" control={control} name="sign.message" multiline rows={1}/>
+                            <FormTextField label="Payload to Sign" control={control} name="sign.message" multiline rows={1} />
                         </Grid>
                         <Grid item xs>
                             <LoadingButton variant="contained" type="submit" loading={isSignLoading} disabled={warnSignInputPayload !== undefined}>Sign</LoadingButton>
@@ -186,7 +239,7 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
                                         {
                                             signResult !== undefined && (
                                                 <Alert severity="info">
-                                                    Successfully signed payload:
+                                                    Successfully signed payload (in Base64 encoding):
                                                     <CodeCopier code={signResult} />
                                                 </Alert>
                                             )
@@ -231,25 +284,24 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
                                 <MenuItem value={"RAW"}>Raw</MenuItem>
                             </FormSelect>
                         </Grid>
-                        {
-                            watchVerify.messageType === "HASH"
-                                ? (
-                                    <Grid item xs>
-                                        <FormTextField label="Unsigned Payload (in Base64URL encoded)" control={control} name="verify.message" />
-                                    </Grid>
-                                )
-                                : (
-                                    <Grid item xs>
-                                        <FormTextField label="Unsigned Payload (in Base64URL encoded)" control={control} name="verify.message" multiline minRows={1} />
-                                    </Grid>
-                                )
-                        }
+                        <Grid item xs>
+                            <FormSelect control={control} name="verify.messageTypeEncoding" label="Unsigned Payload Encoding Format">
+                                <MenuItem value={"PlainText"}>Plain text</MenuItem>
+                                <MenuItem value={"Base64"}>Base64</MenuItem>
+                            </FormSelect>
+                        </Grid>
+                        <Grid item xs>
+                            <FormTextField label="Unsigned Payload" control={control} name="verify.message" multiline minRows={1} />
+                        </Grid>
+
                         <Grid item xs>
                             <FormTextField label="Signature" control={control} name="verify.signature" multiline minRows={1} />
                         </Grid>
+
                         <Grid item xs>
                             <LoadingButton variant="contained" type="submit" loading={isVerifyLoading}>Verify</LoadingButton>
                         </Grid>
+
                         <Grid item xs>
                             {
                                 !isVerifyLoading && (

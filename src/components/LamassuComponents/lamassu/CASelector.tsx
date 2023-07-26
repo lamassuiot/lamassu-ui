@@ -2,13 +2,12 @@ import { getCAs } from "ducks/features/cas/apicalls";
 import React from "react";
 import { Autocomplete, Box, ClickAwayListener, Grid, Paper, Popper, TextField, Typography, useTheme, styled, autocompleteClasses, AutocompleteCloseReason, IconButton, Dialog, DialogTitle, DialogContent } from "@mui/material";
 import { CertificateAuthority } from "ducks/features/cas/models";
-import Label from "../dui/typographies/Label";
 import { KeyValueLabel } from "../dui/KeyValueLabel";
 import { MonoChromaticButton } from "../dui/MonoChromaticButton";
 import CloseIcon from "@mui/icons-material/Close";
 import CertificateDecoder from "../composed/CreateCAForm/CertificateDecoder";
 import { CodeCopier } from "../dui/CodeCopier";
-import moment from "moment";
+import CAViewer from "./CAViewer";
 
 interface CAInfo {
     id: string;
@@ -153,20 +152,8 @@ const CASelector: React.FC<Props> = ({ onSelect, value, multiple = false, label 
                                     : (
                                         selectedOption
                                             ? (
-                                                <Box component={Paper} sx={{ padding: "5px", background: theme.palette.textField.background, cursor: "pointer" }} onClick={handleClick}>
-                                                    <Grid container columnGap={2} alignItems={"center"}>
-                                                        <Grid item xs={"auto"} height={"40px"}>
-                                                            <img src={process.env.PUBLIC_URL + "/assets/AWS-SM.png"} height={"40px"} width={"40px"} />
-                                                        </Grid>
-                                                        <Grid item xs container flexDirection={"column"}>
-                                                            <Grid item xs>
-                                                                <Typography>{selectedOption.name}</Typography>
-                                                            </Grid>
-                                                            <Grid item xs>
-                                                                <Label>{moment.duration(moment(selectedOption.valid_to).diff(moment())).humanize(true)}</Label>
-                                                            </Grid>
-                                                        </Grid>
-                                                    </Grid>
+                                                <Box component={Paper} sx={{ cursor: "pointer" }} onClick={handleClick}>
+                                                    <CAViewer caData={selectedOption} />
                                                 </Box>
                                             )
                                             : (
@@ -178,30 +165,18 @@ const CASelector: React.FC<Props> = ({ onSelect, value, multiple = false, label 
                         <Grid item container flexDirection={"column"} spacing={2}>
                             {
                                 selectedOptions.map((item, idx) => (
-                                    <Grid item key={idx} onClick={() => setDisplayCA(item)} sx={{ cursor: "pointer" }}>
-                                        <Box component={Paper} sx={{ padding: "5px", background: theme.palette.textField.background }}>
-                                            <Grid container columnGap={2} alignItems={"center"}>
-                                                <Grid item xs={"auto"} height={"40px"}>
-                                                    <img src={process.env.PUBLIC_URL + "/assets/AWS-SM.png"} height={"40px"} width={"40px"} />
-                                                </Grid>
-                                                <Grid item xs container flexDirection={"column"}>
-                                                    <Grid item xs>
-                                                        <Typography>{item.name}</Typography>
-                                                    </Grid>
-                                                    <Grid item xs>
-                                                        <Label>{moment.duration(moment(item.valid_to).diff(moment())).humanize(true)}</Label>
-                                                    </Grid>
-                                                </Grid>
-                                                <Grid item xs={"auto"}>
-                                                    <IconButton size="small" onClick={(ev) => {
-                                                        setOptions([...selectedOptions.splice(selectedOptions.map(val => val.name).indexOf(item.name), 1)]);
-                                                        ev.stopPropagation();
-                                                    }}>
-                                                        <CloseIcon sx={{ fontSize: "14px" }} />
-                                                    </IconButton>
-                                                </Grid>
-                                            </Grid>
-                                        </Box>
+                                    <Grid item key={idx}>
+                                        <CAViewer caData={item} actions={[
+                                            <IconButton key={idx} size="small" onClick={(ev) => {
+                                                setOptions([...selectedOptions.splice(selectedOptions.map(val => val.name).indexOf(item.name), 1)]);
+                                                ev.stopPropagation();
+                                            }}>
+                                                <CloseIcon sx={{ fontSize: "14px" }} />
+                                            </IconButton>
+
+                                        ]}
+                                        clickDisplay
+                                        />
                                     </Grid>
                                 ))
                             }
@@ -265,21 +240,7 @@ const CASelector: React.FC<Props> = ({ onSelect, value, multiple = false, label 
                                     multiple={multiple}
                                     renderOption={(props, option, { selected }) => (
                                         <li {...props} style={{ background: selected ? "#d9d9d9" : "none" }}>
-                                            <Grid container spacing={2} >
-                                                <Grid item xs={"auto"} >
-                                                    <Box component={Paper} sx={{ height: "40px", width: "40px" }}>
-                                                        <img src={process.env.PUBLIC_URL + "/assets/AWS-SM.png"} height={"100%"} width={"100%"} />
-                                                    </Box>
-                                                </Grid>
-                                                <Grid item xs container flexDirection={"column"}>
-                                                    <Grid item xs>
-                                                        <Typography>{option.name}</Typography>
-                                                    </Grid>
-                                                    <Grid item xs>
-                                                        <Label>{moment.duration(moment(option.valid_to).diff(moment())).humanize(true)}</Label>
-                                                    </Grid>
-                                                </Grid>
-                                            </Grid>
+                                            <CAViewer caData={option} elevation={false} />
                                         </li>
                                     )}
                                 />

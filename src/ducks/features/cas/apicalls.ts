@@ -1,5 +1,5 @@
 import { apiRequest } from "ducks/services/api";
-import { CertificateAuthority, GetCAsListAPIResponse } from "./models";
+import { CertificateAuthority, GetCAsListAPIResponse, SignPayloadResponse, VerifyPayloadResponse } from "./models";
 
 export const getInfo = async (): Promise<any> => {
     return apiRequest({
