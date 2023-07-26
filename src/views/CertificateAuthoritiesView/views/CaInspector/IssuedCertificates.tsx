@@ -2,35 +2,29 @@ import React, { useEffect, useState } from "react";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, IconButton, Paper, Typography } from "@mui/material";
 import { LamassuChip } from "components/LamassuComponents/Chip";
 import { ListWithDataController, ListWithDataControllerConfigProps, OperandTypes } from "components/LamassuComponents/Table";
-import FileDownloadRoundedIcon from "@mui/icons-material/FileDownloadRounded";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
 import moment from "moment";
-import * as caActions from "ducks/features/cas/actions";
-import * as caSelector from "ducks/features/cas/reducer";
+import * as caApiCalls from "ducks/features/cas/apicalls";
 import { useDispatch } from "react-redux";
-import { useAppSelector } from "ducks/hooks";
 import { useTheme } from "@mui/system";
 import { Certificate } from "ducks/features/cas/models";
 import { Modal } from "components/Modal";
-import { materialLight, materialOceanic } from "react-syntax-highlighter/dist/esm/styles/prism";
-import SyntaxHighlighter from "react-syntax-highlighter";
 import deepEqual from "fast-deep-equal/es6";
 import { IssueCert } from "../CaActions/IssueCertificate";
+import { CodeCopier } from "components/LamassuComponents/dui/CodeCopier";
+import { CertificateAuthority } from "ducks/features/cav3/apicalls";
 
 interface Props {
-    caName: string
+    caData: CertificateAuthority
 }
-export const IssuedCertificates: React.FC<Props> = ({ caName }) => {
+export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
     const theme = useTheme();
     const dispatch = useDispatch();
 
-    const requestStatus = useAppSelector((state) => caSelector.getIssuedCertsRequestStatus(state));
-    const certificates = useAppSelector((state) => caSelector.getIssuedCerts(state, caName))!;
-    const totalCACerts = useAppSelector((state) => caSelector.getTotalIssuedCerts(state, caName))!;
+    const [isLoading, setIsLoading] = useState(true);
 
     const [displayIssueCert, setDisplayIssueCert] = useState(false);
-
     const [tableConfig, setTableConfig] = useState<ListWithDataControllerConfigProps>(
         {
             filter: {
@@ -51,14 +45,22 @@ export const IssuedCertificates: React.FC<Props> = ({ caName }) => {
         }
     );
 
-    const refreshAction = () => dispatch(caActions.getIssuedCertsActions.request({
-        caName: caName,
-        offset: tableConfig.pagination.selectedPage! * tableConfig.pagination.selectedItemsPerPage!,
-        limit: tableConfig.pagination.selectedItemsPerPage!,
-        sortField: tableConfig.sort.selectedField!,
-        sortMode: tableConfig.sort.selectedMode!,
-        filterQuery: tableConfig.filter.filters!.map((f: any) => { return f.propertyKey + "[" + f.propertyOperator + "]=" + f.propertyValue; })
-    }));
+    const refreshAction = async () => {
+        try {
+            const resp = await caApiCalls.getIssuedCerts(
+                caData.id,
+                tableConfig.pagination.selectedItemsPerPage!,
+                tableConfig.pagination.selectedPage! * tableConfig.pagination.selectedItemsPerPage!,
+                tableConfig.sort.selectedMode!,
+                tableConfig.sort.selectedField!,
+                tableConfig.filter.filters!.map((f: any) => { return f.propertyKey + "[" + f.propertyOperator + "]=" + f.propertyValue; })
+            );
+            console.log(resp);
+        } catch (error) {
+
+        }
+        setIsLoading(false);
+    };
 
     useEffect(() => {
         refreshAction();
@@ -113,18 +115,9 @@ export const IssuedCertificates: React.FC<Props> = ({ caName }) => {
                                     </Box>
                                 }
                                 content={
-                                    <SyntaxHighlighter language="json" style={theme.palette.mode === "light" ? materialLight : materialOceanic} customStyle={{ fontSize: 10, padding: 20, borderRadius: 10, width: "fit-content", height: "fit-content" }} wrapLines={true} lineProps={{ style: { color: theme.palette.text.primaryLight } }}>
-                                        {window.atob(cert.certificate)}
-                                    </SyntaxHighlighter>
+                                    <CodeCopier code={window.window.atob(cert.certificate)} enableDownload downloadFileName={caData.id + "_" + cert.serial_number + ".crt"} />
                                 }
                             />
-                        </Grid>
-                        <Grid item>
-                            <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
-                                <IconButton>
-                                    <FileDownloadRoundedIcon fontSize={"small"} />
-                                </IconButton>
-                            </Box>
                         </Grid>
                         <Grid item>
                             <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
@@ -140,7 +133,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caName }) => {
                                         <Grid container style={{ marginTop: "10px" }}>
                                             <Grid item xs={12}>
                                                 <Typography variant="button">CA Name: </Typography>
-                                                <Typography variant="button" style={{ background: theme.palette.mode === "light" ? "#efefef" : "#666", padding: 5, fontSize: 12 }}>{caName}</Typography>
+                                                <Typography variant="button" style={{ background: theme.palette.mode === "light" ? "#efefef" : "#666", padding: 5, fontSize: 12 }}>{caData.id}</Typography>
                                             </Grid>
                                             <Grid item xs={12}>
                                                 <Typography variant="button">CA Serial Number: </Typography>
@@ -150,7 +143,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caName }) => {
                                     </DialogContent>
                                     <DialogActions>
                                         <Button onClick={() => setIsRevokeDialogOpen({ isOpen: false, serialNumber: "" })} variant="outlined">Cancel</Button>
-                                        <Button onClick={() => { dispatch(caActions.revokeCertAction.request({ caName: caName, serialNumber: cert.serial_number })); }} variant="contained">Revoke</Button>
+                                        <Button onClick={() => {}} variant="contained">Revoke</Button>
                                     </DialogActions>
                                 </Dialog>
                             </Box>
@@ -169,11 +162,11 @@ export const IssuedCertificates: React.FC<Props> = ({ caName }) => {
                     renderFunc: renderCA,
                     enableRowExpand: false
                 }}
-                data={certificates}
-                totalDataItems={totalCACerts}
+                data={[]}
+                totalDataItems={0}
                 renderDataItem={renderCA}
                 invertContrast={true}
-                isLoading={requestStatus.isLoading}
+                isLoading={isLoading}
                 withAdd={() => { setDisplayIssueCert(true); }}
                 config={tableConfig}
                 emptyContentComponent={
@@ -197,7 +190,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caName }) => {
             />
             {
                 displayIssueCert && (
-                    <IssueCert caName={caName} isOpen={displayIssueCert} onClose={() => { setDisplayIssueCert(false); refreshAction(); }} />
+                    <IssueCert caName={caData.id} isOpen={displayIssueCert} onClose={() => { setDisplayIssueCert(false); refreshAction(); }} />
                 )
             }
         </>

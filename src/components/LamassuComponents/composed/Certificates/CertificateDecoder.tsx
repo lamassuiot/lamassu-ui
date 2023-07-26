@@ -7,10 +7,10 @@ import React, { useEffect, useState } from "react";
 import { X509Certificate, parseCRT } from "components/utils/cryptoUtils/crt";
 
 interface CertificateDecoderProps {
-    crt: string
+    crtPem: string
 }
 
-const CertificateDecoder: React.FC<CertificateDecoderProps> = ({ crt }) => {
+const CertificateDecoder: React.FC<CertificateDecoderProps> = ({ crtPem }) => {
     const theme = useTheme();
 
     const [crtProps, setCrtProps] = useState<X509Certificate | undefined>();
@@ -18,11 +18,13 @@ const CertificateDecoder: React.FC<CertificateDecoderProps> = ({ crt }) => {
 
     useEffect(() => {
         const run = async () => {
-            if (crt !== undefined) {
+            if (crtPem !== undefined) {
                 try {
-                    const crtInfo = await parseCRT(crt);
+                    const crtInfo = await parseCRT(crtPem);
                     setCrtProps(crtInfo);
                     setIsValid(true);
+                    console.log(crtInfo!.serialNumber);
+                    console.log(typeof crtInfo!.serialNumber);
                 } catch (err) {
                     console.log(err);
 
@@ -32,7 +34,7 @@ const CertificateDecoder: React.FC<CertificateDecoderProps> = ({ crt }) => {
         };
 
         run();
-    }, [crt]);
+    }, [crtPem]);
 
     return (
         <Grid container spacing={1}>

@@ -22,6 +22,7 @@ import { CodeCopier } from "components/LamassuComponents/dui/CodeCopier";
 import { StepModal } from "components/LamassuComponents/dui/StepModal";
 import { TextField } from "components/LamassuComponents/dui/TextField";
 import CAFetchViewer from "components/LamassuComponents/lamassu/CAFetchViewer";
+import EditIcon from "@mui/icons-material/Edit";
 
 export const DmsList = () => {
     const theme = useTheme();
@@ -85,7 +86,6 @@ export const DmsList = () => {
 
     const dmsCardRenderer = (dms: DMS) => {
         const splitColors = dms.identity_profile.enrollment_settings.color.split("-");
-        console.log(splitColors);
         let iconBG = "";
         let iconFG = "";
         if (splitColors.length === 2) {
@@ -100,78 +100,103 @@ export const DmsList = () => {
             <Grid item xs={4}>
                 <Box component={Paper} padding={"10px"}>
                     <Grid container flexDirection={"column"} spacing={1}>
-                        <Grid item container spacing={1} alignItems={"center"}>
-                            <Grid item>
-                                <IconInput readonly label="" size={35} value={{ bg: iconBG, fg: iconFG, icon: { icon: CG.CgSmartphoneChip, name: "CgSmartphoneChip" } }} />
-                            </Grid>
-                            <Grid item xs container flexDirection={"column"}>
-                                <Grid item>
-                                    <Typography>{dms.name}</Typography>
-                                </Grid>
-                                <Grid item>
-                                    {
-                                        dms.cloud_dms
-                                            ? (
-                                                <Chip label="Cloud DMS" compact compactFontSize color="warn" />
-                                            )
-                                            : (
-                                                <CloudOffIcon sx={{ fontSize: "1.15rem", color: "#555" }} />
-                                            )
-                                    }
-                                </Grid>
-                            </Grid>
-                            <Grid item xs="auto">
-                                <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
-                                    <Tooltip title="CA Certificates">
-                                        <IconButton onClick={(ev) => { ev.stopPropagation(); navigate(`${dms.name}/cacerts`); }}>
-                                            <AccountBalanceOutlinedIcon fontSize={"small"} />
-                                        </IconButton>
-                                    </Tooltip>
-                                </Box>
-                            </Grid>
-                            <Grid item xs="auto">
-                                <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
-                                    <Tooltip title="cURL enrollment commands">
-                                        <IconButton onClick={(ev) => { ev.stopPropagation(); setEnrollDMSCmds({ open: true, dmsName: dms.name }); }}>
-                                            <TerminalIcon fontSize={"small"} />
-                                        </IconButton>
-                                    </Tooltip>
-                                </Box>
-                            </Grid>
-                        </Grid>
-                        <Grid item>
-                            <KeyValueLabel
-                                label="EST Endpoint"
-                                value={
-                                    <Typography style={{ color: theme.palette.text.primary, fontSize: 12 }}>{"https://" + window.location.hostname + "/api/dmsmanager/.well-known/est/" + dms.name + "/simpleenroll"}</Typography>
-                                }
-                            />
-                        </Grid>
-                        <Grid item>
-                            <KeyValueLabel
-                                label="Authorized CA"
-                                value={
-                                    <CAFetchViewer caName={dms.identity_profile.enrollment_settings.authorized_ca} />
-                                }
-                            />
-                        </Grid>
-                        <Grid item>
-                            <KeyValueLabel
-                                label="Validation CAs"
-                                value={
-                                    <Grid container>
-                                        {
-                                            dms.identity_profile.enrollment_settings.bootstrap_cas.map((caName, idx) => {
-                                                return (
-                                                    <Grid item xs key={idx}>
-                                                        <CAFetchViewer caName={caName} />
-                                                    </Grid>
-                                                );
-                                            })
-                                        }
+                        <Grid item container spacing={1} flexDirection={"column"}>
+                            <Grid item container spacing={1}>
+                                <Grid item xs container spacing={1}>
+                                    <Grid item>
+                                        <IconInput readonly label="" size={35} value={{ bg: iconBG, fg: iconFG, icon: { icon: CG.CgSmartphoneChip, name: "CgSmartphoneChip" } }} />
                                     </Grid>
-                                }
-                            />
+                                    <Grid item xs container flexDirection={"column"}>
+                                        <Grid item>
+                                            <Typography>{dms.name}</Typography>
+                                        </Grid>
+                                        <Grid item container spacing={1}>
+                                            <Grid item xs="auto">
+                                                {
+                                                    dms.cloud_dms
+                                                        ? (
+                                                            <Chip label="Cloud DMS" compact compactFontSize color="warn" />
+                                                        )
+                                                        : (
+                                                            <CloudOffIcon sx={{ fontSize: "1.15rem", color: "#555" }} />
+                                                        )
+                                                }
+                                            </Grid>
+                                            <Grid item xs="auto">
+                                                <Chip label={`AWS Shadow: ${dms.aws.shadow_type}`} compact compactFontSize color="warn" />
+                                            </Grid>
+                                        </Grid>
+                                    </Grid>
+                                </Grid>
+                                <Grid item xs="auto" container spacing={"20px"}>
+                                    <Grid item xs="auto" container spacing={1}>
+                                        <Grid item xs="auto">
+                                            <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
+                                                <Tooltip title="CA Certificates">
+                                                    <IconButton onClick={(ev) => { navigate(`${dms.name}/cacerts`); }}>
+                                                        <AccountBalanceOutlinedIcon fontSize={"small"} />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Box>
+                                        </Grid>
+                                        <Grid item xs="auto">
+                                            <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
+                                                <Tooltip title="cURL enrollment commands">
+                                                    <IconButton onClick={(ev) => { setEnrollDMSCmds({ open: true, dmsName: dms.name }); }}>
+                                                        <TerminalIcon fontSize={"small"} />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Box>
+                                        </Grid>
+                                    </Grid>
+                                    <Grid item xs="auto" container>
+                                        <Grid item xs="auto">
+                                            <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
+                                                <Tooltip title="Edit">
+                                                    <IconButton onClick={(ev) => { navigate(`${dms.name}/edit`); }}>
+                                                        <EditIcon fontSize={"small"} />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Box>
+                                        </Grid>
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+
+                            <Grid item>
+                                <KeyValueLabel
+                                    label="EST Endpoint"
+                                    value={
+                                        <Typography style={{ color: theme.palette.text.primary, fontSize: 12 }}>{"https://" + window.location.hostname + "/api/dmsmanager/.well-known/est/" + dms.name + "/simpleenroll"}</Typography>
+                                    }
+                                />
+                            </Grid>
+                            <Grid item>
+                                <KeyValueLabel
+                                    label="Authorized CA"
+                                    value={
+                                        <CAFetchViewer caName={dms.identity_profile.enrollment_settings.authorized_ca} size="small" />
+                                    }
+                                />
+                            </Grid>
+                            <Grid item>
+                                <KeyValueLabel
+                                    label="Validation CAs"
+                                    value={
+                                        <Grid container flexDirection={"column"} spacing={1}>
+                                            {
+                                                dms.identity_profile.enrollment_settings.bootstrap_cas.map((caName, idx) => {
+                                                    return (
+                                                        <Grid item xs key={idx}>
+                                                            <CAFetchViewer caName={caName} size="small" />
+                                                        </Grid>
+                                                    );
+                                                })
+                                            }
+                                        </Grid>
+                                    }
+                                />
+                            </Grid>
                         </Grid>
                     </Grid>
                 </Box>

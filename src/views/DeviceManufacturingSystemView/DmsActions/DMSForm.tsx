@@ -10,7 +10,7 @@ import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
 import { FormIconInput } from "components/LamassuComponents/dui/form/IconInput";
 import { FormSwitch } from "components/LamassuComponents/dui/form/Switch";
 import Label from "components/LamassuComponents/dui/typographies/Label";
-import CertificateImporter from "components/LamassuComponents/composed/CreateCAForm/CertificateImporter";
+import CertificateImporter from "components/LamassuComponents/composed/Certificates/CertificateImporter";
 import { TextField } from "components/LamassuComponents/dui/TextField";
 import * as caApicalls from "ducks/features/cas/apicalls";
 import CASelector from "components/LamassuComponents/lamassu/CASelector";
@@ -19,16 +19,25 @@ import { DMS } from "ducks/features/dms-enroller/models";
 import { useDispatch } from "react-redux";
 import { FormMultiTextInput } from "components/LamassuComponents/dui/form/MultiTextInput";
 
+interface StaticCertificateListInputProps {
+    onChange: (certs: StaticCertificate[]) => void
+}
+
 type StaticCertificate = {
     name: string
     certificate: string
 }
 
-const StaticCertificateListInput = () => {
+const StaticCertificateListInput: React.FC<StaticCertificateListInputProps> = ({ onChange }) => {
     const [openAddCertModal, setOpenAddCertModal] = useState(false);
     const [certificates, setCertificates] = useState<StaticCertificate[]>([]);
 
+    const [newCertificate, setNewCertificate] = useState("");
     const [newCertificateName, setNewCertificateName] = useState("");
+
+    useEffect(() => {
+        onChange(certificates);
+    }, [certificates]);
 
     return (
         <Grid container spacing={1} alignItems={"center"}>
@@ -58,12 +67,21 @@ const StaticCertificateListInput = () => {
                                     <TextField label="Name" value={newCertificateName} onChange={(ev) => setNewCertificateName(ev.target.value)} />
                                 </Grid>
                                 <Grid item>
-                                    <CertificateImporter onCreate={(crt) => {
-                                        setCertificates([...certificates, { certificate: crt, name: newCertificateName }]);
-                                        setOpenAddCertModal(false);
-                                        setNewCertificateName("");
+                                    <CertificateImporter onChange={(crt) => {
+                                        setNewCertificate(crt);
                                     }} />
                                 </Grid>
+                                <Grid item xs={12}>
+                                    <Divider />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <Button variant="contained" onClick={() => {
+                                        setCertificates([...certificates, { certificate: newCertificate, name: newCertificateName }]);
+                                        setOpenAddCertModal(false);
+                                        setNewCertificateName("");
+                                    }}>Confirm</Button>
+                                </Grid>
+
                             </Grid>
                         </DialogContent>
                     </Dialog>
@@ -163,7 +181,6 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
                 setLoading(false);
             } else {
                 const casResp = await caApicalls.getCAs(100, 0, "asc", "name", []);
-                console.log(dms);
                 const updateDMS: FormData = {
                     dmsDefinition: {
                         name: dms.name,
@@ -200,7 +217,6 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
                         shadowType: dms!.aws.shadow_type.toLowerCase() === "classic" ? "classic" : "named"
                     }
                 };
-                console.log(updateDMS);
                 setLoading(false);
                 reset(updateDMS);
             }
@@ -250,7 +266,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
                             data.caDistribution.staticCAs.map(ca => {
                                 return {
                                     id: ca.name,
-                                    certificate: ca.certificate
+                                    certificate: window.btoa(ca.certificate)
                                 };
                             })
                     },
@@ -292,7 +308,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
                         <FormIconInput control={control} name="enrollDeviceRegistration.icon" label="Icon" />
                     </Grid>
                     <Grid item xs>
-                        <FormMultiTextInput control={control} name="enrollDeviceRegistration.tags" label="Tags"/>
+                        <FormMultiTextInput control={control} name="enrollDeviceRegistration.tags" label="Tags" />
                     </Grid>
                 </Grid>
 
@@ -378,7 +394,9 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
                         </Grid>
 
                         <Grid item>
-                            <StaticCertificateListInput />
+                            <StaticCertificateListInput onChange={(certs) => {
+                                setValue("caDistribution.staticCAs", certs);
+                            }} />
                         </Grid>
                     </Grid>
                 </Grid>

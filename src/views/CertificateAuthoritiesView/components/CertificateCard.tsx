@@ -3,7 +3,8 @@ import { Grid, Paper, Typography, useTheme } from "@mui/material";
 import { Box } from "@mui/system";
 import { LamassuChip } from "components/LamassuComponents/Chip";
 import moment from "moment";
-import { CertificateAuthority, OCAStatus } from "ducks/features/cas/models";
+import { CryptoEngineFetchViewer } from "components/LamassuComponents/lamassu/CryptoEngineFetchViewer";
+import { CertificateAuthority } from "ducks/features/cav3/apicalls";
 
 interface Props {
     ca: CertificateAuthority
@@ -23,17 +24,20 @@ export const CertificateCard: React.FC<Props> = ({ ca, selected = false, onClick
             style={{ width: "auto", height: height, borderRadius: 10, background: theme.palette.background.default, cursor: "pointer", ...style }}
         >
             <Box style={{ borderBottom: `1px solid ${theme.palette.divider}`, width: "100%", height: "60%" }}>
-                <Grid container style={{ height: "100%", padding: "0 0 0 30px" }} justifyContent="center" alignItems="center">
-                    <Grid item xs={8}>
-                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>#{`${ca.key_metadata.type} ${ca.key_metadata.bits}`}</Typography>
-                        <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 20, lineHeight: "24px" }}>{ca.name}</Typography>
+                <Grid container style={{ height: "100%", padding: "0 10px 0 20px" }} justifyContent="center" alignItems="center" spacing={1}>
+                    <Grid item xs="auto">
+                        <CryptoEngineFetchViewer defaultEngine simple/>
                     </Grid>
-                    <Grid item xs={4} container direction="column" justifyContent="center" alignItems="center">
+                    <Grid item xs>
+                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>#{`${ca.key_metadata.type} ${ca.key_metadata.bits}`}</Typography>
+                        <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 20, lineHeight: "24px" }}>{ca.id}</Typography>
+                    </Grid>
+                    <Grid item xs="auto" container direction="column" justifyContent="center" alignItems="center">
                         <Grid item>
                             <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>Key Strength</Typography>
                         </Grid>
                         <Grid item>
-                            <LamassuChip rounded label={ca.key_metadata.strength} color={ca.key_metadata.strength_color} style={{ width: "55px", marginTop: "5px" }} bold compact />
+                            <LamassuChip rounded label={ca.key_metadata.strength} style={{ width: "55px", marginTop: "5px" }} bold compact />
                         </Grid>
                     </Grid>
                 </Grid>
@@ -41,7 +45,7 @@ export const CertificateCard: React.FC<Props> = ({ ca, selected = false, onClick
             <Box style={{ height: "40%" }}>
                 <Grid container style={{ height: "100%", padding: "0 0 0 30px" }} justifyContent="center" alignItems="center">
                     <Grid item xs={8}>
-                        <Typography style={{ color: (ca.status === OCAStatus.REVOKED || ca.status === OCAStatus.EXPIRED) ? theme.palette.error.main : theme.palette.text.secondary, fontWeight: "400", fontSize: "13px" }}>{`${ca.status} · ${moment(ca.valid_to).format("DD/MM/YYYY")}`}</Typography>
+                        <Typography style={{ fontWeight: "400", fontSize: "13px" }}>{`${ca.status} · ${moment(ca.valid_to).format("DD/MM/YYYY")} ·  ${moment.duration(moment(ca.valid_to).diff(moment())).humanize(true)}`}</Typography>
                     </Grid>
                     <Grid item xs={4}>
                         <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400" }}></Typography>

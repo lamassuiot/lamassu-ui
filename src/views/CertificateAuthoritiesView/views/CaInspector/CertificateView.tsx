@@ -1,24 +1,22 @@
-import { useAppSelector } from "ducks/hooks";
 import React from "react";
-import * as caSelector from "ducks/features/cas/reducer";
 import { useTheme } from "@mui/system";
 import { Grid } from "@mui/material";
 import { CodeCopier } from "components/LamassuComponents/dui/CodeCopier";
+import { Certificate } from "ducks/features/cav3/apicalls";
 
 interface Props {
-    caName: string
+    certificate: Certificate
 }
 
-export const CertificateView: React.FC<Props> = ({ caName }) => {
+export const CertificateView: React.FC<Props> = ({ certificate }) => {
     const theme = useTheme();
     const themeMode = theme.palette.mode;
 
-    const caData = useAppSelector((state) => caSelector.getCA(state, caName)!);
-    const decodedCert = window.atob(caData.certificate);
+    const decodedCert = window.window.atob(certificate.certificate);
 
     return (
         <Grid item container sx={{ width: "100%" }} spacing={1}>
-            <CodeCopier code={decodedCert} />
+            <CodeCopier code={decodedCert} enableDownload downloadFileName={certificate.subject.common_name + ".crt"}/>
         </Grid>
     );
 };

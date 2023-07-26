@@ -1,5 +1,5 @@
 import { apiRequest } from "ducks/services/api";
-import { CertificateAuthority, GetCAsListAPIResponse } from "./models";
+import { CertificateAuthority, GetCAsListAPIResponse, SignPayloadResponse, VerifyPayloadResponse } from "./models";
 
 export const getInfo = async (): Promise<any> => {
     return apiRequest({
@@ -108,13 +108,39 @@ export const revokeCertificate = async (caName: string, serialNumber: string) =>
         }
     });
 };
-export const signCertificate = async (caName: string, csr: string) : Promise<any> => {
+
+export const signCertificate = async (caName: string, csr: string): Promise<any> => {
     return apiRequest({
         method: "POST",
         url: window._env_.LAMASSU_CA_API + "/v1/pki/" + caName + "/sign",
         data: {
-            certificate_request: btoa(csr),
+            certificate_request: window.btoa(csr),
             sign_verbatim: true
+        }
+    });
+};
+
+export const signPayload = async (caName: string, message: string, messageType: string, algorithm: string): Promise<SignPayloadResponse> => {
+    return apiRequest({
+        method: "POST",
+        url: window._env_.LAMASSU_CA_API + "/v1/ca/" + caName + "/signature/sign",
+        data: {
+            message: message,
+            message_type: messageType,
+            signing_algorithm: algorithm
+        }
+    });
+};
+
+export const verifyPayload = async (caName: string, signature: string, message: string, messageType: string, algorithm: string): Promise<VerifyPayloadResponse> => {
+    return apiRequest({
+        method: "POST",
+        url: window._env_.LAMASSU_CA_API + "/v1/ca/" + caName + "/signature/verify",
+        data: {
+            signature: signature,
+            message: message,
+            message_type: messageType,
+            signing_algorithm: algorithm
         }
     });
 };

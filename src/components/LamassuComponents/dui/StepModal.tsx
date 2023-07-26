@@ -21,8 +21,6 @@ const DuiStepIcon = (props: StepIconProps) => {
     const { active, completed, className } = props;
     const theme = useTheme();
 
-    console.log(props);
-
     if (completed) {
         return (
             <Box sx={{ background: theme.palette.primary.light, width: "30px", height: "30px", borderRadius: "20px", display: "flex", alignItems: "center", justifyContent: "center" }}>

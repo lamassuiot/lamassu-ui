@@ -8,7 +8,6 @@ export const DynamicIcon = ({ icon, ...props }) => {
 
   if (!library || !iconComponent) return <div>Could Not Find Icon</div>
 
-  console.log(props);
 
   const lib = library.toLowerCase()
   const Icon = loadable(() => import(`react-icons/${lib}/index.js`), {

@@ -192,7 +192,6 @@ export const DeviceInspector: React.FC<Props> = ({ deviceID, slotID }) => {
                             {
                                 showProvisionDevice && (
                                     <IssueCertificateFromDMS dmsName={device.dms_name} defaultCN={device.id} isOpen={showProvisionDevice} onClose={() => setShowProvisionDevice(false)} onCreate={async (certSN, caName, certPEM) => {
-                                        console.log(certSN, caName, certPEM);
                                         await deviceApiCalls.assignCertificateToDevice(device.id, "default", caName, certSN);
                                         refreshAction();
                                     }} />

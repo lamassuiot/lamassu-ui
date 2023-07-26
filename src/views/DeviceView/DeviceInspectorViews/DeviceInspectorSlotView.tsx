@@ -385,7 +385,7 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, deviceID }) =
                                         }
                                         content={
                                             <SyntaxHighlighter language="json" style={theme.palette.mode === "light" ? materialLight : materialOceanic} customStyle={{ fontSize: 10, padding: 20, borderRadius: 10, width: "fit-content", height: "fit-content" }} wrapLines={true} lineProps={{ style: { color: theme.palette.text.primaryLight } }}>
-                                                {window.atob(slot!.active_certificate.certificate)}
+                                                {window.window.atob(slot!.active_certificate.certificate)}
                                             </SyntaxHighlighter>
                                         }
                                     />

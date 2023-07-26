@@ -1,22 +1,30 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import moment from "moment";
-import { Box, useTheme } from "@mui/system";
-import { useAppSelector } from "ducks/hooks";
-import * as caSelector from "ducks/features/cas/reducer";
-import { Certificate } from "@fidm/x509";
-import { Grid, Typography } from "@mui/material";
-import { KeyValueLabel } from "components/LamassuComponents/dui/KeyValueLabel";
+import { useTheme } from "@mui/system";
+import { Grid, Skeleton } from "@mui/material";
+import { CertificateAuthority } from "ducks/features/cav3/apicalls";
+import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
+import { TextField } from "components/LamassuComponents/dui/TextField";
+import { CryptoEngineFetchViewer } from "components/LamassuComponents/lamassu/CryptoEngineFetchViewer";
+import { X509Certificate, parseCRT } from "components/utils/cryptoUtils/crt";
 
 interface Props {
-    caName: string
+    caData: CertificateAuthority
 }
 
-export const CerificateOverview: React.FC<Props> = ({ caName }) => {
+export const CertificateOverview: React.FC<Props> = ({ caData }) => {
     const theme = useTheme();
-    const caData = useAppSelector((state) => caSelector.getCA(state, caName)!);
+    const [parsedCertificate, setParsedCertificate] = useState<X509Certificate | undefined>();
+    useEffect(() => {
+        const run = async () => {
+            const crt = await parseCRT(window.atob(caData.certificate));
+            setParsedCertificate(crt);
+        };
 
-    const decodedCert = window.atob(caData.certificate);
-    const parsedCert = Certificate.fromPEM(Buffer.from(decodedCert, "utf8"));
+        run();
+    }, []);
+
+    const pars = window.window.atob(caData.certificate);
     const certificateSubject = {
         country: "Country",
         state: "State / Province",
@@ -26,119 +34,82 @@ export const CerificateOverview: React.FC<Props> = ({ caName }) => {
         common_name: "Common Name"
     };
 
-    const issuanceDuration = moment.duration(caData.issuance_duration * 1000);
-    let issuanceDurationString = "";
-    if (issuanceDuration.asSeconds() > 60) {
-        if (issuanceDuration.asMinutes() > 60) {
-            if (issuanceDuration.asHours() > 24) {
-                issuanceDurationString += Math.round(issuanceDuration.asDays()) + " days";
-            } else {
-                issuanceDurationString += Math.round(issuanceDuration.asHours()) + " hours";
-            }
-        } else {
-            issuanceDurationString += Math.round(issuanceDuration.asMinutes()) + " minutes";
-        }
-    } else {
-        issuanceDurationString += Math.round(issuanceDuration.asSeconds()) + " seconds";
-    }
-
-    const certificateProperties = {
+    const certificateProperties: any = {
         serialNumber: {
             title: "Serial Number",
-            value: chunk(parsedCert.serialNumber, 2).join("-")
+            value: caData.serial_number
         },
         validFrom: {
             title: "Valid From",
-            value: moment(parsedCert.validFrom).format("D MMMM YYYY")
+            value: moment(caData.valid_from).format("D MMMM YYYY")
         },
         validTo: {
             title: "Valid To",
-            value: moment(parsedCert.validTo).format("D MMMM YYYY")
+            value: moment(caData.valid_to).format("D MMMM YYYY")
         },
         issuanceDuration: {
-            title: "Issuance Duration",
-            value: issuanceDurationString
-        },
-        sans: {
-            title: "SANS",
-            value: parsedCert.dnsNames
-        },
-        signatureAlgorithm: {
-            title: "Signature Algorithm",
-            value: parsedCert.signatureAlgorithm
-        },
-        ocspServer: {
-            title: "OCSP Server",
-            value: parsedCert.ocspServer
+            title: "Issuance Expiration",
+            value: caData.issuance_expiration.type + ": " + (caData.issuance_expiration.type === "Duration" ? caData.issuance_expiration.duration : moment(caData.issuance_expiration.time).format("D MMMM YYYY HH:mm"))
         }
     };
 
+    if (!parsedCertificate) {
+        return <>
+            <Skeleton variant="rectangular" width={"100%"} height={25} sx={{ borderRadius: "5px", marginBottom: "20px" }} />
+            <Skeleton variant="rectangular" width={"100%"} height={25} sx={{ borderRadius: "5px", marginBottom: "20px" }} />
+            <Skeleton variant="rectangular" width={"100%"} height={25} sx={{ borderRadius: "5px", marginBottom: "20px" }} />
+        </>;
+    }
+
+    for (const [key, value] of parsedCertificate?.extensions) {
+        certificateProperties[key] = {
+            title: key,
+            value: value
+        };
+    }
+
     return (
         <Grid item container sx={{ width: "100%" }} spacing={0}>
-            <Grid item xs={12} container spacing={4}>
-                <Grid item xs={6} container>
-                    <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
-                        <Box style={{ marginBottom: 10 }}>
-                            <Typography variant="button" style={{ color: theme.palette.text.primary, fontWeight: "600", fontSize: 17 }}>Subject</Typography>
-                        </Box>
-                        <Box>
-                            <Grid container flexDirection={"column"} spacing={2}>
-                                {
-                                    Object.keys(certificateSubject).map(key => (
-                                        <Grid key={key} item>
-                                            {/* @ts-ignore} */}
-                                            <KeyValueLabel label={certificateSubject[key]} value={caData.subject[key]} />
-                                        </Grid>
-                                    ))
-                                }
-                            </Grid>
-                        </Box>
-                    </Box>
+            <Grid item xs={12} container spacing={2}>
+                <Grid item xs={12} container flexDirection={"column"}>
+                    <Grid item>
+                        <SubsectionTitle>Crypto Engine</SubsectionTitle>
+                    </Grid>
+                    <Grid item flexDirection={"column"} spacing={1}>
+                        <CryptoEngineFetchViewer defaultEngine withDebugMetadata />
+                    </Grid>
                 </Grid>
-                <Grid item xs={6} container>
-                    <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
-                        <Box style={{ marginBottom: 10 }}>
-                            <Typography variant="button" style={{ color: theme.palette.text.primary, fontWeight: "600", fontSize: 17 }}>Metadata</Typography>
-                        </Box>
-                        <Box>
-                            <Grid container flexDirection={"column"} spacing={2}>
-                                {
-                                    Object.keys(certificateProperties).map(key => (
-                                        <Grid key={key} item>
-                                            {/* @ts-ignore} */}
-                                            <KeyValueLabel label={certificateProperties[key].title} value={certificateProperties[key].value} />
-                                        </Grid>
-                                    ))
-                                }
-                            </Grid>
-                        </Box>
-                    </Box>
+                <Grid item xs={12} xl={6} container flexDirection={"column"}>
+                    <Grid item>
+                        <SubsectionTitle>Subject</SubsectionTitle>
+                    </Grid>
+                    <Grid container flexDirection={"column"} spacing={1}>
+                        {
+                            Object.keys(certificateSubject).map(key => (
+                                <Grid key={key} item>
+                                    {/* @ts-ignore} */}
+                                    <TextField label={certificateSubject[key]} value={caData.subject[key]} disabled />
+                                </Grid>
+                            ))
+                        }
+                    </Grid>
                 </Grid>
-                {/* <Grid item xs={6} container>
-                    <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
-                        <Box style={{ marginBottom: 10 }}>
-                            <Typography variant="button" style={{ color: theme.palette.text.primary, fontWeight: "600", fontSize: 17 }}>Timeline</Typography>
-                        </Box>
-                        <Box>
-                            <Box>
-                                <Typography>Issued certificates have a lifespan of: </Typography>
-                                <Typography>The last emission date </Typography>
-                            </Box>
-                        </Box>
-                    </Box>
-                </Grid> */}
+                <Grid item xs={12} xl={6} container>
+                    <Grid item>
+                        <SubsectionTitle>Other Properties</SubsectionTitle>
+                    </Grid>
+                    <Grid container flexDirection={"column"} spacing={1}>
+                        {
+                            Object.keys(certificateProperties).map(key => (
+                                <Grid key={key} item>
+                                    {/* @ts-ignore} */}
+                                    <TextField label={certificateProperties[key].title} value={certificateProperties[key].value} disabled />
+                                </Grid>
+                            ))
+                        }
+                    </Grid>
+                </Grid>
             </Grid >
-            <Grid item container style={{ marginTop: 20 }} spacing={2}>
-                {/* <Grid item xs={3}>
-                    <IssuedCertsStatus/>
-                </Grid>
-                <Grid item xs={3}>
-                    <IssuedCertsKeyStrength/>
-                </Grid>
-                <Grid item xs={6}>
-                    <IssuedCertsTimeline />
-                </Grid> */}
-            </Grid>
         </Grid >
     );
 };

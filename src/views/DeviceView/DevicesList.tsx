@@ -85,7 +85,6 @@ export const DeviceList = () => {
 
     const deviceRender = (device: Device) => {
         const dmsContent = device.dms_name;
-        console.log(device);
         return {
             icon: (
                 <Box component={Paper} sx={{ padding: "5px", background: device.icon_color_bg, borderRadius: 2, width: 20, height: 20, display: "flex", justifyContent: "center", alignItems: "center" }}>

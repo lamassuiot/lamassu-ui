@@ -24,12 +24,12 @@ const initialState = {
         build_time: ""
     },
     cryptoEngine: {
+        type: "",
         provider: "",
-        cryptoki_version: "",
-        manufacturer: "",
-        model: "",
-        library: "",
-        supported_key_types: []
+        name: "",
+        engine_name: "",
+        supported_key_types: [],
+        metadata: new Map<string, any>()
     },
     status: {
         isLoading: false,

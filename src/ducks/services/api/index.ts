@@ -22,8 +22,8 @@ export const apiRequest = async ({ method = "GET", url, data, query, headers = {
 
     const parseErrorResponse = async (resp: Response) => {
         try {
-            let msg = "StatusCode=" + resp.status + " " + resp.statusText;
-            const errMsg = await response.text();
+            let msg = "StatusCode: " + resp.status + " " + resp.statusText + ". ";
+            const errMsg = await resp.text();
             msg = msg + " " + errMsg;
             return msg;
         } catch (error) {
@@ -32,28 +32,35 @@ export const apiRequest = async ({ method = "GET", url, data, query, headers = {
         }
     };
 
-    const response = await fetch(url, {
-        method: method,
-        headers: {
-            Authorization: "Bearer " + token,
-            ...(method === "POST" && { "Content-Type": "application/json" }),
-            ...headers
-        },
-        ...({ body: JSON.stringify(data) })
-    });
+    try {
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                Authorization: "Bearer " + token,
+                ...(method === "POST" && { "Content-Type": "application/json" }),
+                ...headers
+            },
+            ...({ body: JSON.stringify(data) })
+        });
+        // OR you can do this
+        if (response.status >= 200 && response.status < 300) {
+            if (response.headers.has("Content-Type") && response.headers.get("Content-Type")!.includes("application/json")) {
+                const json = await response.json();
+                return json;
+            }
+            console.log("no JSOn");
 
-    // OR you can do this
-    if (response.status >= 200 && response.status < 300) {
-        if (response.headers.has("Content-Type") && response.headers.get("Content-Type")!.includes("application/json")) {
-            const json = await response.json();
-            return json;
+            const text = await response.text();
+            return text;
         }
-        console.log("no JSOn");
-
-        const text = await response.text();
-        return text;
+        throw Error(await parseErrorResponse(response));
+    } catch (e: any) {
+        if (e instanceof TypeError) {
+            throw new Error(e.message);
+        } else {
+            throw e;
+        }
     }
-    throw Error(await parseErrorResponse(response));
 };
 
 export const makeRequestWithActions = (fetchPromise: Promise<any>, actionType: string, meta = {}) =>
@@ -75,3 +82,14 @@ export const makeRequestWithActions = (fetchPromise: Promise<any>, actionType: s
             };
         })
     );
+
+export const errorToString = (err: any): string => {
+    if (typeof err === "string") {
+        return err;
+    } else if (err instanceof Error) {
+        return err.message;
+    } else if (err instanceof Object) {
+        return JSON.stringify(err);
+    }
+    return "";
+};

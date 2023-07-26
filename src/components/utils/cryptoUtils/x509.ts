@@ -98,6 +98,49 @@ export const parseSANFromExtensions = async (extensions: pkijs.Extension[]): Pro
     return { dnss: sanDNSs };
 };
 
+export const parseExtensions = async (extensions: pkijs.Extension[]): Promise<Map<string, string>> => {
+    const extensionMap = new Map<string, string>();
+    for (let i = 0; i < extensions.length; i++) {
+        const ext = extensions[i];
+        const octetString = asn1js.fromBER(ext.extnValue.toBER(false)).result;
+        switch (ext.extnID) {
+        case "2.5.29.17": { // OID SAN
+            // @ts-ignore
+            const san = pkijs.GeneralNames.fromBER(octetString.getValue());
+            extensionMap.set("Subject Alternative Name", san.names.join(", "));
+            break;
+        }
+        case "2.5.29.37": { // OID keyUsage
+            // @ts-ignore
+            const res = pkijs.ExtKeyUsage.fromBER(octetString.getValue());
+            const resolver = (oid: string): string => {
+                switch (oid) {
+                case "1.3.6.1.5.5.7.3.1":
+                    return "Server Auth";
+                case "1.3.6.1.5.5.7.3.2":
+                    return "Client Auth";
+                default:
+                    return oid;
+                }
+            };
+            extensionMap.set("Extended Key Usage", res.keyPurposes.map(oid => resolver(oid)).join(", "));
+            break;
+        }
+        case "2.5.29.19": { // OID basicConstraints
+            // @ts-ignore
+            const dec = pkijs.BasicConstraints.fromBER(octetString.getValue());
+            extensionMap.set("Basic Constraints", `IsCA: ${dec.cA}`);
+            break;
+        }
+        default:
+            extensionMap.set(`Extension OID: ${ext.extnID}`, "<present but currently not decoded>");
+            break;
+        }
+    }
+
+    return extensionMap;
+};
+
 export function toPEM (buffer: BufferSource, tag: string): string {
     return [
         `-----BEGIN ${tag}-----`,

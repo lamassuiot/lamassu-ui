@@ -24,7 +24,6 @@ const CSRDecoder: React.FC<CSRDecoderProps> = ({ csr }) => {
                     setIsValid(true);
                 } catch (err) {
                     console.log(err);
-
                     setIsValid(false);
                 }
             }

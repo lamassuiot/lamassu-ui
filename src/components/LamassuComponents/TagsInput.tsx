@@ -16,7 +16,6 @@ const TagsInput: React.FC<TagProps> = ({ placeholder = "", tags, label, onChange
     const [inputValue, setInputValue] = React.useState("");
 
     const handleKeyDown = (event: any) => {
-        console.log(event);
         if (event.key === "Enter") {
             event.preventDefault();
             event.stopPropagation();

@@ -7,7 +7,7 @@ import * as dmsApiCalls from "ducks/features/dms-enroller/apicalls";
 import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
 import { CodeCopier } from "components/LamassuComponents/dui/CodeCopier";
 import { parseCertificateBundle } from "components/utils/cryptoUtils/x509";
-import CertificateDecoder from "components/LamassuComponents/composed/CreateCAForm/CertificateDecoder";
+import CertificateDecoder from "components/LamassuComponents/composed/Certificates/CertificateDecoder";
 
 interface Props {
     dmsName: string
@@ -85,7 +85,7 @@ export const DMSCACertificates: React.FC<Props> = ({ dmsName }) => {
                                 </>
                             )
                             : (
-                                <CodeCopier code={pemCACerts} enableDownload={true} downloadFileName={`${dmsName}-trust-cas.crt'`} />
+                                <CodeCopier code={pemCACerts} enableDownload={true} downloadFileName={`${dmsName}-trust-cas.crt`} />
                             )
                     }
                 </Grid>
@@ -109,7 +109,7 @@ export const DMSCACertificates: React.FC<Props> = ({ dmsName }) => {
                                     {
                                         decodedCerts.map((cert, idx) => (
                                             <Grid item key={idx}>
-                                                <CertificateDecoder crt={cert}/>
+                                                <CertificateDecoder crtPem={cert}/>
                                             </Grid>
                                         ))
                                     }

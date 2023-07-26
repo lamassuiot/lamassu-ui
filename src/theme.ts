@@ -22,6 +22,9 @@ const componentsTheme = (theme: CustomTheme) => {
                 },
                 input: {
                     padding: "10px"
+                },
+                multiline: {
+                    padding: "5px 5px 5px 5px"
                 }
             }
         },
@@ -47,21 +50,6 @@ export const light: any = {
             light: "#70A8EB",
             main: "#00E0FC",
             dark: "#1F528F"
-        },
-        success: {
-            light: "#e3f8ef",
-            main: "#5CA36B",
-            dark: "#2F6140"
-        },
-        warning: {
-            light: "#FFF0C0",
-            main: "#F3A83B",
-            dark: "#907057"
-        },
-        error: {
-            light: "#FCE5E8",
-            main: "#da565f",
-            dark: "#8C3239"
         },
         blue: {
             light: "#CDDEF5",

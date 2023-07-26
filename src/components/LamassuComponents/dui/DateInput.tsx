@@ -6,8 +6,8 @@ import { TextField } from "@mui/material";
 import { KeyValueLabel } from "./KeyValueLabel";
 
 export interface DateInputProps {
-    value: string
-    onChange: (ev: any) => void,
+    value: moment.Moment
+    onChange: (ev: moment.Moment) => void,
     label: string
 }
 
@@ -19,8 +19,12 @@ const DateInput: React.FC<DateInputProps> = ({ value, onChange, label, ...props 
                 <LocalizationProvider dateAdapter={DateAdapter}>
                     <DatePicker
                         label=""
-                        value={moment().add("100d")}
-                        onChange={(ev) => console.log(ev)}
+                        value={value}
+                        onChange={(ev) => {
+                            if (ev) {
+                                onChange(ev);
+                            }
+                        }}
                         renderInput={(params: any) => <TextField fullWidth {...params} />}
                     />
                 </LocalizationProvider>

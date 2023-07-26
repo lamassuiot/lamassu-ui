@@ -6,7 +6,7 @@ import Label from "../dui/typographies/Label";
 import { KeyValueLabel } from "../dui/KeyValueLabel";
 import { MonoChromaticButton } from "../dui/MonoChromaticButton";
 import CloseIcon from "@mui/icons-material/Close";
-import CertificateDecoder from "../composed/CreateCAForm/CertificateDecoder";
+import CertificateDecoder from "../composed/Certificates/CertificateDecoder";
 import { CodeCopier } from "../dui/CodeCopier";
 import moment from "moment";
 
@@ -75,8 +75,6 @@ type Props = {
 }
 
 const CASelector: React.FC<Props> = ({ onSelect, value, multiple = false, label }) => {
-    console.log(value);
-
     const [inputValue, setInputValue] = React.useState("");
     const [loading, setLoading] = React.useState(false);
     const [options, setOptions] = React.useState<readonly CertificateAuthority[]>([]);
@@ -124,8 +122,6 @@ const CASelector: React.FC<Props> = ({ onSelect, value, multiple = false, label 
             setLoading(true);
             try {
                 const casResponse = await getCAs(20, 0, "asc", "id", []);
-                console.log(casResponse);
-
                 setOptions([...casResponse.cas]);
             } catch (err) {
                 setOptions([]);
@@ -226,7 +222,6 @@ const CASelector: React.FC<Props> = ({ onSelect, value, multiple = false, label 
                                     open={open}
                                     value={multiple ? selectedOptions : selectedOption}
                                     onChange={(event: any, newValue: any) => {
-                                        console.log(newValue);
                                         if (multiple) {
                                             setSelectedOptions(newValue);
                                         } else {
@@ -243,8 +238,6 @@ const CASelector: React.FC<Props> = ({ onSelect, value, multiple = false, label 
                                         event: React.ChangeEvent<{}>,
                                         reason: AutocompleteCloseReason
                                     ) => {
-                                        console.log(reason);
-
                                         if (multiple) {
                                             if (reason === "escape") {
                                                 handleClose();
@@ -295,10 +288,10 @@ const CASelector: React.FC<Props> = ({ onSelect, value, multiple = false, label 
                                 <DialogContent>
                                     <Grid container spacing={2} flexDirection={"column"}>
                                         <Grid item>
-                                            <CodeCopier code={atob(displayCA.certificate)} />
+                                            <CodeCopier code={window.atob(displayCA.certificate)} />
                                         </Grid>
                                         <Grid item>
-                                            <CertificateDecoder crt={atob(displayCA.certificate)} />
+                                            <CertificateDecoder crtPem={window.atob(displayCA.certificate)} />
                                         </Grid>
                                     </Grid>
                                 </DialogContent>

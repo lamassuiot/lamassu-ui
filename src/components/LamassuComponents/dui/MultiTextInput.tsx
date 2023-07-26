@@ -17,8 +17,6 @@ const RenderInputAutocomplete: React.FC<AutocompleteRenderInputParamsProps> = ({
     onClick = (ev: React.MouseEvent<HTMLElement>) => { },
     ...other
 }) => {
-    console.log(other);
-
     return (
         <div ref={InputProps.ref} >
             <TextField
@@ -39,15 +37,11 @@ interface MultiTextInputProps extends Omit<AutocompleteProps<any, true, true, tr
 }
 
 const MultiTextInput: React.FC<MultiTextInputProps> = ({ label, ...rest }) => {
-    console.log(rest);
     const theme = useTheme();
     return (
         <Autocomplete
             value={rest.value}
             onChange={(ev) => {
-                console.log(ev);
-                // @ts-ignore
-                console.log(ev.target.value);
                 // @ts-ignore
                 rest.onChange(ev);
             }}

@@ -9,9 +9,10 @@ interface MultiKeyValueInputProps {
     label: string
     value?: Map<string, any>
     onChange?: (values: Map<string, any>) => void
+    disable?: boolean
 }
 
-const MultiKeyValueInput: React.FC<MultiKeyValueInputProps> = ({ label, value = new Map<string, any>(), onChange }) => {
+const MultiKeyValueInput: React.FC<MultiKeyValueInputProps> = ({ label, value = new Map<string, any>(), onChange, disable = false }) => {
     const theme = useTheme();
     const [keyValues, setKeyValues] = useState(value);
     const [newKey, setNewKey] = useState("");
@@ -33,42 +34,50 @@ const MultiKeyValueInput: React.FC<MultiKeyValueInputProps> = ({ label, value = 
                     Array.from(keyValues.entries()).map(([key, value]) => {
                         return (
                             <Grid key={key} item container spacing={2} alignItems={"center"}>
-                                <Grid item xs={3}>
-                                    <TextField label="" value={key} />
+                                <Grid item xs={4}>
+                                    <TextField label="" value={key} disabled={disable} />
                                 </Grid>
                                 <Grid item xs>
-                                    <TextField label="" value={value} />
+                                    <TextField label="" value={value} disabled={disable} />
                                 </Grid>
-                                <Grid item xs="auto">
-                                    <Button variant="outlined" onClick={() => {
-                                        setKeyValues(prev => {
-                                            const map = new Map(prev);
-                                            map.delete(key);
-                                            return new Map(map);
-                                        });
-                                    }}>
-                                        <DeleteOutlinedIcon />
-                                    </Button>
-                                </Grid>
+                                {
+                                    !disable && (
+                                        <Grid item xs="auto">
+                                            <Button variant="outlined" onClick={() => {
+                                                setKeyValues(prev => {
+                                                    const map = new Map(prev);
+                                                    map.delete(key);
+                                                    return new Map(map);
+                                                });
+                                            }}>
+                                                <DeleteOutlinedIcon />
+                                            </Button>
+                                        </Grid>
+                                    )
+                                }
                             </Grid>
                         );
                     })
                 }
-                <Grid item container spacing={2} alignItems={"center"}>
-                    <Grid item xs={3}>
-                        <TextField placeholder="Key" value={newKey} onChange={ev => setNewKey(ev.target.value)} label={""} />
-                    </Grid>
-                    <Grid item xs>
-                        <TextField label={""} value={newVal} onChange={ev => setNewVal(ev.target.value)} />
-                    </Grid>
-                    <Grid item xs="auto">
-                        <Button variant="outlined" disabled={newKey === ""} onClick={() => {
-                            setKeyValues(keyValues.set(newKey, newVal));
-                            setNewKey("");
-                            setNewVal("");
-                        }}>Add</Button>
-                    </Grid>
-                </Grid>
+                {
+                    !disable && (
+                        <Grid item container spacing={2} alignItems={"center"}>
+                            <Grid item xs={4}>
+                                <TextField placeholder="Key" value={newKey} onChange={ev => setNewKey(ev.target.value)} label={""} />
+                            </Grid>
+                            <Grid item xs>
+                                <TextField label={""} value={newVal} onChange={ev => setNewVal(ev.target.value)} />
+                            </Grid>
+                            <Grid item xs="auto">
+                                <Button variant="outlined" disabled={newKey === ""} onClick={() => {
+                                    setKeyValues(keyValues.set(newKey, newVal));
+                                    setNewKey("");
+                                    setNewVal("");
+                                }}>Add</Button>
+                            </Grid>
+                        </Grid>
+                    )
+                }
             </Grid>
         </Grid >
     );

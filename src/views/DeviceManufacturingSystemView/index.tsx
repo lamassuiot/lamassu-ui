@@ -90,8 +90,6 @@ const UpdateDMSForm: React.FC<UpdateDMSFormProps> = ({ dmsName }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    console.log(dms);
-
     useEffect(() => {
         dispatch(dmsActions.getDMSAction.request({ name: dmsName }));
     }, []);

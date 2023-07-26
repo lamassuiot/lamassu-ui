@@ -1,3 +1,4 @@
+
 export class CAInfo {
     public build_version!: string
     public build_time!: string
@@ -16,12 +17,12 @@ export class CryptoEngineSupportedKey {
 }
 
 export class CryptoEngine {
+    public type!: string
     public provider!: string
-    public cryptoki_version!: string
-    public manufacturer!: string
-    public model!: string
-    public library!: string
+    public name!: string
+    public engine_name!: string
     public supported_key_types!: Array<CryptoEngineSupportedKey>
+    public metadata!: Map<string, any>
     constructor (args?: {}) {
         Object.assign(this, args);
     }
@@ -134,6 +135,23 @@ export type CAStatus = typeof OCAStatus[keyof typeof OCAStatus];
 export class SignResponse {
     public certificate!: string
     public ca_certificate!: string
+
+    constructor (args?: {}) {
+        Object.assign(this, args);
+    }
+}
+
+export class SignPayloadResponse {
+    public signature!: string
+    public signing_algorithm!: string
+
+    constructor (args?: {}) {
+        Object.assign(this, args);
+    }
+}
+
+export class VerifyPayloadResponse {
+    public verification!: boolean
 
     constructor (args?: {}) {
         Object.assign(this, args);

@@ -5,14 +5,15 @@ import * as caSelector from "ducks/features/cas/reducer";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "ducks/hooks";
 import { Outlet, useNavigate } from "react-router-dom";
-import { Grid, IconButton, InputBase, Paper, Typography, Slide, Skeleton } from "@mui/material";
+import { Grid, IconButton, InputBase, Paper, Typography, Slide } from "@mui/material";
 import { CertificateCard } from "views/CertificateAuthoritiesView/components/CertificateCard";
 import { AiOutlineSearch } from "react-icons/ai";
 import AddIcon from "@mui/icons-material/Add";
-import { CertificateAuthority } from "ducks/features/cas/models";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import { numberToHumanReadableString } from "components/utils/NumberToHumanReadableString";
+import { FetchViewer } from "components/LamassuComponents/lamassu/FetchViewer";
+import { getCAs } from "ducks/features/cav3/apicalls";
 
 interface Props {
     preSelectedCaName?: string
@@ -90,7 +91,7 @@ export const CaList: React.FC<Props> = ({ preSelectedCaName }) => {
                                 <Grid item>
                                     <Box component={Paper} sx={{ padding: "5px", height: 30, display: "flex", alignItems: "center", width: "calc( 100% - 10px)" }}>
                                         <AiOutlineSearch size={20} color={theme.palette.text.primary} style={{ marginLeft: 10, marginRight: 10 }} />
-                                        <InputBase onChange={(ev) => filterCAs(ev.target.value)} fullWidth style={{ color: theme.palette.text.primary, fontSize: 14 }} placeholder="CA Name"/>
+                                        <InputBase onChange={(ev) => filterCAs(ev.target.value)} fullWidth style={{ color: theme.palette.text.primary, fontSize: 14 }} placeholder="CA Name" />
                                     </Box>
                                 </Grid>
                                 <Grid item xs={12} style={{ paddingTop: "10px" }} container alignItems={"center"}>
@@ -124,39 +125,34 @@ export const CaList: React.FC<Props> = ({ preSelectedCaName }) => {
                             </Grid>
                             <Grid item xs={2} container justifyContent={"flex-end"}>
                                 <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 40, height: 40, marginLeft: 10 }}>
-                                    <IconButton style={{ background: theme.palette.primary.light }} onClick={() => { setIsMainModalOpen(true); navigate("actions/create"); }}>
+                                    <IconButton style={{ background: theme.palette.primary.light }} onClick={() => { setIsMainModalOpen(true); navigate("create"); }}>
                                         <AddIcon style={{ color: theme.palette.primary.main }} />
                                     </IconButton>
                                 </Box>
                             </Grid>
                         </Grid>
                     </Box>
-                    <Box style={{ padding: "0px 20px 20px 20px", overflowY: "auto", height: 300, flexGrow: 1 }}>
-
-                        {
-                            requestStatus.isLoading
-                                ? (
-                                    <>
-                                        <Skeleton variant="rectangular" width={"100%"} height={100} sx={{ borderRadius: "10px", marginBottom: "20px" }} />
-                                        <Skeleton variant="rectangular" width={"100%"} height={100} sx={{ borderRadius: "10px", marginBottom: "20px" }} />
-                                        <Skeleton variant="rectangular" width={"100%"} height={100} sx={{ borderRadius: "10px", marginBottom: "20px" }} />
-                                    </>
-                                )
-                                : (
-                                    filteredCaList.map((caItem: CertificateAuthority) => (
-                                        <Box style={{ marginBottom: 20 }} key={caItem.name}>
-                                            <CertificateCard
-                                                onClick={() => {
-                                                    setIsMainModalOpen(true);
-                                                    navigate(caItem.name);
-                                                }}
-                                                ca={caItem}
-                                                selected={selectedCa !== undefined ? caItem.name === selectedCa : false}
-                                            />
-                                        </Box>
-                                    ))
-                                )
-                        }
+                    <Box style={{ padding: "10px 20px 20px 20px", overflowY: "auto", height: 300, flexGrow: 1 }}>
+                        <FetchViewer fetcher={() => getCAs()} errorPrefix="Could not fetch CA List" renderer={(caListResp) => {
+                            return (
+                                <Grid container spacing={"20px"} flexDirection={"column"}>
+                                    {
+                                        caListResp.list.map((caItem) => (
+                                            <Grid item key={caItem.id}>
+                                                <CertificateCard
+                                                    onClick={() => {
+                                                        setIsMainModalOpen(true);
+                                                        navigate(caItem.id);
+                                                    }}
+                                                    ca={caItem}
+                                                    selected={selectedCa !== undefined ? caItem.id === selectedCa : false}
+                                                />
+                                            </Grid>
+                                        ))
+                                    }
+                                </Grid>
+                            );
+                        }} />
                     </Box>
                 </Box>
             </Grid>

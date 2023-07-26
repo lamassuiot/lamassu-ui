@@ -10,7 +10,7 @@ import Box from "@mui/material/Box/Box";
 import { Certificate } from "@fidm/x509";
 import CertRequestForm from "components/LamassuComponents/composed/CertRequestForm";
 import { CodeCopier } from "components/LamassuComponents/dui/CodeCopier";
-import CertificateDecoder from "components/LamassuComponents/composed/CreateCAForm/CertificateDecoder";
+import CertificateDecoder from "components/LamassuComponents/composed/Certificates/CertificateDecoder";
 
 interface Props {
     caName: string,
@@ -37,9 +37,8 @@ export const IssueCert: React.FC<Props> = ({ caName, isOpen, onClose = () => { }
                 setLoading(true);
                 try {
                     const resp = await caApicalls.signCertificate(caName!, csr!);
-                    console.log(resp);
                     setRawCrt(resp.certificate);
-                    setParsedSignedCert(Certificate.fromPEM(Buffer.from(window.atob(resp.certificate), "utf8")));
+                    setParsedSignedCert(Certificate.fromPEM(Buffer.from(window.window.atob(resp.certificate), "utf8")));
                     setLoading(false);
                     setStep(step + 1);
                 } catch (error: any) {
@@ -136,10 +135,10 @@ export const IssueCert: React.FC<Props> = ({ caName, isOpen, onClose = () => { }
                                                     rawCrt !== undefined && (
                                                         <>
                                                             <Grid item xs={6} justifyContent={"center"} spacing={1}>
-                                                                <CodeCopier code={atob(rawCrt)} enableDownload downloadFileName={caName + "_" + parsedSignedCert.subject.commonName + "crt"} />
+                                                                <CodeCopier code={window.atob(rawCrt)} enableDownload downloadFileName={caName + "_" + parsedSignedCert.subject.commonName + "crt"} />
                                                             </Grid>
                                                             <Grid item xs={6} justifyContent={"center"} spacing={1}>
-                                                                <CertificateDecoder crt={atob(rawCrt)} />
+                                                                <CertificateDecoder crtPem={window.atob(rawCrt)} />
                                                             </Grid>
                                                         </>
                                                     )

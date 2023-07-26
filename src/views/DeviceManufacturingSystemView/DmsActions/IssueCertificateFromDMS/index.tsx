@@ -173,7 +173,7 @@ export const IssueCertificateFromDMS: React.FC<Props> = ({ dmsName, defaultCN = 
 
     useEffect(() => {
         if (signedCert !== undefined) {
-            setParsedSignedCert(Certificate.fromPEM(Buffer.from(window.atob(signedCert), "utf8")));
+            setParsedSignedCert(Certificate.fromPEM(Buffer.from(window.window.atob(signedCert), "utf8")));
         }
     }, [signedCert]);
 
@@ -483,14 +483,14 @@ export const IssueCertificateFromDMS: React.FC<Props> = ({ dmsName, defaultCN = 
                                                             <>
                                                                 <Grid item xs="auto">
                                                                     <SyntaxHighlighter language="json" style={themeMode === "light" ? materialLight : materialOceanic} customStyle={{ fontSize: 10, padding: 20, borderRadius: 10, width: "fit-content", height: "fit-content" }} wrapLines={true} lineProps={{ style: { color: theme.palette.text.primaryLight } }}>
-                                                                        {window.atob(signedCert)}
+                                                                        {window.window.atob(signedCert)}
                                                                     </SyntaxHighlighter>
                                                                 </Grid>
                                                                 <Grid item xs="auto" container flexDirection={"column"} spacing={1}>
                                                                     <Grid item>
                                                                         <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
                                                                             <Tooltip title="Copy to Clipboard">
-                                                                                <IconButton onClick={(ev) => { ev.stopPropagation(); navigator.clipboard.writeText(window.atob(signedCert)); }}>
+                                                                                <IconButton onClick={(ev) => { ev.stopPropagation(); navigator.clipboard.writeText(window.window.atob(signedCert)); }}>
                                                                                     <ContentPasteIcon fontSize={"small"} />
                                                                                 </IconButton>
                                                                             </Tooltip>
@@ -499,7 +499,7 @@ export const IssueCertificateFromDMS: React.FC<Props> = ({ dmsName, defaultCN = 
                                                                     <Grid item>
                                                                         <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
                                                                             <Tooltip title="Download Bootstrap CRT">
-                                                                                <IconButton onClick={(ev) => { ev.stopPropagation(); downloadFile("bootstrap-" + selectedCA + ".crt", window.atob(signedCert)); }}>
+                                                                                <IconButton onClick={(ev) => { ev.stopPropagation(); downloadFile("bootstrap-" + selectedCA + ".crt", window.window.atob(signedCert)); }}>
                                                                                     <FileDownloadRoundedIcon fontSize={"small"} />
                                                                                 </IconButton>
                                                                             </Tooltip>

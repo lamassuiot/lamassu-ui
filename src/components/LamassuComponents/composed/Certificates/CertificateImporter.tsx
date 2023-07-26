@@ -1,8 +1,8 @@
 import { Divider, Grid, useTheme } from "@mui/material";
 import { TextField } from "components/LamassuComponents/dui/TextField";
-import React, { useState } from "react";
-import { MonoChromaticButton } from "components/LamassuComponents/dui/MonoChromaticButton";
+import React, { useEffect, useState } from "react";
 import CertificateDecoder from "./CertificateDecoder";
+import { parseCRT } from "components/utils/cryptoUtils/crt";
 
 const crtPlaceHolder = `-----BEGIN CERTIFICATE REQUEST-----
 MIIBNzCB3QIBADBTMVEwCQYDVQQLEwJJVDAUBgNVBAoTDUxLUyAtIElrZXJsYW4w
@@ -15,10 +15,10 @@ C3Rzdw39eIksMyCphq82zihsSZpa8pZPWz6v
 -----END CERTIFICATE REQUEST-----`;
 
 interface CertificateImporterProps {
-    onCreate: (crt: string) => void
+    onChange: (crt: string) => void
 }
 
-const CertificateImporter: React.FC<CertificateImporterProps> = ({ onCreate }) => {
+const CertificateImporter: React.FC<CertificateImporterProps> = ({ onChange }) => {
     const theme = useTheme();
 
     const [crt, setCrt] = useState<string | undefined>();
@@ -39,10 +39,24 @@ const CertificateImporter: React.FC<CertificateImporterProps> = ({ onCreate }) =
     //     const privateKeyMatchesCertificate = privateKeyPublicValue.isEqual(certificatePublicValue);
     // };
 
+    useEffect(() => {
+        const run = async () => {
+            if (crt) {
+                try {
+                    await parseCRT(crt);
+                    onChange(crt);
+                } catch (err) {
+                    console.log(err);
+                }
+            }
+        };
+        run();
+    }, [crt]);
+
     return (
         <Grid item xs container spacing={1}>
             <Grid item xs={12}>
-                <TextField label="x509 PEM Certificate" value={crt} onChange={(ev) => setCrt(ev.target.value)} multiline placeholder={crtPlaceHolder} sx={{ fontFamily: "monospace", fontSize: "0.7rem", minWidth: "500px", width: "100%" }} />
+                <TextField error={!crt} helperText="Certificate can not be empty" spellCheck={false} label="x509 PEM Certificate" value={crt} onChange={(ev) => setCrt(ev.target.value)} multiline placeholder={crtPlaceHolder} sx={{ fontFamily: "monospace", fontSize: "0.7rem", minWidth: "500px", width: "100%" }} />
             </Grid>
             {
                 crt && (
@@ -51,13 +65,7 @@ const CertificateImporter: React.FC<CertificateImporterProps> = ({ onCreate }) =
                             <Divider />
                         </Grid>
                         <Grid item xs={12}>
-                            <CertificateDecoder crt={crt} />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Divider />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <MonoChromaticButton onClick={() => onCreate(crt)}>Confirm</MonoChromaticButton>
+                            <CertificateDecoder crtPem={crt} />
                         </Grid>
                     </>
                 )

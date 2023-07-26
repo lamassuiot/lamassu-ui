@@ -1,24 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { Button, Divider, Grid, MenuItem, Paper, Typography, useTheme } from "@mui/material";
-import { LamassuSwitch } from "components/LamassuComponents/Switch";
+import { Alert, Divider, Grid, MenuItem, Typography, useTheme } from "@mui/material";
 import { Box } from "@mui/system";
-import { CloudProviderIcon } from "components/CloudProviderIcons";
 import { useNavigate } from "react-router-dom";
-import { LamassuStatusChip } from "components/LamassuComponents/Chip";
-import * as caSelector from "ducks/features/cas/reducer";
-import * as caActions from "ducks/features/cas/actions";
-import { useAppSelector } from "ducks/hooks";
 import { useDispatch } from "react-redux";
-import * as cloudProxyActions from "ducks/features/cloud-proxy/actions";
-import * as cloudProxySelector from "ducks/features/cloud-proxy/reducer";
-import { ORequestStatus, ORequestType } from "ducks/reducers_utils";
-import { CloudConnector } from "ducks/features/cloud-proxy/models";
 import { useForm } from "react-hook-form";
 import moment, { Moment } from "moment";
 import { FormSelect } from "components/LamassuComponents/dui/form/Select";
 import { FormTextField } from "components/LamassuComponents/dui/form/TextField";
 import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
-import DateInput from "components/LamassuComponents/dui/DateInput";
+import Label from "components/LamassuComponents/dui/typographies/Label";
+import assert from "assert";
+import { FormDateInput } from "components/LamassuComponents/dui/form/DateInput";
+import { CryptoEngineSelector } from "components/LamassuComponents/lamassu/CryptoEngineSelector";
+import { CryptoEngine, createCA } from "ducks/features/cav3/apicalls";
+import { errorToString } from "ducks/services/api";
+import { LoadingButton } from "@mui/lab";
 
 type FormData = {
     cryptoEngine: string
@@ -37,29 +33,53 @@ type FormData = {
     caExpiration: {
         type: "duration" | "date" | "date-infinity",
         date: Moment,
-        duration: number
+        duration: string
     },
     issuerExpiration: {
         type: "duration" | "date" | "date-infinity",
         date: Moment,
-        duration: number
+        duration: string
     },
 };
+
+const unitConverterToSeconds = {
+    s: 1,
+    m: 60,
+    h: 3600,
+    d: 3600 * 24,
+    w: 3600 * 24 * 7,
+    y: 3600 * 24 * 365
+};
+
+const validDurationRegex = (test: string) => {
+    const validator = /\d+[ywdhms]{1}/;
+    const res = test.match(validator);
+    if (res && res[0] === test) {
+        return true;
+    }
+    return false;
+};
+const durationValueUnitSplitRegex = /\d+|\D+/g;
 
 export const CreateCA = () => {
     const theme = useTheme();
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    const cloudProxyRequestStatus = useAppSelector((state) => caSelector.getRequestStatus(state));
-    const caRequestStatus = useAppSelector((state) => caSelector.getRequestStatus(state));
-    const cloudConnectors = useAppSelector((state) => cloudProxySelector.getCloudConnectors(state)!);
+    const [error, setError] = useState<string | undefined>();
+    const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        dispatch(cloudProxyActions.getConnectorsAction.request());
-    }, []);
+    const [timelineStages, setTimelineStages] = useState<{
+        label: string,
+        size: number,
+        background: string,
+        color: string,
+        startLabel: string | React.ReactElement | undefined,
+        endLabel: string | React.ReactElement | undefined,
+    }[]>([]);
 
-    const [selectedCloudConnectors, setSelectedCloudConnectors] = useState<Array<string>>([]);
+    const [selectedCryptoEngine, setSelectedCryptoEngine] = useState<CryptoEngine | undefined>();
+
     const { control, getValues, setValue, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
         defaultValues: {
             cryptoEngine: "",
@@ -77,52 +97,111 @@ export const CreateCA = () => {
             },
             caExpiration: {
                 type: "duration",
-                duration: 300
+                duration: "300d",
+                date: moment().add(300, "days")
             },
             issuerExpiration: {
                 type: "duration",
-                duration: 100
+                duration: "100d",
+                date: moment().add(100, "days")
             }
         }
     });
 
     const watchSubject = watch("subject");
     const watchKeyType = watch("privateKey.type");
-    const watchCAExpirationType = watch("caExpiration.type");
-    const watchIssuanceExpirationType = watch("issuerExpiration.type");
-
-    const handleCreateCA = (formData: FormData) => {
-        console.log(moment.duration(100, "days").asSeconds());
-        console.log(formData);
-
-        dispatch(caActions.createCAAction.request({
-            selectedConnectorIDs: selectedCloudConnectors,
-            body: {
-                subject: {
-                    country: formData.subject.country,
-                    state: formData.subject.state,
-                    locality: formData.subject.locality,
-                    organization: formData.subject.organization,
-                    organization_unit: formData.subject.organizationUnit,
-                    common_name: formData.subject.commonName
-                },
-                key_metadata: {
-                    type: formData.privateKey.type,
-                    bits: formData.privateKey.size
-                },
-                ca_expiration: formData.caExpiration.type === "duration" ? moment.duration(formData.caExpiration.duration, "days").asSeconds() + "" : "99991231T235959Z",
-                issuance_expiration: formData.issuerExpiration.type === "duration" ? moment.duration(formData.issuerExpiration.duration, "days").asSeconds() + "" : "99991231T235959Z",
-                expiration_type: formData.caExpiration.type === "duration" ? "DURATION" : "DATE"
-            }
-        }));
-    };
+    const watchCAExpiration = watch("caExpiration");
+    const watchIssuanceExpiration = watch("issuerExpiration");
 
     useEffect(() => {
-        if (caRequestStatus.status === ORequestStatus.Success && caRequestStatus.type === ORequestType.Create) {
-            navigate("/cas/" + getValues("subject.commonName"));
-            dispatch(caActions.resetStateAction());
+        const now = moment();
+
+        let inactiveDate = now.clone();
+        let expDate = now.clone();
+
+        if (watchCAExpiration.type === "duration" && validDurationRegex(watchCAExpiration.duration)) {
+            const expDurSplit = watchCAExpiration.duration.match(durationValueUnitSplitRegex);
+            assert(expDurSplit !== null);
+            assert(expDurSplit!.length === 2);
+            // @ts-ignore
+            expDate.add(parseInt(expDurSplit![0]) * unitConverterToSeconds[expDurSplit[1]], "seconds");
+        } else if (watchCAExpiration.type === "date") {
+            expDate = watchCAExpiration.date;
+        } else {
+            expDate = moment("99991231T235959Z");
         }
-    }, [caRequestStatus]);
+
+        if (watchIssuanceExpiration.type === "duration" && validDurationRegex(watchIssuanceExpiration.duration)) {
+            const expDurSplit = watchIssuanceExpiration.duration.match(durationValueUnitSplitRegex);
+            assert(expDurSplit !== null);
+            assert(expDurSplit!.length === 2);
+            // @ts-ignore
+            inactiveDate = expDate.clone().subtract(parseInt(expDurSplit![0]) * unitConverterToSeconds[expDurSplit[1]], "seconds");
+        } else if (watchIssuanceExpiration.type === "date") {
+            inactiveDate = watchIssuanceExpiration.date;
+        }
+
+        const timelineStages = [
+            {
+                label: "Issuable Period",
+                size: inactiveDate.diff(now),
+                background: "#333",
+                color: "#ddd",
+                startLabel: <>
+                    <Label>{now.format("DD/MM/YYYY")}</Label>
+                    <Label>(now)</Label>
+                </>,
+                endLabel: undefined
+            },
+            {
+                label: "Inactive",
+                size: expDate.diff(now) - inactiveDate.diff(now),
+                background: "#ddd",
+                color: "#555",
+                startLabel: inactiveDate.format("DD/MM/YYYY"),
+                endLabel: expDate.format("DD/MM/YYYY")
+            }
+        ];
+
+        setTimelineStages(timelineStages);
+    }, [watchCAExpiration.date, watchCAExpiration.duration, watchCAExpiration.type, watchIssuanceExpiration.date, watchIssuanceExpiration.duration, watchIssuanceExpiration.type]);
+
+    const handleCreateCA = (formData: FormData) => {
+        const run = async () => {
+            setLoading(true);
+            try {
+                await createCA({
+                    subject: {
+                        country: formData.subject.country,
+                        state: formData.subject.state,
+                        locality: formData.subject.locality,
+                        organization: formData.subject.organization,
+                        organization_unit: formData.subject.organizationUnit,
+                        common_name: formData.subject.commonName
+                    },
+                    key_metadata: {
+                        type: formData.privateKey.type,
+                        bits: formData.privateKey.size
+                    },
+                    ca_expiration: {
+                        type: formData.caExpiration.type === "duration" ? "Duration" : "Time",
+                        duration: formData.caExpiration.duration,
+                        time: formData.caExpiration.type === "date-infinity" ? "99991231T235959Z" : formData.caExpiration.date.format()
+                    },
+                    issuance_expiration: {
+                        type: formData.issuerExpiration.type === "duration" ? "Duration" : "Time",
+                        duration: formData.issuerExpiration.duration,
+                        time: formData.issuerExpiration.type === "date-infinity" ? "99991231T235959Z" : formData.issuerExpiration.date.format()
+                    },
+                    ca_type: "MANAGED"
+                });
+            } catch (error) {
+                setError(errorToString(error));
+            }
+            setLoading(false);
+        };
+        run();
+    };
 
     useEffect(() => {
         if (watchKeyType === "RSA") {
@@ -131,48 +210,6 @@ export const CreateCA = () => {
             setValue("privateKey.size", 256);
         }
     }, [watchKeyType]);
-
-    const cloudConnectorsColumnConf = [
-        { key: "settings", title: "", align: "start", size: 1 },
-        { key: "connectorId", title: "Connector ID", align: "center", size: 2 },
-        { key: "connectorStatus", title: "Status", align: "center", size: 2 },
-        { key: "connectorAlias", title: "Connector Name", align: "center", size: 2 },
-        { key: "connectorAttached", title: "Attached", align: "center", size: 1 }
-    ];
-
-    const cloudConnectorRender = (cloudConnector: CloudConnector) => {
-        return {
-            settings: (
-                <LamassuSwitch value={selectedCloudConnectors.includes(cloudConnector.id)} onChange={() => {
-                    setSelectedCloudConnectors(prev => {
-                        if (prev.includes(cloudConnector.id)) {
-                            prev.splice(prev.indexOf(cloudConnector.id), 1);
-                        } else {
-                            prev.push(cloudConnector.id);
-                        }
-                        return prev;
-                    });
-                }} />
-            ),
-            connectorId: <Typography style={{ fontWeight: "700", fontSize: 14, color: theme.palette.text.primary }}>#{cloudConnector.id}</Typography>,
-            connectorStatus: (
-                <LamassuStatusChip label={cloudConnector.status} color={cloudConnector.status_color} />
-            ),
-            connectorAlias: (
-                <Box>
-                    <Grid container spacing={1} alignItems="center">
-                        <Grid item>
-                            <CloudProviderIcon cloudProvider={cloudConnector.cloud_provider} />
-                        </Grid>
-                        <Grid item>
-                            <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary }}>{cloudConnector.name}</Typography>
-                        </Grid>
-                    </Grid>
-                </Box>
-            ),
-            connectorAttached: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary, textAlign: "center" }}>{"-"}</Typography>
-        };
-    };
 
     const onSubmit = handleSubmit(data => handleCreateCA(data));
 
@@ -184,38 +221,18 @@ export const CreateCA = () => {
                         <SubsectionTitle>CA Settings</SubsectionTitle>
                     </Grid>
                     <Grid item xs={12}>
-                        <FormSelect control={control} name="cryptoEngine" label="Crypto Engine" value={"aws"}>
-                            <MenuItem value={"aws"}>
-                                <Grid container spacing={2} alignItems={"center"}>
-                                    <Grid item xs={"auto"}>
-                                        <Box component={Paper} sx={{ height: "40px", width: "40px" }}>
-                                            <img src={process.env.PUBLIC_URL + "/assets/AWS-SM.png"} height={"100%"} width={"100%"} />
-                                        </Box>
-                                    </Grid>
-                                    <Grid item xs container spacing={4} alignItems={"center"}>
-                                        <Grid item>
-                                            <Typography fontWeight={"500"} fontSize={"14px"}>Amazon Web Services</Typography>
-                                            <Typography fontWeight={"400"} fontSize={"14px"}>Secrets Manager</Typography>
-                                        </Grid>
-                                        <Grid item>
-                                            <Typography fontWeight={"400"} fontSize={"12px"}></Typography>
-                                            <Typography fontWeight={"400"} fontSize={"12px"}></Typography>
-                                        </Grid>
-                                    </Grid>
-                                </Grid>
-                            </MenuItem>
-                        </FormSelect>
+                        <CryptoEngineSelector onSelect={(engine) => console.log(engine)} />
                     </Grid>
-                    <Grid item xs={4}>
-                        <FormTextField label="CA Name" control={control} name="subject.commonName" />
+                    <Grid item xs={12} xl={4}>
+                        <FormTextField label="CA Name" control={control} name="subject.commonName" helperText="Common Name can not be empty" error={watchSubject.commonName === ""} />
                     </Grid>
-                    <Grid item xs={4}>
+                    <Grid item xs={6} xl={4}>
                         <FormSelect control={control} name="privateKey.type" label="Key Type">
                             <MenuItem value={"RSA"}>RSA</MenuItem>
                             <MenuItem value={"ECDSA"}>ECDSA</MenuItem>
                         </FormSelect>
                     </Grid>
-                    <Grid item xs={4}>
+                    <Grid item xs={6} xl={4}>
                         {
                             watchKeyType === "RSA"
                                 ? (
@@ -244,22 +261,22 @@ export const CreateCA = () => {
                     <Grid item xs={12}>
                         <SubsectionTitle>Subject</SubsectionTitle>
                     </Grid>
-                    <Grid item xs={4}>
+                    <Grid item xs={6} xl={4}>
                         <FormTextField label="Country" control={control} name="subject.country" />
                     </Grid>
-                    <Grid item xs={4}>
+                    <Grid item xs={6} xl={4}>
                         <FormTextField label="State / Province" control={control} name="subject.state" />
                     </Grid>
-                    <Grid item xs={4}>
+                    <Grid item xs={6} xl={4}>
                         <FormTextField label="Locality" control={control} name="subject.locality" />
                     </Grid>
-                    <Grid item xs={4}>
+                    <Grid item xs={6} xl={4}>
                         <FormTextField label="Organization" control={control} name="subject.organization" />
                     </Grid>
-                    <Grid item xs={4}>
+                    <Grid item xs={6} xl={4}>
                         <FormTextField label="Organization Unit" control={control} name="subject.organizationUnit" />
                     </Grid>
-                    <Grid item xs={4}>
+                    <Grid item xs={6} xl={4}>
                         <FormTextField label="Common Name" control={control} name="subject.commonName" disabled />
                     </Grid>
                 </Grid>
@@ -272,25 +289,25 @@ export const CreateCA = () => {
                     <Grid item xs={12}>
                         <SubsectionTitle>CA Expiration Settings</SubsectionTitle>
                     </Grid>
-                    <Grid item xs={4}>
+                    <Grid item xs={12} xl={4}>
                         <FormSelect control={control} name="caExpiration.type" label="Expiration By">
                             <MenuItem value={"duration"}>Duration</MenuItem>
-                            <MenuItem value={"date"} disabled>End Date</MenuItem>
+                            <MenuItem value={"date"}>End Date</MenuItem>
                             <MenuItem value={"date-infinity"}>Indefinite Validity</MenuItem>
                         </FormSelect>
                     </Grid>
-                    <Grid item xs={9} />
+                    <Grid item xs={12} xl={8} />
                     {
-                        watchCAExpirationType === "duration" && (
-                            <Grid item xs={4}>
-                                <FormTextField label="Duration (in days)" control={control} name="caExpiration.duration" />
+                        watchCAExpiration.type === "duration" && (
+                            <Grid item xs={12} xl={4}>
+                                <FormTextField label="Duration (valid units y/w/d/h/m/s)" helperText="Not a valid expression. Valid units are y/w/d/h/m/s" control={control} name="caExpiration.duration" error={!validDurationRegex(watchCAExpiration.duration)} />
                             </Grid>
                         )
                     }
                     {
-                        watchCAExpirationType === "date" && (
-                            <Grid item xs={4}>
-                                <DateInput label="Expiration Date" value="" onChange={ev => console.log(ev)} />
+                        watchCAExpiration.type === "date" && (
+                            <Grid item xs={12} xl={4}>
+                                <FormDateInput label="Expiration Date" control={control} name="caExpiration.date" />
                             </Grid>
                         )
                     }
@@ -304,25 +321,25 @@ export const CreateCA = () => {
                     <Grid item xs={12}>
                         <SubsectionTitle>Issuance Expiration Settings</SubsectionTitle>
                     </Grid>
-                    <Grid item xs={4}>
-                        <FormSelect control={control} name="issuerExpiration.type" label="Expiration By">
+                    <Grid item xs={12} xl={4}>
+                        <FormSelect control={control} name="issuerExpiration.type" label="Issuance By">
                             <MenuItem value={"duration"}>Duration</MenuItem>
-                            <MenuItem value={"date"} disabled>End Date</MenuItem>
+                            <MenuItem value={"date"}>End Date</MenuItem>
                             <MenuItem value={"date-infinity"}>Indefinite Validity</MenuItem>
                         </FormSelect>
                     </Grid>
-                    <Grid item xs={9} />
+                    <Grid item xs={12} xl={8} />
                     {
-                        watchIssuanceExpirationType === "duration" && (
-                            <Grid item xs={4}>
-                                <FormTextField label="Duration (in days)" control={control} name="issuerExpiration.duration" />
+                        watchIssuanceExpiration.type === "duration" && (
+                            <Grid item xs={12} xl={4}>
+                                <FormTextField label="Duration (valid units y/w/d/h/m/s)" helperText="Not a valid expression. Valid units are y/w/d/h/m/s" control={control} name="issuerExpiration.duration" error={!validDurationRegex(watchIssuanceExpiration.duration)} />
                             </Grid>
                         )
                     }
                     {
-                        watchIssuanceExpirationType === "date" && (
+                        watchIssuanceExpiration.type === "date" && (
                             <Grid item xs={4}>
-                                <DateInput label="Expiration Date" value="" onChange={ev => console.log(ev)} />
+                                <FormDateInput label="Expiration Date" control={control} name="issuerExpiration.date" />
                             </Grid>
                         )
                     }
@@ -332,10 +349,96 @@ export const CreateCA = () => {
                     <Divider />
                 </Grid>
 
-                <Grid item container spacing={2}>
+                <Grid item container spacing={2} flexDirection={"column"}>
                     <Grid item>
-                        <Button variant="contained" type="submit" disabled={watchSubject.commonName === ""}>Create CA</Button>
+                        <SubsectionTitle>Timeline</SubsectionTitle>
                     </Grid>
+                    <Grid item container flexDirection={"column"}>
+                        <Grid container columns={timelineStages.reduce((accumulator, currentValue) => accumulator + currentValue.size, 0)} spacing={1}>
+                            {
+                                timelineStages.map((stage, idx) => (
+                                    <Grid key={idx} item xs={stage.size} height={"50px"}>
+                                        <Box sx={{ background: stage.background, color: stage.color, borderRadius: "3px", height: "100%" }}>
+                                            <Grid container alignItems={"center"} justifyContent={"center"} width={"100%"} height={"100%"}>
+                                                <Grid item xs="auto"><Typography>{stage.label}</Typography></Grid>
+                                            </Grid>
+                                        </Box>
+                                    </Grid>
+                                ))
+                            }
+                        </Grid>
+                        <Grid item container columns={timelineStages.reduce((accumulator, currentValue) => accumulator + currentValue.size, 0)} spacing={1} alignItems={"start"}>
+                            {
+                                timelineStages.map((stage, idx) => (
+                                    <Grid key={idx} item xs={stage.size} container alignItems={"flex-start"} justifyContent={"space-between"}>
+                                        <Grid item xs="auto" container flexDirection={"column"}>
+                                            {
+                                                stage.startLabel && (
+                                                    <>
+                                                        <Grid item><Box height={"20px"} borderLeft={"1px solid #aaa"} /></Grid>
+                                                        <Grid item>
+                                                            {
+                                                                typeof stage.startLabel === "string"
+                                                                    ? (
+                                                                        <Label>{stage.startLabel}</Label>
+                                                                    )
+                                                                    : (
+                                                                        stage.startLabel
+                                                                    )
+                                                            }
+                                                        </Grid>
+                                                    </>
+                                                )
+                                            }
+                                        </Grid>
+                                        <Grid item xs="auto" container flexDirection={"column"} alignItems={"end"}>
+                                            {
+                                                stage.endLabel && (
+                                                    <>
+                                                        <Grid item><Box height={"20px"} borderLeft={"1px solid #aaa"} /></Grid>
+                                                        <Grid item>
+                                                            {
+                                                                typeof stage.endLabel === "string"
+                                                                    ? (
+                                                                        <Label>{stage.endLabel}</Label>
+                                                                    )
+                                                                    : (
+                                                                        stage.endLabel
+                                                                    )
+                                                            }
+                                                        </Grid>
+                                                    </>
+                                                )
+                                            }
+                                        </Grid>
+                                    </Grid>
+                                ))
+                            }
+                        </Grid>
+                    </Grid>
+                </Grid>
+
+                <Grid item sx={{ width: "100%" }}>
+                    <Divider />
+                </Grid>
+
+                <Grid item container spacing={2} flexDirection={"column"}>
+                    <Grid item>
+                        <LoadingButton loading={loading} variant="contained" type="submit" disabled={
+                            watchSubject.commonName === "" ||
+                            !validDurationRegex(watchCAExpiration.duration) ||
+                            !validDurationRegex(watchIssuanceExpiration.duration)
+                        }>Create CA</LoadingButton>
+                    </Grid>
+                    {
+                        error && (
+                            <Grid item>
+                                <Alert severity="error">
+                                    Something went wrong: {error}
+                                </Alert>
+                            </Grid>
+                        )
+                    }
                 </Grid>
             </Grid>
         </form>

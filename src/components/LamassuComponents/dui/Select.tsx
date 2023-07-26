@@ -5,13 +5,14 @@ import { TextField } from "./TextField";
 interface SelectProps extends MuiSelectProps {
     label: string,
     tooltip?: string | React.ReactNode,
+    helperText?: string | React.ReactNode,
 }
 
 const Select: React.FC<SelectProps> = ({ label, tooltip, ...rest }) => {
     return (
         <MuiSelect
             {...rest}
-            input={<TextField label={label} tooltip={tooltip}/>}>
+            input={<TextField label={label} tooltip={tooltip} helperText={rest.helperText}/>}>
         </MuiSelect>
     );
 };

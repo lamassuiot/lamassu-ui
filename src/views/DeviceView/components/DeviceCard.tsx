@@ -17,8 +17,6 @@ export const DeviceCard: React.FC<Props> = ({ device, ...props }) => {
     const alertColorBg = theme.palette.warning.light;
     const alertColorIcon = theme.palette.warning.main;
 
-    console.log(device);
-
     return (
         <Box component={Paper} sx={{ padding: "10px", minHeight: "120px", display: "flex", flexDirection: "column" }} {...props}>
             <Box sx={{ flexGrow: 1 }}>

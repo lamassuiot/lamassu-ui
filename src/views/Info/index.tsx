@@ -41,7 +41,7 @@ export const InfoView = () => {
     }, []);
 
     let crypyoEngineManufacturerImage = "";
-    switch (caCryptoEngine.manufacturer.toLowerCase()) {
+    switch (caCryptoEngine.type.toLowerCase()) {
     case "softhsm":
         crypyoEngineManufacturerImage = "assets/softhsm.png";
         break;
@@ -58,17 +58,14 @@ export const InfoView = () => {
         break;
 
     default:
+        crypyoEngineManufacturerImage = "assets/AWS.png";
         break;
     }
 
     const caInfo: Array<[string, any]> = [
         ["Build Version", caApiInfo.build_version],
         ["Build Time", caApiInfo.build_time],
-        ["Certificate Engine Provider", caCryptoEngine.provider],
-        ["Model", caCryptoEngine.model],
-        ["Cryptoki version", caCryptoEngine.cryptoki_version],
-        ["Manufacturer", caCryptoEngine.manufacturer],
-        ["Library", caCryptoEngine.library]
+        ["Certificate Engine Provider", caCryptoEngine.provider]
     ];
     if (caCryptoEngine.supported_key_types.filter(key => key.type === "RSA").length > 0) {
         const rsaInfo = caCryptoEngine.supported_key_types.filter(key => key.type === "RSA")[0];
