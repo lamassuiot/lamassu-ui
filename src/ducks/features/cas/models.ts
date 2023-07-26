@@ -71,6 +71,7 @@ export class CertificateAuthority {
 
     public issuance_duration!: number
     public ca_expiration!: number
+    public with_private_key!: boolean
 
     public total_issued_certificates!: number
     public issued_certs!: Array<Certificate>

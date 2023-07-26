@@ -47,6 +47,7 @@ const RoutedCaInspectorHeader: React.FC<RoutedCaInspectorHeaderProps> = ({ caNam
     }
     return (
         <CaInspectorHeader preSelectedTabIndex={selectedTab} caName={caName} />
+        <CaInspectorHeader preSelectedTabIndex={selectedTab} caName={caName} />
     );
 };
 
@@ -54,6 +55,7 @@ interface Props {
     caName: string
     preSelectedTabIndex: number | undefined
 }
+
 const CaInspectorHeader: React.FC<Props> = ({ caName, preSelectedTabIndex }) => {
     const theme = useTheme();
     const dispatch = useDispatch();
@@ -165,4 +167,21 @@ const CaInspectorHeader: React.FC<Props> = ({ caName, preSelectedTabIndex }) => 
 
         </Box>
     );
+};
+
+interface SignVerifyWrapperProps {
+    caName: string | undefined
+}
+
+const SignVerifyWrapper: React.FC<SignVerifyWrapperProps> = ({ caName }) => {
+    const theme = useTheme();
+    const dispatch = useDispatch();
+
+    const caData = useAppSelector((state) => caSelector.getCA(state, caName!));
+
+    if (!caData) {
+        return <></>;
+    }
+
+    return <SignVerifyView caData={caData} />;
 };

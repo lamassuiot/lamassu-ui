@@ -31,6 +31,7 @@ type StaticCertificate = {
 const StaticCertificateListInput: React.FC<StaticCertificateListInputProps> = ({ onChange }) => {
     const [openAddCertModal, setOpenAddCertModal] = useState(false);
     const [certificates, setCertificates] = useState<StaticCertificate[]>([]);
+    const [newCrt, setNewCrt] = useState<string | undefined>();
 
     const [newCertificate, setNewCertificate] = useState("");
     const [newCertificateName, setNewCertificateName] = useState("");
@@ -68,15 +69,12 @@ const StaticCertificateListInput: React.FC<StaticCertificateListInputProps> = ({
                                 </Grid>
                                 <Grid item>
                                     <CertificateImporter onChange={(crt) => {
-                                        setNewCertificate(crt);
+                                        setNewCrt(crt);
                                     }} />
                                 </Grid>
-                                <Grid item xs={12}>
-                                    <Divider />
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <Button variant="contained" onClick={() => {
-                                        setCertificates([...certificates, { certificate: newCertificate, name: newCertificateName }]);
+                                <Grid item>
+                                    <Button variant="contained" disabled={newCertificateName === "" || !newCrt} onClick={() => {
+                                        setCertificates([...certificates, { certificate: newCrt!, name: newCertificateName }]);
                                         setOpenAddCertModal(false);
                                         setNewCertificateName("");
                                     }}>Confirm</Button>

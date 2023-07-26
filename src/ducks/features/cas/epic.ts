@@ -84,33 +84,6 @@ export const getIssuedCertsEpic: Epic<RootAction, RootAction, RootState, {}> = (
         )
     );
 
-export const importCAEpic: Epic<RootAction, RootAction, RootState, {}> = (action$, store$) =>
-    action$.pipe(
-        filter(isActionOf(actions.importCAAction.request)),
-        tap((item: any) => console.log("%c Epic ", "background:#8500ff; border-radius:5px;font-weight: bold;", "", item)),
-        exhaustMap((action: PayloadAction<string, actions.ImportCA>) =>
-            forkJoin(
-                action.payload.selectedConnectorIDs.map(cloudConnectorID => cloudProxyApiCalls.synchronizeCloudConnectors(cloudConnectorID, action.payload.caName))
-            ).pipe(
-                defaultIfEmpty({}),
-                tap((item: any) => console.log("%c Epic ", "background:#25ee32; border-radius:5px;font-weight: bold;", "", item)),
-                mergeMap(successAction => {
-                    console.log(successAction); return of(cloudProxyActions.synchronizeCloudConnectorAction.success()).pipe(
-                        tap((item: any) => console.log("%c Epic ", "background:#888001; border-radius:5px;font-weight: bold;", "", item)),
-                        exhaustMap((action2) =>
-                            from(apicalls.importCA(action.payload.caName, action.payload.enroller_ttl, action.payload.certificateB64, action.payload.privatekeyB64)).pipe(
-                                tap((item: any) => console.log("%c Epic ", "background:#A198A1; border-radius:5px;font-weight: bold;", "", item)),
-                                map(actions.importCAAction.success),
-                                tap((item: any) => console.log("%c Epic ", "background:#F32111; border-radius:5px;font-weight: bold;", "", item)),
-                                catchError((message) => { console.log(message); return of(actions.importCAAction.failure(message)); })
-                            )
-                        )
-                    );
-                })
-            )
-        )
-    );
-
 export const createCAEpic: Epic<RootAction, RootAction, RootState, {}> = (action$, store$) =>
     action$.pipe(
         filter(isActionOf(actions.createCAAction.request)),

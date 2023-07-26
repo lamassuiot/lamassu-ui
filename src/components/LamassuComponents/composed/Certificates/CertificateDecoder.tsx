@@ -14,7 +14,7 @@ const CertificateDecoder: React.FC<CertificateDecoderProps> = ({ crtPem }) => {
     const theme = useTheme();
 
     const [crtProps, setCrtProps] = useState<X509Certificate | undefined>();
-    const [isValidCSR, setIsValid] = useState<boolean>(false);
+    const [isValid, setIsValid] = useState<boolean>(false);
 
     useEffect(() => {
         const run = async () => {
@@ -39,7 +39,7 @@ const CertificateDecoder: React.FC<CertificateDecoderProps> = ({ crtPem }) => {
     return (
         <Grid container spacing={1}>
             {
-                isValidCSR && (
+                isValid && (
                     <>
                         <Grid item xs={12}>
                             <Box sx={{ background: theme.palette.primary.light, padding: "5px 10px", borderRadius: "5px" }}>

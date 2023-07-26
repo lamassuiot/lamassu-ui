@@ -10,6 +10,8 @@ interface FormMultiTextInputProps {
 }
 
 export const FormMultiTextInput: React.FC<FormMultiTextInputProps> = (props) => {
+    console.log(props);
+
     return (
         <Controller
             name={props.name}

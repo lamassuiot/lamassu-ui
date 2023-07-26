@@ -77,14 +77,27 @@ export const createCA = async (payload: CreateCA) => {
     });
 };
 
-export const importCA = async (caName: string, enrollerTTL: number, certificateB64: string, privatekeyB64: string) => {
+export const importCA = async (certificateB64: string, privatekeyB64: string, issuanceExpirationSeconds: string) => {
     return apiRequest({
         method: "POST",
-        url: window._env_.LAMASSU_CA_API + "/v1/pki/import/" + caName,
+        url: window._env_.LAMASSU_CA_API + "/v1/pki/import",
         data: {
-            enroller_ttl: enrollerTTL,
-            crt: certificateB64,
+            certificate: certificateB64,
+            with_private_key: true,
+            issuance_expiration: issuanceExpirationSeconds,
+            expiration_type: "DURATION",
             private_key: privatekeyB64
+        }
+    });
+};
+
+export const importReadOnlyCA = async (certificateB64: string) => {
+    return apiRequest({
+        method: "POST",
+        url: window._env_.LAMASSU_CA_API + "/v1/pki/import",
+        data: {
+            certificate: certificateB64,
+            with_private_key: false
         }
     });
 };

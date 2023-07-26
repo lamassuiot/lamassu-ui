@@ -47,8 +47,12 @@ export const CertificateCard: React.FC<Props> = ({ ca, selected = false, onClick
                     <Grid item xs={8}>
                         <Typography style={{ fontWeight: "400", fontSize: "13px" }}>{`${ca.status} · ${moment(ca.valid_to).format("DD/MM/YYYY")} ·  ${moment.duration(moment(ca.valid_to).diff(moment())).humanize(true)}`}</Typography>
                     </Grid>
-                    <Grid item xs={4}>
-                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400" }}></Typography>
+                    <Grid item xs="auto">
+                        {
+                            !ca.with_private_key && (
+                                <LamassuChip label={"READ-ONLY CA"} color={[theme.palette.primary.main, theme.palette.primary.light]} />
+                            )
+                        }
                     </Grid>
                 </Grid>
             </Box>
