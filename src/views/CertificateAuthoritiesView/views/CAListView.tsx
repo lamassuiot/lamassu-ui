@@ -13,13 +13,19 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import { numberToHumanReadableString } from "components/utils/NumberToHumanReadableString";
 import { FetchViewer } from "components/LamassuComponents/lamassu/FetchViewer";
-import { getCAs } from "ducks/features/cav3/apicalls";
+import { CertificateAuthority, CryptoEngine, List, getCAs } from "ducks/features/cav3/apicalls";
 
 interface Props {
     preSelectedCaName?: string
+    engines: CryptoEngine[]
 }
 
-export const CaList: React.FC<Props> = ({ preSelectedCaName }) => {
+interface CAsEngines {
+    cas: List<CertificateAuthority>
+    engines: CryptoEngine[]
+}
+
+export const CAListView: React.FC<Props> = ({ preSelectedCaName, engines }) => {
     const theme = useTheme();
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -133,11 +139,11 @@ export const CaList: React.FC<Props> = ({ preSelectedCaName }) => {
                         </Grid>
                     </Box>
                     <Box style={{ padding: "10px 20px 20px 20px", overflowY: "auto", height: 300, flexGrow: 1 }}>
-                        <FetchViewer fetcher={() => getCAs()} errorPrefix="Could not fetch CA List" renderer={(caListResp) => {
+                        <FetchViewer fetcher={() => getCAs()} errorPrefix="Could not fetch CA List and/or Crypto Engines" renderer={(cas) => {
                             return (
                                 <Grid container spacing={"20px"} flexDirection={"column"}>
                                     {
-                                        caListResp.list.map((caItem) => (
+                                        cas.list.map((caItem) => (
                                             <Grid item key={caItem.id}>
                                                 <CertificateCard
                                                     onClick={() => {
@@ -145,6 +151,7 @@ export const CaList: React.FC<Props> = ({ preSelectedCaName }) => {
                                                         navigate(caItem.id);
                                                     }}
                                                     ca={caItem}
+                                                    engine={engines.find(engine => engine.default)!}
                                                     selected={selectedCa !== undefined ? caItem.id === selectedCa : false}
                                                 />
                                             </Grid>

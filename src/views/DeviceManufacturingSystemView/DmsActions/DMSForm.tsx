@@ -12,12 +12,11 @@ import { FormSwitch } from "components/LamassuComponents/dui/form/Switch";
 import Label from "components/LamassuComponents/dui/typographies/Label";
 import CertificateImporter from "components/LamassuComponents/composed/Certificates/CertificateImporter";
 import { TextField } from "components/LamassuComponents/dui/TextField";
-import * as caApicalls from "ducks/features/cas/apicalls";
 import CASelector from "components/LamassuComponents/lamassu/CASelector";
-import { CertificateAuthority } from "ducks/features/cas/models";
 import { DMS } from "ducks/features/dms-enroller/models";
 import { useDispatch } from "react-redux";
 import { FormMultiTextInput } from "components/LamassuComponents/dui/form/MultiTextInput";
+import { CertificateAuthority, getCAs } from "ducks/features/cav3/apicalls";
 
 interface StaticCertificateListInputProps {
     onChange: (certs: StaticCertificate[]) => void
@@ -178,7 +177,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
             if (!editMode) {
                 setLoading(false);
             } else {
-                const casResp = await caApicalls.getCAs(100, 0, "asc", "name", []);
+                const casResp = await getCAs();
                 const updateDMS: FormData = {
                     dmsDefinition: {
                         name: dms.name,
@@ -188,8 +187,8 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
                         protocol: "EST",
                         estAuthMode: dms!.identity_profile.general_setting.enrollment_mode === "BOOTSTRAP_MTLS" ? "BOOTSTRAP_MTLS" : "BOOTSTRAP_MTLS",
                         overrideEnrollment: dms!.identity_profile.enrollment_settings.allow_new_auto_enrollment,
-                        enrollmentCA: casResp.cas.find(ca => ca.name === dms!.identity_profile.enrollment_settings.authorized_ca)!,
-                        validationCAs: dms!.identity_profile.enrollment_settings.bootstrap_cas.map(ca => casResp.cas.find(caF => caF.name === ca)!)
+                        enrollmentCA: casResp.list.find(ca => ca.id === dms!.identity_profile.enrollment_settings.authorized_ca)!,
+                        validationCAs: dms!.identity_profile.enrollment_settings.bootstrap_cas.map(ca => casResp.list.find(caF => caF.id === ca)!)
                     },
                     enrollDeviceRegistration: {
                         icon: {
@@ -206,7 +205,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
                     caDistribution: {
                         includeAuthorized: true,
                         includeDownstream: dms!.identity_profile.ca_distribution_settings.include_lamassu_downstream_ca,
-                        managedCAs: dms!.identity_profile.ca_distribution_settings.managed_cas.map(ca => casResp.cas.find(caF => caF.name === ca)!),
+                        managedCAs: dms!.identity_profile.ca_distribution_settings.managed_cas.map(ca => casResp.list.find(caF => caF.id === ca)!),
                         staticCAs: []
                     },
                     iotIntegrations: {
@@ -250,8 +249,8 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
                         tags: data.enrollDeviceRegistration.tags,
                         icon: data.enrollDeviceRegistration.icon.icon.name,
                         color: `${data.enrollDeviceRegistration.icon.bg}-${data.enrollDeviceRegistration.icon.fg}`,
-                        authorized_ca: data.enrollProtocol.enrollmentCA?.name,
-                        bootstrap_cas: data.enrollProtocol.validationCAs.map(ca => ca.name)
+                        authorized_ca: data.enrollProtocol.enrollmentCA?.id,
+                        bootstrap_cas: data.enrollProtocol.validationCAs.map(ca => ca.id)
                     },
                     reenrollment_settings: {
                         allow_expired_renewal: data.reEnroll.allowExpired,
@@ -259,7 +258,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
                     },
                     ca_distribution_settings: {
                         include_lamassu_downstream_ca: data.caDistribution.includeDownstream,
-                        managed_cas: data.caDistribution.managedCAs.map(ca => ca.name),
+                        managed_cas: data.caDistribution.managedCAs.map(ca => ca.id),
                         static_cas:
                             data.caDistribution.staticCAs.map(ca => {
                                 return {

@@ -5,24 +5,22 @@ import { ListWithDataController, ListWithDataControllerConfigProps, OperandTypes
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
 import moment from "moment";
-import * as caApiCalls from "ducks/features/cas/apicalls";
-import { useDispatch } from "react-redux";
+import * as caApiCalls from "ducks/features/cav3/apicalls";
 import { useTheme } from "@mui/system";
-import { Certificate } from "ducks/features/cas/models";
 import { Modal } from "components/Modal";
 import deepEqual from "fast-deep-equal/es6";
 import { IssueCert } from "../CaActions/IssueCertificate";
 import { CodeCopier } from "components/LamassuComponents/dui/CodeCopier";
-import { CertificateAuthority } from "ducks/features/cav3/apicalls";
+import { CertificateAuthority, Certificate } from "ducks/features/cav3/apicalls";
 
 interface Props {
     caData: CertificateAuthority
 }
 export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
     const theme = useTheme();
-    const dispatch = useDispatch();
 
     const [isLoading, setIsLoading] = useState(true);
+    const [certs, setCerts] = useState<Certificate[]>([]);
 
     const [displayIssueCert, setDisplayIssueCert] = useState(false);
     const [tableConfig, setTableConfig] = useState<ListWithDataControllerConfigProps>(
@@ -47,15 +45,15 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
 
     const refreshAction = async () => {
         try {
-            const resp = await caApiCalls.getIssuedCerts(
-                caData.id,
-                tableConfig.pagination.selectedItemsPerPage!,
-                tableConfig.pagination.selectedPage! * tableConfig.pagination.selectedItemsPerPage!,
-                tableConfig.sort.selectedMode!,
-                tableConfig.sort.selectedField!,
-                tableConfig.filter.filters!.map((f: any) => { return f.propertyKey + "[" + f.propertyOperator + "]=" + f.propertyValue; })
+            const resp = await caApiCalls.getIssuedCertificatesByCA(
+                caData.id
+                // tableConfig.pagination.selectedItemsPerPage!,
+                // tableConfig.pagination.selectedPage! * tableConfig.pagination.selectedItemsPerPage!,
+                // tableConfig.sort.selectedMode!,
+                // tableConfig.sort.selectedField!,
+                // tableConfig.filter.filters!.map((f: any) => { return f.propertyKey + "[" + f.propertyOperator + "]=" + f.propertyValue; })
             );
-            console.log(resp);
+            setCerts(resp.list);
         } catch (error) {
 
         }
@@ -77,7 +75,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
 
     const certTableColumns = [
         { key: "serialNumber", dataKey: "serial_number", query: true, title: "Serial Number", type: OperandTypes.string, align: "start", size: 4 },
-        { key: "commonName", dataKey: "subject.common_name", query: true, title: "Common Name", type: OperandTypes.string, align: "start", size: 3 },
+        { key: "commonName", dataKey: "subject.common_name", query: true, title: "Common Name", type: OperandTypes.string, align: "center", size: 3 },
         { key: "keyStrength", dataKey: "key_metadata.strength", title: "Key Strength", type: OperandTypes.enum, align: "center", size: 1 },
         { key: "certificateStatus", dataKey: "status", title: "Certificate Status", type: OperandTypes.enum, align: "center", size: 1 },
         { key: "certificateExpiration", dataKey: "cert.valid_to", title: "Certificate Expiration", type: OperandTypes.date, align: "center", size: 2 },
@@ -87,12 +85,12 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
     const renderCA = (cert: Certificate) => {
         return {
             serialNumber: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary }}>#{cert.serial_number}</Typography>,
-            commonName: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary, overflowWrap: "break-word", width: "100%" }}>{cert.subject.common_name}</Typography>,
+            commonName: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary, overflowWrap: "break-word", width: "100%", textAlign: "center" }}>{cert.subject.common_name}</Typography>,
             keyStrength: (
-                <LamassuChip label={cert.key_metadata.strength} color={cert.key_metadata.strength_color} />
+                <LamassuChip label={cert.key_metadata.strength} />
             ),
             certificateStatus: (
-                <LamassuChip label={cert.status} color={cert.status_color} />
+                <LamassuChip label={cert.status} />
             ),
             certificateExpiration: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary }}>{moment(cert.valid_to).format("DD-MM-YYYY HH:mm")}</Typography>,
             actions: (
@@ -143,7 +141,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
                                     </DialogContent>
                                     <DialogActions>
                                         <Button onClick={() => setIsRevokeDialogOpen({ isOpen: false, serialNumber: "" })} variant="outlined">Cancel</Button>
-                                        <Button onClick={() => {}} variant="contained">Revoke</Button>
+                                        <Button onClick={() => { }} variant="contained">Revoke</Button>
                                     </DialogActions>
                                 </Dialog>
                             </Box>
@@ -162,7 +160,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
                     renderFunc: renderCA,
                     enableRowExpand: false
                 }}
-                data={[]}
+                data={certs}
                 totalDataItems={0}
                 renderDataItem={renderCA}
                 invertContrast={true}

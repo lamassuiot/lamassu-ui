@@ -1,8 +1,8 @@
 import React from "react";
-import { CertificateAuthority } from "ducks/features/cas/models";
-import * as caApicalls from "ducks/features/cas/apicalls";
+import * as caApicalls from "ducks/features/cav3/apicalls";
 import CAViewer, { Props as CAViewerProps } from "./CAViewer";
 import { FetchViewer } from "./FetchViewer";
+import { CertificateAuthority } from "ducks/features/cav3/apicalls";
 
 interface Props extends Omit<CAViewerProps, "caData"> {
     caName: string,

@@ -1,13 +1,12 @@
-import { getCAs } from "ducks/features/cas/apicalls";
 import React from "react";
 import { Autocomplete, Box, ClickAwayListener, Grid, Paper, Popper, TextField, Typography, useTheme, styled, autocompleteClasses, AutocompleteCloseReason, IconButton, Dialog, DialogTitle, DialogContent } from "@mui/material";
-import { CertificateAuthority } from "ducks/features/cas/models";
 import { KeyValueLabel } from "../dui/KeyValueLabel";
 import { MonoChromaticButton } from "../dui/MonoChromaticButton";
 import CloseIcon from "@mui/icons-material/Close";
 import CertificateDecoder from "../composed/Certificates/CertificateDecoder";
 import { CodeCopier } from "../dui/CodeCopier";
 import CAViewer from "./CAViewer";
+import { CertificateAuthority, getCAs } from "ducks/features/cav3/apicalls";
 
 interface CAInfo {
     id: string;
@@ -120,8 +119,8 @@ const CASelector: React.FC<Props> = ({ onSelect, value, multiple = false, label 
         const run = async () => {
             setLoading(true);
             try {
-                const casResponse = await getCAs(20, 0, "asc", "id", []);
-                setOptions([...casResponse.cas]);
+                const casResponse = await getCAs();
+                setOptions([...casResponse.list]);
             } catch (err) {
                 setOptions([]);
             }
@@ -164,7 +163,7 @@ const CASelector: React.FC<Props> = ({ onSelect, value, multiple = false, label 
                                     <Grid item key={idx}>
                                         <CAViewer caData={item} actions={[
                                             <IconButton key={idx} size="small" onClick={(ev) => {
-                                                setOptions([...selectedOptions.splice(selectedOptions.map(val => val.name).indexOf(item.name), 1)]);
+                                                setOptions([...selectedOptions.splice(selectedOptions.map(val => val.id).indexOf(item.id), 1)]);
                                                 ev.stopPropagation();
                                             }}>
                                                 <CloseIcon sx={{ fontSize: "14px" }} />
@@ -221,7 +220,7 @@ const CASelector: React.FC<Props> = ({ onSelect, value, multiple = false, label 
                                             handleClose();
                                         }
                                     }}
-                                    getOptionLabel={(option: CertificateAuthority) => option.name}
+                                    getOptionLabel={(option: CertificateAuthority) => option.id}
                                     renderTags={() => null}
                                     renderInput={(params) => (
                                         <TextField
@@ -244,7 +243,7 @@ const CASelector: React.FC<Props> = ({ onSelect, value, multiple = false, label 
                         displayCA && (
                             <Dialog open={true} onClose={() => setDisplayCA(undefined)} maxWidth={"md"}>
                                 <DialogTitle>
-                                    <Typography variant="h2" sx={{ fontWeight: "500", fontSize: "1.25rem" }}>{displayCA.name}</Typography>
+                                    <Typography variant="h2" sx={{ fontWeight: "500", fontSize: "1.25rem" }}>{displayCA.id}</Typography>
                                 </DialogTitle>
                                 <DialogContent>
                                     <Grid container spacing={2} flexDirection={"column"}>

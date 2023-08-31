@@ -1,5 +1,6 @@
 import { apiRequest } from "ducks/services/api";
 import { Moment } from "moment";
+import { SignPayloadResponse, VerifyPayloadResponse } from "../cas/models";
 
 export interface CryptoEngine {
     type: "GOLANG" | "AWS_SECRETS_MANAGER" | "AWS_KMS",
@@ -56,7 +57,7 @@ export interface CertificateAuthority extends Certificate {
         duration: string
         time: Moment
     },
-    type: "MANAGED"
+    type: "MANAGED" | "EXTERNAL" | "IMPORTED"
     creation_ts: Moment
 }
 
@@ -79,10 +80,10 @@ export const getCA = async (caID: string): Promise<CertificateAuthority> => {
     }) as Promise<CertificateAuthority>;
 };
 
-export const getIssuedCertificates = async (): Promise<List<Certificate>> => {
+export const getIssuedCertificatesByCA = async (caID: string): Promise<List<Certificate>> => {
     return apiRequest({
         method: "GET",
-        url: `${window._env_.LAMASSU_CA_API}/v1/cas/certificates`
+        url: `${window._env_.LAMASSU_CA_API}/v1/cas/${caID}/certificates`
     }) as Promise<List<Certificate>>;
 };
 
@@ -105,11 +106,12 @@ type CreateCAPayload = {
         duration: string
         time: string
     }
-    issuance_expiration: {
-        type: string
-        duration: string
-        time: string
-    }
+    issuance_expiration: ExpirationFormat
+}
+type ExpirationFormat = {
+    type: string
+    duration: string
+    time: string
 }
 
 export const createCA = async (payload: CreateCAPayload): Promise<CreateCAPayload> => {
@@ -118,4 +120,65 @@ export const createCA = async (payload: CreateCAPayload): Promise<CreateCAPayloa
         url: `${window._env_.LAMASSU_CA_API}/v1/cas`,
         data: payload
     }) as Promise<CreateCAPayload>;
+};
+
+export const importCA = async (certificateB64: string, privKeyB64: string, expiration: ExpirationFormat) => {
+    return apiRequest({
+        method: "POST",
+        url: `${window._env_.LAMASSU_CA_API}/v1/cas/import`,
+        data: {
+            private_key: privKeyB64,
+            ca: certificateB64,
+            ca_chain: [],
+            ca_type: "IMPORTED",
+            issuance_expiration: expiration
+        }
+    });
+};
+
+export const importReadOnlyCA = async (certificateB64: string) => {
+    return apiRequest({
+        method: "POST",
+        url: `${window._env_.LAMASSU_CA_API}/v1/cas/import`,
+        data: {
+            ca: certificateB64,
+            ca_chain: [],
+            ca_type: "EXTERNAL"
+        }
+    });
+};
+
+export const updateMetadata = async (caName :string, metadata: any) => {
+    return apiRequest({
+        method: "PUT",
+        url: `${window._env_.LAMASSU_CA_API}/v1/cas/${caName}/metadata`,
+        data: {
+            metadata: metadata
+        }
+    });
+};
+
+export const signPayload = async (caName: string, message: string, messageType: string, algorithm: string): Promise<SignPayloadResponse> => {
+    return apiRequest({
+        method: "POST",
+        url: window._env_.LAMASSU_CA_API + "/v1/cas/" + caName + "/signature/sign",
+        data: {
+            message: message,
+            message_type: messageType,
+            signing_algorithm: algorithm
+        }
+    });
+};
+
+export const verifyPayload = async (caName: string, signature: string, message: string, messageType: string, algorithm: string): Promise<VerifyPayloadResponse> => {
+    return apiRequest({
+        method: "POST",
+        url: window._env_.LAMASSU_CA_API + "/v1/ca/" + caName + "/signature/verify",
+        data: {
+            signature: signature,
+            message: message,
+            message_type: messageType,
+            signing_algorithm: algorithm
+        }
+    });
 };

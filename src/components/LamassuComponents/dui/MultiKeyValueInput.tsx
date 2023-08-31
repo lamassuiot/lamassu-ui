@@ -7,18 +7,20 @@ import Label from "./typographies/Label";
 
 interface MultiKeyValueInputProps {
     label: string
-    value?: Map<string, any>
-    onChange?: (values: Map<string, any>) => void
+    value?: any
+    onChange?: (values: any) => void
     disable?: boolean
 }
 
-const MultiKeyValueInput: React.FC<MultiKeyValueInputProps> = ({ label, value = new Map<string, any>(), onChange, disable = false }) => {
+const MultiKeyValueInput: React.FC<MultiKeyValueInputProps> = ({ label, value = {}, onChange, disable = false }) => {
     const theme = useTheme();
     const [keyValues, setKeyValues] = useState(value);
     const [newKey, setNewKey] = useState("");
     const [newVal, setNewVal] = useState("");
 
     useEffect(() => {
+        console.log(keyValues);
+
         if (onChange) {
             onChange(keyValues);
         }
@@ -31,7 +33,7 @@ const MultiKeyValueInput: React.FC<MultiKeyValueInputProps> = ({ label, value = 
             </Grid>
             <Grid item container spacing={1} flexDirection={"column"}>
                 {
-                    Array.from(keyValues.entries()).map(([key, value]) => {
+                    Object.entries(keyValues).map(([key, value], idx) => {
                         return (
                             <Grid key={key} item container spacing={2} alignItems={"center"}>
                                 <Grid item xs={4}>
@@ -44,10 +46,10 @@ const MultiKeyValueInput: React.FC<MultiKeyValueInputProps> = ({ label, value = 
                                     !disable && (
                                         <Grid item xs="auto">
                                             <Button variant="outlined" onClick={() => {
-                                                setKeyValues(prev => {
-                                                    const map = new Map(prev);
-                                                    map.delete(key);
-                                                    return new Map(map);
+                                                setKeyValues((prev: any) => {
+                                                    const newVal = { ...prev };
+                                                    delete newVal[key];
+                                                    return { ...newVal };
                                                 });
                                             }}>
                                                 <DeleteOutlinedIcon />
@@ -70,7 +72,7 @@ const MultiKeyValueInput: React.FC<MultiKeyValueInputProps> = ({ label, value = 
                             </Grid>
                             <Grid item xs="auto">
                                 <Button variant="outlined" disabled={newKey === ""} onClick={() => {
-                                    setKeyValues(keyValues.set(newKey, newVal));
+                                    setKeyValues({ ...keyValues, [newKey]: newVal });
                                     setNewKey("");
                                     setNewVal("");
                                 }}>Add</Button>

@@ -1,44 +1,49 @@
-import React, { useState } from "react";
+import React from "react";
 import { Route, Routes, useLocation, useParams } from "react-router-dom";
 import { useTheme } from "@mui/material";
-import { CaList } from "./views/CaList";
-import { CaInspector } from "./views/CaInspector";
+import { CAInspector } from "./views/CaInspector";
 import { FormattedView } from "components/DashboardComponents/FormattedView";
 import { TabsList } from "components/LamassuComponents/dui/TabsList";
 import { CreateCA } from "./views/CaActions/CreateCA";
-import { ImportCA } from "./views/CaActions/ImportCA";
+import { CAReadonlyImporter } from "views/CertificateAuthoritiesView/views/CaActions/CAImporterRadonly";
+import { CAListView } from "./views/CAListView";
+import { FetchViewer } from "components/LamassuComponents/lamassu/FetchViewer";
+import { CryptoEngine, getEngines } from "ducks/features/cav3/apicalls";
 
 export const CAView = () => {
     return (
-        <Routes>
-            <Route path="/" element={<RoutedCaList />}>
-                <Route path="create" element={<CaCreationActionsWrapper />} />
-                <Route path=":caName/*" element={<RoutedCaInspector />} />
-            </Route>
-        </Routes>
+        <FetchViewer fetcher={() => getEngines()} renderer={engines => {
+            return (
+                <Routes>
+                    <Route path="/" element={<RoutedCAList engines={engines} />}>
+                        <Route path="create" element={<CaCreationActionsWrapper engines={engines} />} />
+                        <Route path=":caName/*" element={<RoutedCaInspector engines={engines} />} />
+                    </Route>
+                </Routes>
+            );
+        }}
+        />
     );
 };
 
-const RoutedCaList = () => {
+const RoutedCAList = ({ engines }: { engines: CryptoEngine[] }) => {
     const params = useParams();
     const location = useLocation();
     return (
-        <CaList preSelectedCaName={params.caName} />
+        <CAListView preSelectedCaName={params.caName} engines={engines} />
     );
 };
 
-const RoutedCaInspector = () => {
+const RoutedCaInspector = ({ engines }: { engines: CryptoEngine[] }) => {
     const params = useParams();
 
     return (
-        <CaInspector caName={params.caName!} />
+        <CAInspector caName={params.caName!} engines={engines} />
     );
 };
 
-const CaCreationActionsWrapper = () => {
+const CaCreationActionsWrapper = ({ engines }: { engines: CryptoEngine[] }) => {
     const theme = useTheme();
-    const [selectedTab, setSelectedTab] = useState(0);
-
     return (
         <FormattedView
             title="Create a new CA"
@@ -47,22 +52,17 @@ const CaCreationActionsWrapper = () => {
             <TabsList tabs={[
                 {
                     label: "Standard",
-                    element: <CreateCA />
+                    element: <CreateCA defaultEngine={engines.find(engine => engine.default)!}/>
                 },
                 {
                     label: "Import",
-                    element: <ImportCA onCreate={function (crt: string, key: string): void {
-
-                    }} />
+                    element: <CAReadonlyImporter />
                 },
                 {
                     label: "Read-Only Import",
-                    element: <ImportCA onCreate={function (crt: string, key: string): void {
-
-                    }} />
+                    element: <CAReadonlyImporter />
                 }
             ]}
-
             />
         </FormattedView>
     );

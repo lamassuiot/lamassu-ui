@@ -1,33 +1,25 @@
 import React from "react";
-import { FetchViewer } from "./FetchViewer";
 import { CryptoEngine, getEngines } from "ducks/features/cav3/apicalls";
-import { MenuItem } from "@mui/material";
+import { GenericSelector } from "./GenericSelector";
 import { CryptoEngineViewer } from "./CryptoEngineViewer";
-import { Select } from "../dui/Select";
 
-interface Props {
-    label?: string
-    multiple?: boolean,
-    onSelect: (cert: CryptoEngine | CryptoEngine[]) => void;
+type Props = {
+    onSelect: (engine: CryptoEngine | CryptoEngine[]) => void
     value?: CryptoEngine | CryptoEngine[]
 }
 
-export const CryptoEngineSelector: React.FC<Props> = ({ multiple = false, label = "Crypto Engine", onSelect, value }) => {
-    return (
-        <FetchViewer fetcher={() => getEngines()} renderer={(engines) => {
-            return (
-                <Select helperText="Select a Crypto Engine" label={label} onChange={(ev) => {
-                    onSelect(engines.find(engine => engine.id === ev.target.value)!);
-                }} value={value}>
-                    {
-                        engines.map((engine, idx) => (
-                            <MenuItem key={idx} value={engine.id}>
-                                <CryptoEngineViewer engine={engine}/>
-                            </MenuItem>
-                        ))
-                    }
-                </Select>
-            );
-        }} />
-    );
+const CryptoEngineSelector: React.FC<Props> = (props: Props) => {
+    return <GenericSelector
+        fetcher={() => getEngines()}
+        label="Crypto Engine"
+        selectLabel="Select Crypto Engine"
+        multiple={false}
+        filterKeys={["id", "name", "provider", "type"]}
+        optionID={(engine) => engine.id}
+        optionRenderer={(engine) => <CryptoEngineViewer engine={engine} withDebugMetadata />}
+        onSelect={(engine) => { console.log(engine); props.onSelect(engine); }}
+        value={props.value}
+    />;
 };
+
+export default CryptoEngineSelector;

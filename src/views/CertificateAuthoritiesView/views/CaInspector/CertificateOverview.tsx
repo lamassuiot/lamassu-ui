@@ -2,17 +2,18 @@ import React, { useEffect, useState } from "react";
 import moment from "moment";
 import { useTheme } from "@mui/system";
 import { Grid, Skeleton } from "@mui/material";
-import { CertificateAuthority } from "ducks/features/cav3/apicalls";
+import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/apicalls";
 import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
 import { TextField } from "components/LamassuComponents/dui/TextField";
-import { CryptoEngineFetchViewer } from "components/LamassuComponents/lamassu/CryptoEngineFetchViewer";
 import { X509Certificate, parseCRT } from "components/utils/cryptoUtils/crt";
+import { CryptoEngineViewer } from "components/LamassuComponents/lamassu/CryptoEngineViewer";
 
 interface Props {
     caData: CertificateAuthority
+    engines: CryptoEngine[]
 }
 
-export const CertificateOverview: React.FC<Props> = ({ caData }) => {
+export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
     const theme = useTheme();
     const [parsedCertificate, setParsedCertificate] = useState<X509Certificate | undefined>();
     useEffect(() => {
@@ -71,14 +72,18 @@ export const CertificateOverview: React.FC<Props> = ({ caData }) => {
     return (
         <Grid item container sx={{ width: "100%" }} spacing={0}>
             <Grid item xs={12} container spacing={2}>
-                <Grid item xs={12} container flexDirection={"column"}>
-                    <Grid item>
-                        <SubsectionTitle>Crypto Engine</SubsectionTitle>
-                    </Grid>
-                    <Grid item flexDirection={"column"} spacing={1}>
-                        <CryptoEngineFetchViewer defaultEngine withDebugMetadata />
-                    </Grid>
-                </Grid>
+                {
+                    caData.type !== "EXTERNAL" && (
+                        <Grid item xs={12} container flexDirection={"column"}>
+                            <Grid item>
+                                <SubsectionTitle>Crypto Engine</SubsectionTitle>
+                            </Grid>
+                            <Grid item flexDirection={"column"} spacing={1}>
+                                <CryptoEngineViewer engine={engines.find(engine => engine.default)!} withDebugMetadata/>
+                            </Grid>
+                        </Grid>
+                    )
+                }
                 <Grid item xs={12} xl={6} container flexDirection={"column"}>
                     <Grid item>
                         <SubsectionTitle>Subject</SubsectionTitle>

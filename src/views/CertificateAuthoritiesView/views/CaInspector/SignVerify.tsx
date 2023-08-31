@@ -7,10 +7,10 @@ import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
 import { FormSelect } from "components/LamassuComponents/dui/form/Select";
 import { FormTextField } from "components/LamassuComponents/dui/form/TextField";
 import { useForm } from "react-hook-form";
-import * as caApiCalls from "ducks/features/cas/apicalls";
+import * as caApiCalls from "ducks/features/cav3/apicalls";
 import { LoadingButton } from "@mui/lab";
 import { CodeCopier } from "components/LamassuComponents/dui/CodeCopier";
-import { CertificateAuthority } from "ducks/features/cas/models";
+import { CertificateAuthority } from "ducks/features/cav3/apicalls";
 
 interface Props {
     caData: CertificateAuthority
@@ -140,7 +140,7 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
                 if (data.sign.messageTypeEncoding === "PlainText") {
                     msg = window.btoa(msg);
                 }
-                const resp = await caApiCalls.signPayload(caData.name, msg, data.sign.messageType, data.sign.algorithm);
+                const resp = await caApiCalls.signPayload(caData.id, msg, data.sign.messageType, data.sign.algorithm);
                 setSignResult(resp.signature);
             } catch (error) {
                 if (typeof error === "string") {
@@ -167,7 +167,7 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
                 if (data.verify.messageTypeEncoding === "PlainText") {
                     msg = window.btoa(msg);
                 }
-                const resp = await caApiCalls.verifyPayload(caData.name, data.verify.signature, msg, data.verify.messageType, data.verify.algorithm);
+                const resp = await caApiCalls.verifyPayload(caData.id, data.verify.signature, msg, data.verify.messageType, data.verify.algorithm);
                 setVerifyResult(resp.verification);
             } catch (error) {
                 if (typeof error === "string") {

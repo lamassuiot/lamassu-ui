@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Alert, Divider, Grid, MenuItem, Typography, useTheme } from "@mui/material";
 import { Box } from "@mui/system";
-import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
 import { useForm } from "react-hook-form";
 import moment, { Moment } from "moment";
 import { FormSelect } from "components/LamassuComponents/dui/form/Select";
@@ -11,13 +9,14 @@ import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
 import Label from "components/LamassuComponents/dui/typographies/Label";
 import assert from "assert";
 import { FormDateInput } from "components/LamassuComponents/dui/form/DateInput";
-import { CryptoEngineSelector } from "components/LamassuComponents/lamassu/CryptoEngineSelector";
 import { CryptoEngine, createCA } from "ducks/features/cav3/apicalls";
 import { errorToString } from "ducks/services/api";
 import { LoadingButton } from "@mui/lab";
+import CryptoEngineSelector from "components/LamassuComponents/lamassu/CryptoEngineSelector";
 
 type FormData = {
     cryptoEngine: string
+    id: string
     subject: {
         commonName: string;
         country: string;
@@ -27,7 +26,7 @@ type FormData = {
         organizationUnit: string;
     }
     privateKey: {
-        type: "RSA" | "ECDSA"
+        type: string
         size: number
     }
     caExpiration: {
@@ -61,10 +60,12 @@ const validDurationRegex = (test: string) => {
 };
 const durationValueUnitSplitRegex = /\d+|\D+/g;
 
-export const CreateCA = () => {
+interface CreateCAProps {
+    defaultEngine: CryptoEngine
+}
+
+export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
     const theme = useTheme();
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
 
     const [error, setError] = useState<string | undefined>();
     const [loading, setLoading] = useState(false);
@@ -78,11 +79,12 @@ export const CreateCA = () => {
         endLabel: string | React.ReactElement | undefined,
     }[]>([]);
 
-    const [selectedCryptoEngine, setSelectedCryptoEngine] = useState<CryptoEngine | undefined>();
+    const [selectedCryptoEngine, setSelectedCryptoEngine] = useState<CryptoEngine>(defaultEngine);
 
     const { control, getValues, setValue, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
         defaultValues: {
             cryptoEngine: "",
+            id: window.crypto.randomUUID(),
             subject: {
                 commonName: "",
                 country: "",
@@ -221,35 +223,37 @@ export const CreateCA = () => {
                         <SubsectionTitle>CA Settings</SubsectionTitle>
                     </Grid>
                     <Grid item xs={12}>
-                        <CryptoEngineSelector onSelect={(engine) => console.log(engine)} />
+                        <CryptoEngineSelector value={selectedCryptoEngine} onSelect={engine => {
+                            if (Array.isArray(engine)) {
+                                if (engine.length > 0) {
+                                    setSelectedCryptoEngine(engine[0]);
+                                }
+                            } else {
+                                setSelectedCryptoEngine(engine);
+                            }
+                        }} />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <FormTextField label="CA ID" control={control} name="id" helperText="ID" disabled />
                     </Grid>
                     <Grid item xs={12} xl={4}>
                         <FormTextField label="CA Name" control={control} name="subject.commonName" helperText="Common Name can not be empty" error={watchSubject.commonName === ""} />
                     </Grid>
                     <Grid item xs={6} xl={4}>
                         <FormSelect control={control} name="privateKey.type" label="Key Type">
-                            <MenuItem value={"RSA"}>RSA</MenuItem>
-                            <MenuItem value={"ECDSA"}>ECDSA</MenuItem>
+                            {
+                                selectedCryptoEngine.supported_key_types.map((keyFam, idx) => <MenuItem key={idx} value={keyFam.type}>{keyFam.type}</MenuItem>)
+                            }
                         </FormSelect>
                     </Grid>
                     <Grid item xs={6} xl={4}>
-                        {
-                            watchKeyType === "RSA"
-                                ? (
-                                    <FormSelect control={control} name="privateKey.size" label="Key Size">
-                                        <MenuItem value={2048}>2048</MenuItem>
-                                        <MenuItem value={3072}>3072</MenuItem>
-                                        <MenuItem value={4096}>4096</MenuItem>
-                                    </FormSelect>
-                                )
-                                : (
-                                    <FormSelect control={control} name="privateKey.size" label="Key Size">
-                                        <MenuItem value={224}>224</MenuItem>
-                                        <MenuItem value={256}>256</MenuItem>
-                                        <MenuItem value={384}>384</MenuItem>
-                                    </FormSelect>
-                                )
-                        }
+                        <FormSelect control={control} name="privateKey.size" label="Key Size">
+                            {
+                                selectedCryptoEngine.supported_key_types.find(keyFam => keyFam.type === watchKeyType)!.sizes.map((keySize, idx) => (
+                                    <MenuItem key={idx} value={keySize}>{keySize}</MenuItem>
+                                ))
+                            }
+                        </FormSelect>
                     </Grid>
                 </Grid>
 
