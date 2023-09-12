@@ -3,6 +3,7 @@ import React from "react";
 import { MatchSorterOptions, matchSorter } from "match-sorter";
 import { KeyValueLabel } from "../dui/KeyValueLabel";
 import { MonoChromaticButton } from "../dui/MonoChromaticButton";
+import deepEqual from "fast-deep-equal/es6";
 
 interface WrapperProps<T> {
     fetcher: () => Promise<T[]>
@@ -50,7 +51,7 @@ export const GenericSelector = <T extends object>(props: GenericSelectorProps<T>
         if (props.value !== undefined) {
             if (props.multiple && Array.isArray(props.value)) {
                 setSelectedOptions(props.value);
-            } else if (!Array.isArray(props.value)) {
+            } else if (!Array.isArray(props.value) && !deepEqual(props.value, selectedOption)) {
                 setSelectedOption(props.value);
             }
         }

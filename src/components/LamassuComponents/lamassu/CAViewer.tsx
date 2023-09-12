@@ -23,10 +23,8 @@ const CAViewer: React.FC<Props> = ({ caData, actions = [], elevation = true, cli
         <Box {...elevation && { component: Paper }} sx={{ padding: "5px", background: elevation ? theme.palette.textField.background : "none", cursor: "pointer", width: "100%" }} onClick={() => setDisplayCA(caData)}>
             <Grid container columnGap={2} alignItems={"center"}>
                 {
-                    caData.type !== "EXTERNAL" && (
-                        <Grid item xs={"auto"} height={"40px"}>
-                            <img src={process.env.PUBLIC_URL + "/assets/AWS-SM.png"} height={"40px"} width={"40px"} />
-                        </Grid>
+                    caData.type !== "MANAGED" && (
+                        <LamassuChip label={caData.type} color={[theme.palette.primary.main, theme.palette.primary.light]} />
                     )
                 }
                 <Grid item xs container flexDirection={"column"}>

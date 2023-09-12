@@ -9,6 +9,7 @@ import { CAReadonlyImporter } from "views/CertificateAuthoritiesView/views/CaAct
 import { CAListView } from "./views/CAListView";
 import { FetchViewer } from "components/LamassuComponents/lamassu/FetchViewer";
 import { CryptoEngine, getEngines } from "ducks/features/cav3/apicalls";
+import { CAImporter } from "./views/CaActions/CAImporter";
 
 export const CAView = () => {
     return (
@@ -56,7 +57,7 @@ const CaCreationActionsWrapper = ({ engines }: { engines: CryptoEngine[] }) => {
                 },
                 {
                     label: "Import",
-                    element: <CAReadonlyImporter />
+                    element: <CAImporter defaultEngine={engines.find(engine => engine.default)!}/>
                 },
                 {
                     label: "Read-Only Import",

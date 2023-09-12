@@ -23,6 +23,7 @@ import { StepModal } from "components/LamassuComponents/dui/StepModal";
 import { TextField } from "components/LamassuComponents/dui/TextField";
 import CAFetchViewer from "components/LamassuComponents/lamassu/CAFetchViewer";
 import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/DeleteOutline";
 
 export const DmsList = () => {
     const theme = useTheme();
@@ -149,12 +150,21 @@ export const DmsList = () => {
                                             </Box>
                                         </Grid>
                                     </Grid>
-                                    <Grid item xs="auto" container>
+                                    <Grid item xs="auto" container spacing={1}>
                                         <Grid item xs="auto">
                                             <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
                                                 <Tooltip title="Edit">
                                                     <IconButton onClick={(ev) => { navigate(`${dms.name}/edit`); }}>
                                                         <EditIcon fontSize={"small"} />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Box>
+                                        </Grid>
+                                        <Grid item xs="auto">
+                                            <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
+                                                <Tooltip title="Delete">
+                                                    <IconButton onClick={(ev) => { navigate(`${dms.name}/edit`); }}>
+                                                        <DeleteIcon fontSize={"small"} />
                                                     </IconButton>
                                                 </Tooltip>
                                             </Box>

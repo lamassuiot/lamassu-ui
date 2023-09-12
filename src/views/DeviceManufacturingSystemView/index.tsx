@@ -104,6 +104,8 @@ const UpdateDMSForm: React.FC<UpdateDMSFormProps> = ({ dmsName }) => {
         );
     }
 
+    console.log(dms);
+
     if (requestStatus.status === ORequestStatus.Success && dms !== undefined) {
         return <DMSForm
             dms={dms}

@@ -29,7 +29,7 @@ export const CertificateCard: React.FC<Props> = ({ ca, engine, selected = false,
                     {
                         ca.type !== "EXTERNAL" && (
                             <Grid item xs="auto">
-                                <CryptoEngineViewer engine={engine} simple/>
+                                <CryptoEngineViewer engine={engine} simple />
                             </Grid>
                         )
                     }
@@ -55,8 +55,8 @@ export const CertificateCard: React.FC<Props> = ({ ca, engine, selected = false,
                     </Grid>
                     <Grid item xs="auto">
                         {
-                            ca.type === "EXTERNAL" && (
-                                <LamassuChip label={"READ-ONLY CA"} color={[theme.palette.primary.main, theme.palette.primary.light]} />
+                            ca.type !== "MANAGED" && (
+                                <LamassuChip label={ca.type} color={[theme.palette.primary.main, theme.palette.primary.light]} />
                             )
                         }
                     </Grid>

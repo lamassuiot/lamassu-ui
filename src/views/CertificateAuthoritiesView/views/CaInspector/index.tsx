@@ -70,7 +70,7 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                             </Grid>
                             {
                                 <Grid item xs="auto">
-                                    <LamassuChip label={"READ-ONLY CA"} color={[theme.palette.primary.main, theme.palette.primary.light]} />
+                                    <LamassuChip label={caData.type} color={[theme.palette.primary.main, theme.palette.primary.light]} />
                                 </Grid>
                             }
                             <Grid item xs="auto" container>

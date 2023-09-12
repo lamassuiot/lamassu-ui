@@ -1,21 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Divider, Grid, MenuItem, Typography, useTheme } from "@mui/material";
-import { Box } from "@mui/system";
+import { Alert, Divider, Grid, MenuItem, useTheme } from "@mui/material";
 import { useForm } from "react-hook-form";
 import moment, { Moment } from "moment";
 import { FormSelect } from "components/LamassuComponents/dui/form/Select";
 import { FormTextField } from "components/LamassuComponents/dui/form/TextField";
 import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
-import Label from "components/LamassuComponents/dui/typographies/Label";
-import assert from "assert";
 import { FormDateInput } from "components/LamassuComponents/dui/form/DateInput";
 import { CryptoEngine, createCA } from "ducks/features/cav3/apicalls";
 import { errorToString } from "ducks/services/api";
 import { LoadingButton } from "@mui/lab";
 import CryptoEngineSelector from "components/LamassuComponents/lamassu/CryptoEngineSelector";
+import * as duration from "components/utils/duration";
+import { CATimeline } from "views/CertificateAuthoritiesView/components/CATimeline";
 
 type FormData = {
-    cryptoEngine: string
+    cryptoEngine: CryptoEngine
     id: string
     subject: {
         commonName: string;
@@ -41,25 +40,6 @@ type FormData = {
     },
 };
 
-const unitConverterToSeconds = {
-    s: 1,
-    m: 60,
-    h: 3600,
-    d: 3600 * 24,
-    w: 3600 * 24 * 7,
-    y: 3600 * 24 * 365
-};
-
-const validDurationRegex = (test: string) => {
-    const validator = /\d+[ywdhms]{1}/;
-    const res = test.match(validator);
-    if (res && res[0] === test) {
-        return true;
-    }
-    return false;
-};
-const durationValueUnitSplitRegex = /\d+|\D+/g;
-
 interface CreateCAProps {
     defaultEngine: CryptoEngine
 }
@@ -70,20 +50,9 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
     const [error, setError] = useState<string | undefined>();
     const [loading, setLoading] = useState(false);
 
-    const [timelineStages, setTimelineStages] = useState<{
-        label: string,
-        size: number,
-        background: string,
-        color: string,
-        startLabel: string | React.ReactElement | undefined,
-        endLabel: string | React.ReactElement | undefined,
-    }[]>([]);
-
-    const [selectedCryptoEngine, setSelectedCryptoEngine] = useState<CryptoEngine>(defaultEngine);
-
     const { control, getValues, setValue, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
         defaultValues: {
-            cryptoEngine: "",
+            cryptoEngine: defaultEngine,
             id: window.crypto.randomUUID(),
             subject: {
                 commonName: "",
@@ -110,69 +79,18 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
         }
     });
 
+    const watchAll = watch();
     const watchSubject = watch("subject");
     const watchKeyType = watch("privateKey.type");
     const watchCAExpiration = watch("caExpiration");
     const watchIssuanceExpiration = watch("issuerExpiration");
-
-    useEffect(() => {
-        const now = moment();
-
-        let inactiveDate = now.clone();
-        let expDate = now.clone();
-
-        if (watchCAExpiration.type === "duration" && validDurationRegex(watchCAExpiration.duration)) {
-            const expDurSplit = watchCAExpiration.duration.match(durationValueUnitSplitRegex);
-            assert(expDurSplit !== null);
-            assert(expDurSplit!.length === 2);
-            // @ts-ignore
-            expDate.add(parseInt(expDurSplit![0]) * unitConverterToSeconds[expDurSplit[1]], "seconds");
-        } else if (watchCAExpiration.type === "date") {
-            expDate = watchCAExpiration.date;
-        } else {
-            expDate = moment("99991231T235959Z");
-        }
-
-        if (watchIssuanceExpiration.type === "duration" && validDurationRegex(watchIssuanceExpiration.duration)) {
-            const expDurSplit = watchIssuanceExpiration.duration.match(durationValueUnitSplitRegex);
-            assert(expDurSplit !== null);
-            assert(expDurSplit!.length === 2);
-            // @ts-ignore
-            inactiveDate = expDate.clone().subtract(parseInt(expDurSplit![0]) * unitConverterToSeconds[expDurSplit[1]], "seconds");
-        } else if (watchIssuanceExpiration.type === "date") {
-            inactiveDate = watchIssuanceExpiration.date;
-        }
-
-        const timelineStages = [
-            {
-                label: "Issuable Period",
-                size: inactiveDate.diff(now),
-                background: "#333",
-                color: "#ddd",
-                startLabel: <>
-                    <Label>{now.format("DD/MM/YYYY")}</Label>
-                    <Label>(now)</Label>
-                </>,
-                endLabel: undefined
-            },
-            {
-                label: "Inactive",
-                size: expDate.diff(now) - inactiveDate.diff(now),
-                background: "#ddd",
-                color: "#555",
-                startLabel: inactiveDate.format("DD/MM/YYYY"),
-                endLabel: expDate.format("DD/MM/YYYY")
-            }
-        ];
-
-        setTimelineStages(timelineStages);
-    }, [watchCAExpiration.date, watchCAExpiration.duration, watchCAExpiration.type, watchIssuanceExpiration.date, watchIssuanceExpiration.duration, watchIssuanceExpiration.type]);
 
     const handleCreateCA = (formData: FormData) => {
         const run = async () => {
             setLoading(true);
             try {
                 await createCA({
+                    engine_id: formData.cryptoEngine.id,
                     subject: {
                         country: formData.subject.country,
                         state: formData.subject.state,
@@ -223,13 +141,13 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                         <SubsectionTitle>CA Settings</SubsectionTitle>
                     </Grid>
                     <Grid item xs={12}>
-                        <CryptoEngineSelector value={selectedCryptoEngine} onSelect={engine => {
+                        <CryptoEngineSelector value={watchAll.cryptoEngine} onSelect={engine => {
                             if (Array.isArray(engine)) {
                                 if (engine.length > 0) {
-                                    setSelectedCryptoEngine(engine[0]);
+                                    setValue("cryptoEngine", engine[0]);
                                 }
                             } else {
-                                setSelectedCryptoEngine(engine);
+                                setValue("cryptoEngine", engine);
                             }
                         }} />
                     </Grid>
@@ -242,16 +160,16 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                     <Grid item xs={6} xl={4}>
                         <FormSelect control={control} name="privateKey.type" label="Key Type">
                             {
-                                selectedCryptoEngine.supported_key_types.map((keyFam, idx) => <MenuItem key={idx} value={keyFam.type}>{keyFam.type}</MenuItem>)
+                                watchAll.cryptoEngine.supported_key_types.map((keyFam, idx) => <MenuItem key={idx} value={keyFam.type}>{keyFam.type}</MenuItem>)
                             }
                         </FormSelect>
                     </Grid>
                     <Grid item xs={6} xl={4}>
                         <FormSelect control={control} name="privateKey.size" label="Key Size">
                             {
-                                selectedCryptoEngine.supported_key_types.find(keyFam => keyFam.type === watchKeyType)!.sizes.map((keySize, idx) => (
-                                    <MenuItem key={idx} value={keySize}>{keySize}</MenuItem>
-                                ))
+                                 watchAll.cryptoEngine.supported_key_types.find(keyFam => keyFam.type === watchKeyType)!.sizes.map((keySize, idx) => (
+                                     <MenuItem key={idx} value={keySize}>{keySize}</MenuItem>
+                                 ))
                             }
                         </FormSelect>
                     </Grid>
@@ -304,7 +222,7 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                     {
                         watchCAExpiration.type === "duration" && (
                             <Grid item xs={12} xl={4}>
-                                <FormTextField label="Duration (valid units y/w/d/h/m/s)" helperText="Not a valid expression. Valid units are y/w/d/h/m/s" control={control} name="caExpiration.duration" error={!validDurationRegex(watchCAExpiration.duration)} />
+                                <FormTextField label="Duration (valid units y/w/d/h/m/s)" helperText="Not a valid expression. Valid units are y/w/d/h/m/s" control={control} name="caExpiration.duration" error={!duration.validDurationRegex(watchCAExpiration.duration)} />
                             </Grid>
                         )
                     }
@@ -336,7 +254,7 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                     {
                         watchIssuanceExpiration.type === "duration" && (
                             <Grid item xs={12} xl={4}>
-                                <FormTextField label="Duration (valid units y/w/d/h/m/s)" helperText="Not a valid expression. Valid units are y/w/d/h/m/s" control={control} name="issuerExpiration.duration" error={!validDurationRegex(watchIssuanceExpiration.duration)} />
+                                <FormTextField label="Duration (valid units y/w/d/h/m/s)" helperText="Not a valid expression. Valid units are y/w/d/h/m/s" control={control} name="issuerExpiration.duration" error={!duration.validDurationRegex(watchIssuanceExpiration.duration)} />
                             </Grid>
                         )
                     }
@@ -357,68 +275,11 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                     <Grid item>
                         <SubsectionTitle>Timeline</SubsectionTitle>
                     </Grid>
-                    <Grid item container flexDirection={"column"}>
-                        <Grid container columns={timelineStages.reduce((accumulator, currentValue) => accumulator + currentValue.size, 0)} spacing={1}>
-                            {
-                                timelineStages.map((stage, idx) => (
-                                    <Grid key={idx} item xs={stage.size} height={"50px"}>
-                                        <Box sx={{ background: stage.background, color: stage.color, borderRadius: "3px", height: "100%" }}>
-                                            <Grid container alignItems={"center"} justifyContent={"center"} width={"100%"} height={"100%"}>
-                                                <Grid item xs="auto"><Typography>{stage.label}</Typography></Grid>
-                                            </Grid>
-                                        </Box>
-                                    </Grid>
-                                ))
-                            }
-                        </Grid>
-                        <Grid item container columns={timelineStages.reduce((accumulator, currentValue) => accumulator + currentValue.size, 0)} spacing={1} alignItems={"start"}>
-                            {
-                                timelineStages.map((stage, idx) => (
-                                    <Grid key={idx} item xs={stage.size} container alignItems={"flex-start"} justifyContent={"space-between"}>
-                                        <Grid item xs="auto" container flexDirection={"column"}>
-                                            {
-                                                stage.startLabel && (
-                                                    <>
-                                                        <Grid item><Box height={"20px"} borderLeft={"1px solid #aaa"} /></Grid>
-                                                        <Grid item>
-                                                            {
-                                                                typeof stage.startLabel === "string"
-                                                                    ? (
-                                                                        <Label>{stage.startLabel}</Label>
-                                                                    )
-                                                                    : (
-                                                                        stage.startLabel
-                                                                    )
-                                                            }
-                                                        </Grid>
-                                                    </>
-                                                )
-                                            }
-                                        </Grid>
-                                        <Grid item xs="auto" container flexDirection={"column"} alignItems={"end"}>
-                                            {
-                                                stage.endLabel && (
-                                                    <>
-                                                        <Grid item><Box height={"20px"} borderLeft={"1px solid #aaa"} /></Grid>
-                                                        <Grid item>
-                                                            {
-                                                                typeof stage.endLabel === "string"
-                                                                    ? (
-                                                                        <Label>{stage.endLabel}</Label>
-                                                                    )
-                                                                    : (
-                                                                        stage.endLabel
-                                                                    )
-                                                            }
-                                                        </Grid>
-                                                    </>
-                                                )
-                                            }
-                                        </Grid>
-                                    </Grid>
-                                ))
-                            }
-                        </Grid>
+                    <Grid item>
+                        <CATimeline
+                            caExpiration={watchCAExpiration.type === "duration" ? watchCAExpiration.duration : (watchCAExpiration.type === "date" ? watchCAExpiration.date : "")}
+                            issuanceDuration={watchIssuanceExpiration.type === "duration" ? watchIssuanceExpiration.duration : (watchIssuanceExpiration.type === "date" ? watchIssuanceExpiration.date : "")}
+                        />
                     </Grid>
                 </Grid>
 
@@ -430,8 +291,8 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                     <Grid item>
                         <LoadingButton loading={loading} variant="contained" type="submit" disabled={
                             watchSubject.commonName === "" ||
-                            !validDurationRegex(watchCAExpiration.duration) ||
-                            !validDurationRegex(watchIssuanceExpiration.duration)
+                            !duration.validDurationRegex(watchCAExpiration.duration) ||
+                            !duration.validDurationRegex(watchIssuanceExpiration.duration)
                         }>Create CA</LoadingButton>
                     </Grid>
                     {
