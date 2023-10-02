@@ -59,20 +59,19 @@ export type DMS = {
             color: string
             authorized_ca: string
             bootstrap_cas: Array<string>
+            chain_validation_level: number,
+            registration_mode: string
         },
         reenrollment_settings: {
             allow_expired_renewal: boolean
             preventive_renewal_interval: string
+            additional_validation_cas: string[]
         },
         ca_distribution_settings: {
             include_authorized_ca: boolean
             include_lamassu_downstream_ca: boolean
             include_bootstrap_cas: boolean
             managed_cas: string[]
-            static_cas: Array<{
-                id: string,
-                certificate: string
-            }>
         }
         aws_iotcore_publish: boolean
     }

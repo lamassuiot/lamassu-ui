@@ -109,6 +109,7 @@ const UpdateDMSForm: React.FC<UpdateDMSFormProps> = ({ dmsName }) => {
     if (requestStatus.status === ORequestStatus.Success && dms !== undefined) {
         return <DMSForm
             dms={dms}
+            actionLabel="Update"
             onSubmit={async (dms) => {
                 await dmsApicalls.updateDMS({ ...dms });
                 navigate("/dms");

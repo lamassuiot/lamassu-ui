@@ -4,18 +4,18 @@ import { Box, Dialog, DialogContent, Grid, Paper, useTheme } from "@mui/material
 import * as MD from "react-icons/md";
 import * as CG from "react-icons/cg";
 import * as GO from "react-icons/go";
+import * as BI from "react-icons/bi";
+import * as AI from "react-icons/ai";
+import * as BS from "react-icons/bs";
+import * as FA6 from "react-icons/fa6";
+import * as TB from "react-icons/tb";
 import { TimedTextFiled } from "./TimedTextFiled";
 import { MonoChromaticButton } from "./MonoChromaticButton";
 import { ColorPicker } from "./ColorPicker";
 import Label from "./typographies/Label";
 
-interface MuiIcon {
-    icon: (props: any) => React.ReactNode,
-    name: string
-}
-
 export interface Icon {
-    icon: MuiIcon,
+    name: string,
     fg: string
     bg: string
 }
@@ -23,7 +23,12 @@ export interface Icon {
 const iconPool = {
     ...MD,
     ...CG,
-    ...GO
+    ...GO,
+    ...BI,
+    ...AI,
+    ...BS,
+    ...FA6,
+    ...TB
 };
 
 const allowedIcons = [
@@ -33,6 +38,7 @@ const allowedIcons = [
     "MdOutlineElectricalServices",
     "MdOutlineElectricMeter",
     "MdOutlineElectricBike",
+    "MdOutlineTrain",
     "CgDatabase",
     "CgModem",
     "CgSmartHomeBoiler",
@@ -46,7 +52,16 @@ const allowedIcons = [
     "CgSmartphoneRam",
     "CgSmartphoneShake",
     "CgBatteryFull",
-    "GoRadioTower"
+    "GoRadioTower",
+    "BiSolidCreditCardFront",
+    "BsSdCard",
+    "IoMdCar",
+    "AiOutlineIdcard",
+    "GiElectric",
+    "BsHouse",
+    "BsHouseGear",
+    "TbCrane",
+    "MdOutlineElevator"
 ];
 
 const icons = Object.entries(iconPool).filter(entry => allowedIcons.includes(entry[0]));
@@ -60,15 +75,15 @@ interface IconInputProps {
     iconSize?: number
 }
 
-const IconInput: React.FC<IconInputProps> = ({ label, size = 45, iconSize = size - 15, readonly = false, value = { bg: "#25ee32", fg: "#222222", icon: { icon: CG.CgSmartphoneChip, name: "CgSmartphoneChip" } }, onChange }) => {
+const IconInput: React.FC<IconInputProps> = ({ label, size = 45, iconSize = size - 15, readonly = false, value = { bg: "#25eee2", fg: "#333333", name: "CgSmartphoneChip" }, onChange }) => {
     const theme = useTheme();
-    const [icon, setIcon] = useState<Icon | undefined>(value);
+    const [icon, setIcon] = useState<Icon>(value);
     const [open, setOpen] = useState(false);
-    const [filteredIcons, setFilteredIcons] = useState<MuiIcon[]>([]);
+    const [filteredIcons, setFilteredIcons] = useState<string[]>([]);
 
     const [filter, setFilter] = useState("");
-    const [fg, setFg] = useState("#eee");
-    const [bg, setBg] = useState("#333");
+    const [fg, setFg] = useState(value.fg);
+    const [bg, setBg] = useState(value.bg);
 
     const resetModal = () => {
         setFilter("");
@@ -80,9 +95,9 @@ const IconInput: React.FC<IconInputProps> = ({ label, size = 45, iconSize = size
             const entries = icons.filter(iconEntry => {
                 return iconEntry[0].toLocaleLowerCase().includes(filterLower);
             });
-            setFilteredIcons(entries.map(entry => { return { icon: entry[1], name: entry[0] }; }));
+            setFilteredIcons(entries.map(entry => { return entry[0]; }));
         } else {
-            setFilteredIcons(icons.map(entry => { return { icon: entry[1], name: entry[0] }; }));
+            setFilteredIcons(icons.map(entry => { return entry[0]; }));
         }
     }, [filter]);
 
@@ -91,6 +106,12 @@ const IconInput: React.FC<IconInputProps> = ({ label, size = 45, iconSize = size
             onChange(icon);
         }
     }, [icon]);
+
+    useEffect(() => {
+        if (fg !== value.fg) setFg(value.fg);
+        if (bg !== value.bg) setBg(value.bg);
+        if (icon.name !== value.name) setIcon(value);
+    }, [value]);
 
     return (
         <>
@@ -109,7 +130,7 @@ const IconInput: React.FC<IconInputProps> = ({ label, size = 45, iconSize = size
                                         }
                                     }} sx={{ display: "flex", alignItems: "center", justifyContent: "center", width: size, height: size, background: icon.bg, cursor: !readonly ? "pointer" : "inherit", borderRadius: "8px" }} component={Paper}>
                                         {
-                                            icon.icon.icon({ fontSize: iconSize, color: icon.fg })
+                                            icons.find(i => i[0] === icon.name)![1]({ fontSize: iconSize, color: icon.fg })
                                         }
                                     </Box>
                                 </Grid>
@@ -148,13 +169,13 @@ const IconInput: React.FC<IconInputProps> = ({ label, size = 45, iconSize = size
                                                     setIcon({
                                                         bg,
                                                         fg,
-                                                        icon: val
+                                                        name: val
                                                     });
                                                     setOpen(false);
                                                     resetModal();
                                                 }}>
                                                     {
-                                                        val.icon({ fontSize: "30px", color: fg })
+                                                        icons.find(i => i[0] === val)![1]({ fontSize: "30px", color: fg })
                                                     }
                                                 </Box>
                                                 {/* <pre>{val.name}</pre> */}

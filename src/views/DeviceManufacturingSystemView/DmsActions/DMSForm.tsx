@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { Button, Chip, Dialog, DialogContent, DialogTitle, Divider, Grid, MenuItem, Skeleton, Typography, useTheme } from "@mui/material";
-import * as CG from "react-icons/cg";
+import { Button, Divider, Grid, MenuItem, Skeleton } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { Icon } from "components/LamassuComponents/dui/IconInput";
 import { FormTextField } from "components/LamassuComponents/dui/form/TextField";
@@ -9,84 +8,10 @@ import { FormSelect } from "components/LamassuComponents/dui/form/Select";
 import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
 import { FormIconInput } from "components/LamassuComponents/dui/form/IconInput";
 import { FormSwitch } from "components/LamassuComponents/dui/form/Switch";
-import Label from "components/LamassuComponents/dui/typographies/Label";
-import CertificateImporter from "components/LamassuComponents/composed/Certificates/CertificateImporter";
-import { TextField } from "components/LamassuComponents/dui/TextField";
-import CASelector from "components/LamassuComponents/lamassu/CASelector";
 import { DMS } from "ducks/features/dms-enroller/models";
-import { useDispatch } from "react-redux";
 import { FormMultiTextInput } from "components/LamassuComponents/dui/form/MultiTextInput";
 import { CertificateAuthority, getCAs } from "ducks/features/cav3/apicalls";
-
-interface StaticCertificateListInputProps {
-    onChange: (certs: StaticCertificate[]) => void
-}
-
-type StaticCertificate = {
-    name: string
-    certificate: string
-}
-
-const StaticCertificateListInput: React.FC<StaticCertificateListInputProps> = ({ onChange }) => {
-    const [openAddCertModal, setOpenAddCertModal] = useState(false);
-    const [certificates, setCertificates] = useState<StaticCertificate[]>([]);
-    const [newCrt, setNewCrt] = useState<string | undefined>();
-
-    const [newCertificate, setNewCertificate] = useState("");
-    const [newCertificateName, setNewCertificateName] = useState("");
-
-    useEffect(() => {
-        onChange(certificates);
-    }, [certificates]);
-
-    return (
-        <Grid container spacing={1} alignItems={"center"}>
-            {
-                certificates.map((cert, idx) => (
-                    <Grid item key={idx}>
-                        <Chip label={cert.name} sx={{ borderRadius: "5px" }} onDelete={() => {
-                            const newArray = [...certificates];
-                            newArray.splice(idx, 1);
-                            setCertificates(newArray);
-                        }} />
-                    </Grid>
-                ))
-            }
-            <Grid item>
-                <Button variant="outlined" onClick={() => { setOpenAddCertModal(true); }}>Add New Certificate</Button>
-            </Grid>
-            {
-                openAddCertModal && (
-                    <Dialog open={openAddCertModal} onClose={() => setOpenAddCertModal(false)} maxWidth={"md"}>
-                        <DialogTitle>
-                            <Typography variant="h2" sx={{ fontWeight: "500", fontSize: "1.25rem" }}>Add New Certificate</Typography>
-                        </DialogTitle>
-                        <DialogContent>
-                            <Grid container spacing={2} flexDirection={"column"}>
-                                <Grid item>
-                                    <TextField label="Name" value={newCertificateName} onChange={(ev) => setNewCertificateName(ev.target.value)} />
-                                </Grid>
-                                <Grid item>
-                                    <CertificateImporter onChange={(crt) => {
-                                        setNewCrt(crt);
-                                    }} />
-                                </Grid>
-                                <Grid item>
-                                    <Button variant="contained" disabled={newCertificateName === "" || !newCrt} onClick={() => {
-                                        setCertificates([...certificates, { certificate: newCrt!, name: newCertificateName }]);
-                                        setOpenAddCertModal(false);
-                                        setNewCertificateName("");
-                                    }}>Confirm</Button>
-                                </Grid>
-
-                            </Grid>
-                        </DialogContent>
-                    </Dialog>
-                )
-            }
-        </Grid>
-    );
-};
+import CASelectorV2 from "components/LamassuComponents/lamassu/CASelectorV2";
 
 type FormData = {
     dmsDefinition: {
@@ -95,7 +20,9 @@ type FormData = {
     }
     enrollProtocol: {
         protocol: "EST"
-        estAuthMode: "BOOTSTRAP_MTLS";
+        estAuthMode: "MutualTLS";
+        registrationMode: "JITP" | "PreRegister";
+        chainValidation: number;
         enrollmentCA: undefined | CertificateAuthority;
         validationCAs: CertificateAuthority[];
         overrideEnrollment: boolean,
@@ -107,12 +34,12 @@ type FormData = {
     reEnroll: {
         allowedRenewalDelta: string;
         allowExpired: boolean;
+        additionalValidationCAs: CertificateAuthority[];
     },
     caDistribution: {
         includeDownstream: boolean;
         includeAuthorized: boolean;
         managedCAs: CertificateAuthority[]
-        staticCAs: StaticCertificate[]
     },
     iotIntegrations: {
         enableShadow: boolean;
@@ -123,13 +50,11 @@ type FormData = {
 
 interface Props {
     dms?: DMS,
-    onSubmit: (dms: any) => void
+    onSubmit: (dms: any) => void,
+    actionLabel?: string
 }
 
-export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
-    const theme = useTheme();
-    const dispatch = useDispatch();
-
+export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create" }) => {
     const editMode = dms !== undefined;
     const [loading, setLoading] = useState(true);
 
@@ -141,7 +66,9 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
             },
             enrollProtocol: {
                 protocol: "EST",
-                estAuthMode: "BOOTSTRAP_MTLS",
+                estAuthMode: "MutualTLS",
+                chainValidation: -1,
+                registrationMode: "JITP",
                 overrideEnrollment: false,
                 enrollmentCA: undefined,
                 validationCAs: []
@@ -150,19 +77,19 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
                 icon: {
                     bg: "#25eee2",
                     fg: "#333333",
-                    icon: { icon: CG.CgSmartphoneChip, name: "CgSmartphoneChip" }
+                    name: "CgSmartphoneChip"
                 },
                 tags: ["iot"]
             },
             reEnroll: {
                 allowedRenewalDelta: "100d",
-                allowExpired: false
+                allowExpired: false,
+                additionalValidationCAs: []
             },
             caDistribution: {
                 includeDownstream: true,
                 includeAuthorized: true,
-                managedCAs: [],
-                staticCAs: []
+                managedCAs: []
             },
             iotIntegrations: {
                 enableShadow: true,
@@ -185,28 +112,30 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
                     },
                     enrollProtocol: {
                         protocol: "EST",
-                        estAuthMode: dms!.identity_profile.general_setting.enrollment_mode === "BOOTSTRAP_MTLS" ? "BOOTSTRAP_MTLS" : "BOOTSTRAP_MTLS",
+                        estAuthMode: dms!.identity_profile.general_setting.enrollment_mode === "MutualTLS" ? "MutualTLS" : "MutualTLS",
                         overrideEnrollment: dms!.identity_profile.enrollment_settings.allow_new_auto_enrollment,
                         enrollmentCA: casResp.list.find(ca => ca.id === dms!.identity_profile.enrollment_settings.authorized_ca)!,
-                        validationCAs: dms!.identity_profile.enrollment_settings.bootstrap_cas.map(ca => casResp.list.find(caF => caF.id === ca)!)
+                        validationCAs: dms!.identity_profile.enrollment_settings.bootstrap_cas.map(ca => casResp.list.find(caF => caF.id === ca)!),
+                        chainValidation: dms!.identity_profile.enrollment_settings.chain_validation_level,
+                        registrationMode: dms!.identity_profile.enrollment_settings.registration_mode === "JITP" ? "JITP" : "PreRegister"
                     },
                     enrollDeviceRegistration: {
                         icon: {
                             bg: dms!.identity_profile.enrollment_settings.color.split("-")[0],
                             fg: dms!.identity_profile.enrollment_settings.color.split("-")[1],
-                            icon: { icon: CG.CgSmartphoneChip, name: "CgSmartphoneChip" }
+                            name: dms!.identity_profile.enrollment_settings.icon
                         },
                         tags: dms!.identity_profile.enrollment_settings.tags
                     },
                     reEnroll: {
                         allowedRenewalDelta: dms!.identity_profile.reenrollment_settings.preventive_renewal_interval,
-                        allowExpired: dms!.identity_profile.reenrollment_settings.allow_expired_renewal
+                        allowExpired: dms!.identity_profile.reenrollment_settings.allow_expired_renewal,
+                        additionalValidationCAs: dms!.identity_profile.reenrollment_settings.additional_validation_cas.map(ca => casResp.list.find(caF => caF.id === ca)!)
                     },
                     caDistribution: {
                         includeAuthorized: true,
                         includeDownstream: dms!.identity_profile.ca_distribution_settings.include_lamassu_downstream_ca,
-                        managedCAs: dms!.identity_profile.ca_distribution_settings.managed_cas.map(ca => casResp.list.find(caF => caF.id === ca)!),
-                        staticCAs: []
+                        managedCAs: dms!.identity_profile.ca_distribution_settings.managed_cas.map(ca => casResp.list.find(caF => caF.id === ca)!)
                     },
                     iotIntegrations: {
                         enableShadow: true,
@@ -235,6 +164,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
         const run = async () => {
             const actionPayload = {
                 name: data.dmsDefinition.name,
+                status: "APPROVED",
                 cloud_dms: data.dmsDefinition.deploymentMode === "cloud",
                 aws: {
                     shadow_type: data.iotIntegrations.shadowType === "classic" ? "CLASSIC" : "NAMED"
@@ -247,25 +177,21 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
                         authentication_mode: data.enrollProtocol.estAuthMode,
                         allow_new_auto_enrollment: data.enrollProtocol.overrideEnrollment,
                         tags: data.enrollDeviceRegistration.tags,
-                        icon: data.enrollDeviceRegistration.icon.icon.name,
+                        icon: data.enrollDeviceRegistration.icon.name,
                         color: `${data.enrollDeviceRegistration.icon.bg}-${data.enrollDeviceRegistration.icon.fg}`,
                         authorized_ca: data.enrollProtocol.enrollmentCA?.id,
-                        bootstrap_cas: data.enrollProtocol.validationCAs.map(ca => ca.id)
+                        bootstrap_cas: data.enrollProtocol.validationCAs.map(ca => ca.id),
+                        registration_mode: data.enrollProtocol.registrationMode,
+                        chain_validation_level: Number(data.enrollProtocol.chainValidation)
                     },
                     reenrollment_settings: {
                         allow_expired_renewal: data.reEnroll.allowExpired,
-                        preventive_renewal_interval: data.reEnroll.allowedRenewalDelta
+                        preventive_renewal_interval: data.reEnroll.allowedRenewalDelta,
+                        additional_validation_cas: data.reEnroll.additionalValidationCAs.map(ca => ca.id)
                     },
                     ca_distribution_settings: {
                         include_lamassu_downstream_ca: data.caDistribution.includeDownstream,
-                        managed_cas: data.caDistribution.managedCAs.map(ca => ca.id),
-                        static_cas:
-                            data.caDistribution.staticCAs.map(ca => {
-                                return {
-                                    id: ca.name,
-                                    certificate: window.btoa(ca.certificate)
-                                };
-                            })
+                        managed_cas: data.caDistribution.managedCAs.map(ca => ca.id)
                     },
                     aws_iotcore_publish: data.iotIntegrations.enableCADistributionSync
                 }
@@ -301,6 +227,12 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
                     <Grid item xs={12}>
                         <SubsectionTitle>Enrollment Device Registration</SubsectionTitle>
                     </Grid>
+                    <Grid item xs={12}>
+                        <FormSelect control={control} name="enrollProtocol.registrationMode" label="Registration Mode">
+                            <MenuItem value={"JITP"}>JITP</MenuItem>
+                            <MenuItem value={"PreRegister"}>Enforce Pre Registration</MenuItem>
+                        </FormSelect>
+                    </Grid>
                     <Grid item xs="auto">
                         <FormIconInput control={control} name="enrollDeviceRegistration.icon" label="Icon" />
                     </Grid>
@@ -322,29 +254,34 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
                             <MenuItem value={"EST"}>Enrollment Over Secure Transport</MenuItem>
                         </FormSelect>
                     </Grid>
+
                     <Grid item xs={12}>
                         <FormSelect control={control} name="enrollProtocol.estAuthMode" label="Authentication Mode">
-                            <MenuItem value={"BOOTSTRAP_MTLS"}>Mutual TLS</MenuItem>
-                            <MenuItem disabled value={"JWT"}>JWT</MenuItem>
+                            <MenuItem value={"MutualTLS"}>Mutual TLS</MenuItem>
+                            <MenuItem disabled value={"NOAUTH"}>No Auth</MenuItem>
                         </FormSelect>
                     </Grid>
                     <Grid item xs={12}>
-                        <CASelector value={getValues("enrollProtocol.enrollmentCA")} onSelect={(elems) => {
+                        <CASelectorV2 value={getValues("enrollProtocol.enrollmentCA")} onSelect={(elems) => {
                             if (!Array.isArray(elems)) {
                                 setValue("enrollProtocol.enrollmentCA", elems);
                             }
-                        }} multiple={false} label="Enrollment CA"
+                        }} multiple={false} label="Enrollment CA" selectLabel="Select Enrollment CA"
                         />
                     </Grid>
                     <Grid item xs={12}>
-                        <CASelector value={getValues("enrollProtocol.validationCAs")} onSelect={(elems) => {
+                        <CASelectorV2 value={getValues("enrollProtocol.validationCAs")} onSelect={(elems) => {
                             if (Array.isArray(elems)) {
                                 setValue("enrollProtocol.validationCAs", elems);
                             }
-                        }} multiple={true} label="Validation CA (Bootstrap CA)" />
+                        }} multiple={true} label="Validation CAs" selectLabel="Select Validation CAs"
+                        />
                     </Grid>
                     <Grid item xs={12}>
                         <FormSwitch control={control} name="enrollProtocol.overrideEnrollment" label="Allow Override Enrollment" />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <FormTextField label="Chain Validation Level (-1 equals full chain)" control={control} name="enrollProtocol.chainValidation" type="number" />
                     </Grid>
                 </Grid>
 
@@ -361,6 +298,14 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
                     </Grid>
                     <Grid item xs={12}>
                         <FormTextField control={control} name="reEnroll.allowedRenewalDelta" label="Allowed Renewal Period" />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <CASelectorV2 value={getValues("reEnroll.additionalValidationCAs")} onSelect={(elems) => {
+                            if (Array.isArray(elems)) {
+                                setValue("reEnroll.additionalValidationCAs", elems);
+                            }
+                        }} multiple={true} label="Additional Validation CAs" selectLabel="Select Validation CAs"
+                        />
                     </Grid>
                 </Grid>
 
@@ -379,22 +324,11 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
                         <FormSwitch control={control} name="caDistribution.includeDownstream" label="Include &apos;Downstream&apos; CA used by Lamassu" />
                     </Grid>
                     <Grid item xs={12} container>
-                        <CASelector onSelect={(elems) => {
+                        <CASelectorV2 selectLabel="Select CAs to be trusted by the Device" onSelect={(elems) => {
                             if (Array.isArray(elems)) {
                                 setValue("caDistribution.managedCAs", elems);
                             }
                         }} multiple={true} label="Managed CAs" />
-                    </Grid>
-                    <Grid item xs={12} container flexDirection={"column"}>
-                        <Grid item sx={{ marginBottom: "5px" }}>
-                            <Label>Static CAs</Label>
-                        </Grid>
-
-                        <Grid item>
-                            <StaticCertificateListInput onChange={(certs) => {
-                                setValue("caDistribution.staticCAs", certs);
-                            }} />
-                        </Grid>
                     </Grid>
                 </Grid>
 
@@ -429,7 +363,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit }) => {
 
                 <Grid item container>
                     <Grid item>
-                        <Button variant="contained" type="submit">Create DMS</Button>
+                        <Button variant="contained" type="submit">{`${actionLabel} DMS`}</Button>
                     </Grid>
                 </Grid>
             </Grid>

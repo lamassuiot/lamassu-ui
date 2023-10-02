@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Typography, useTheme } from "@mui/material";
 import { useDispatch } from "react-redux";
-import * as caApicalls from "ducks/features/cas/apicalls";
+import * as caApicalls from "ducks/features/cav3/apicalls";
 import Stepper from "@mui/material/Stepper/Stepper";
 import Step from "@mui/material/Step/Step";
 import StepLabel from "@mui/material/StepLabel/StepLabel";
@@ -36,9 +36,9 @@ export const IssueCert: React.FC<Props> = ({ caName, isOpen, onClose = () => { }
             if (step === 1) {
                 setLoading(true);
                 try {
-                    const resp = await caApicalls.signCertificate(caName!, csr!);
+                    const resp = await caApicalls.signCertificateRequest(caName!, window.btoa(csr!));
                     setRawCrt(resp.certificate);
-                    setParsedSignedCert(Certificate.fromPEM(Buffer.from(window.window.atob(resp.certificate), "utf8")));
+                    setParsedSignedCert(Certificate.fromPEM(Buffer.from(window.atob(resp.certificate), "utf8")));
                     setLoading(false);
                     setStep(step + 1);
                 } catch (error: any) {

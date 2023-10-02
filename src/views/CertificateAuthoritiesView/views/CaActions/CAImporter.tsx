@@ -4,7 +4,7 @@ import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
 import { LoadingButton, Alert } from "@mui/lab";
 import moment, { Moment } from "moment";
 import CertificateImporter from "components/LamassuComponents/composed/Certificates/CertificateImporter";
-import { CryptoEngine } from "ducks/features/cav3/apicalls";
+import { CryptoEngine, ExpirationFormat, importCA } from "ducks/features/cav3/apicalls";
 import CryptoEngineSelector from "components/LamassuComponents/lamassu/CryptoEngineSelector";
 import { useForm } from "react-hook-form";
 import { FormTextField } from "components/LamassuComponents/dui/form/TextField";
@@ -21,9 +21,9 @@ uywNx1FjrBpX2j6DBnyp1owBUY0Y1RVWpw==
 `;
 
 type FormData = {
-    cryptoEngine: string
+    cryptoEngine: CryptoEngine
     id: string
-    certificate: string
+    certificate: string | undefined
     parsedCertificate: X509Certificate | undefined
     privateKey: string
     issuerExpiration: {
@@ -42,7 +42,7 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
 
     const { control, getValues, setValue, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
         defaultValues: {
-            cryptoEngine: "",
+            cryptoEngine: defaultEngine,
             id: window.crypto.randomUUID(),
             certificate: "",
             parsedCertificate: undefined,
@@ -58,34 +58,44 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
     const watchIssuanceExpiration = watch("issuerExpiration");
     const watchAll = watch();
 
-    const [selectedCryptoEngine, setSelectedCryptoEngine] = useState<CryptoEngine>(defaultEngine);
-
     const [isLoading, setIsLoading] = useState(false);
     const [hasError, setHasError] = useState(false);
 
-    const handleImport = async () => {
+    const handleImport = handleSubmit(async (data) => {
         setIsLoading(true);
+        let issuanceDur: ExpirationFormat;
+        console.log("aaaaaaa");
+
+        if (data.issuerExpiration.type === "duration") {
+            issuanceDur = {
+                type: "Duration",
+                duration: data.issuerExpiration.duration
+            };
+        } else {
+            issuanceDur = {
+                type: "Time",
+                time: data.issuerExpiration.date.format()
+            };
+        }
         try {
-            // const issuanceDuration = moment.duration(issuanceDur, "days").asSeconds();
-            // await importCA(window.btoa(crt!), window.btoa(privKey!), `${issuanceDuration}`);
+            await importCA(data.id, data.cryptoEngine.id, window.btoa(data.certificate!), window.btoa(data.privateKey), issuanceDur);
         } catch (error) {
             console.log(error);
-
             setHasError(true);
         }
         setIsLoading(false);
-    };
+    });
 
     return (
         <Grid container spacing={2}>
             <Grid item xs={12}>
-                <CryptoEngineSelector value={selectedCryptoEngine} onSelect={engine => {
+                <CryptoEngineSelector value={watchAll.cryptoEngine} onSelect={engine => {
                     if (Array.isArray(engine)) {
                         if (engine.length > 0) {
-                            setSelectedCryptoEngine(engine[0]);
+                            setValue("cryptoEngine", engine[0]);
                         }
                     } else {
-                        setSelectedCryptoEngine(engine);
+                        setValue("cryptoEngine", engine);
                     }
                 }} />
             </Grid>
@@ -96,9 +106,14 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
 
             <Grid item xs container spacing={1}>
                 <CertificateImporter onChange={async (crt) => {
-                    const parsedCrt = await parseCRT(crt);
-                    setValue("parsedCertificate", parsedCrt);
-                    setValue("certificate", crt);
+                    if (crt !== undefined) {
+                        const parsedCrt = await parseCRT(crt);
+                        setValue("parsedCertificate", parsedCrt);
+                        setValue("certificate", crt);
+                    } else {
+                        setValue("parsedCertificate", undefined);
+                        setValue("certificate", undefined);
+                    }
                 }} />
             </Grid>
 
@@ -139,6 +154,7 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
                                 caExpiration={watchAll.parsedCertificate.notAfter}
                                 issuanceDuration={watchIssuanceExpiration.type === "duration" ? watchIssuanceExpiration.duration : (watchIssuanceExpiration.type === "date" ? watchIssuanceExpiration.date : "")}
                             />
+
                         )
                     }
                 </Grid>
@@ -152,7 +168,7 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
                 {
                     hasError && (
                         <Alert severity="error">
-                            Could not import CA
+                        Could not import CA
                         </Alert>
                     )
                 }

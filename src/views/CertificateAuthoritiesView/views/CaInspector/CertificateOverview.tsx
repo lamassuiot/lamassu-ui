@@ -79,7 +79,7 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
                                 <SubsectionTitle>Crypto Engine</SubsectionTitle>
                             </Grid>
                             <Grid item flexDirection={"column"} spacing={1}>
-                                <CryptoEngineViewer engine={engines.find(engine => engine.default)!} withDebugMetadata/>
+                                <CryptoEngineViewer engine={engines.find(engine => engine.id === caData.engine_id)!} withDebugMetadata/>
                             </Grid>
                         </Grid>
                     )

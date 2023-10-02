@@ -2,6 +2,39 @@ import { apiRequest } from "ducks/services/api";
 import { Moment } from "moment";
 import { SignPayloadResponse, VerifyPayloadResponse } from "../cas/models";
 
+export interface CAStats {
+    cas: {
+        total: number,
+        engine_distribution: {
+            [key: string]: number;
+        },
+        status_distribution: {
+            [key: string]: number;
+        }
+    },
+    certificates: {
+        total: number,
+        ca_distribution: {
+            [key: string]: number;
+        },
+        status_distribution: {
+            [key: string]: number;
+        }
+    }
+}
+
+export enum CertificateStatus {
+    Active = "ACTIVE",
+    Revoked = "REVOKED",
+    Expired = "EXPIRED",
+}
+
+export const getStats = async (): Promise<CAStats> => {
+    return apiRequest({
+        method: "GET",
+        url: window._env_.LAMASSU_CA_API + "/v1/stats"
+    }) as Promise<CAStats>;
+};
 export interface CryptoEngine {
     type: "GOLANG" | "AWS_SECRETS_MANAGER" | "AWS_KMS",
     id: string
@@ -23,7 +56,7 @@ export const getEngines = async (): Promise<CryptoEngine[]> => {
 };
 
 export type Certificate = {
-    status: "ACTIVE"
+    status: CertificateStatus
     serial_number: string
     certificate: string
     key_metadata: {
@@ -42,6 +75,7 @@ export type Certificate = {
     valid_from: Moment
     valid_to: Moment
     revocation_timestamp: Moment
+    revocation_reason: string
     metadata: any
     issuer_metadata: {
         ca_name: string
@@ -50,6 +84,7 @@ export type Certificate = {
 }
 
 export interface CertificateAuthority extends Certificate {
+    engine_id: string,
     id: string,
     metadata: any
     issuance_expiration: {
@@ -109,10 +144,10 @@ type CreateCAPayload = {
     }
     issuance_expiration: ExpirationFormat
 }
-type ExpirationFormat = {
-    type: string
-    duration: string
-    time: string
+export type ExpirationFormat = {
+    type: "Duration" | "Time"
+    duration?: string
+    time?: string
 }
 
 export const createCA = async (payload: CreateCAPayload): Promise<CreateCAPayload> => {
@@ -123,11 +158,13 @@ export const createCA = async (payload: CreateCAPayload): Promise<CreateCAPayloa
     }) as Promise<CreateCAPayload>;
 };
 
-export const importCA = async (certificateB64: string, privKeyB64: string, expiration: ExpirationFormat) => {
+export const importCA = async (id: string, engineID: string, certificateB64: string, privKeyB64: string, expiration: ExpirationFormat) => {
     return apiRequest({
         method: "POST",
         url: `${window._env_.LAMASSU_CA_API}/v1/cas/import`,
         data: {
+            id: id,
+            engine_id: engineID,
             private_key: privKeyB64,
             ca: certificateB64,
             ca_chain: [],
@@ -149,7 +186,7 @@ export const importReadOnlyCA = async (certificateB64: string) => {
     });
 };
 
-export const updateMetadata = async (caName :string, metadata: any) => {
+export const updateMetadata = async (caName: string, metadata: any) => {
     return apiRequest({
         method: "PUT",
         url: `${window._env_.LAMASSU_CA_API}/v1/cas/${caName}/metadata`,
@@ -181,5 +218,47 @@ export const verifyPayload = async (caName: string, signature: string, message: 
             message_type: messageType,
             signing_algorithm: algorithm
         }
+    });
+};
+
+export const signCertificateRequest = async (caName: string, csr: string): Promise<Certificate> => {
+    return apiRequest({
+        method: "POST",
+        url: window._env_.LAMASSU_CA_API + "/v1/cas/" + caName + "/certificates/sign",
+        data: {
+            csr: csr,
+            sign_verbatim: true
+        }
+    });
+};
+
+export const updateCertificateStatus = async (certSerial: string, status: CertificateStatus, revocationReason?: string): Promise<Certificate> => {
+    const body: any = {
+        status: status
+    };
+
+    if (body.status === CertificateStatus.Revoked) {
+        body.revocation_reason = revocationReason;
+    }
+    return apiRequest({
+        method: "PUT",
+        url: `${window._env_.LAMASSU_CA_API}/v1/certificates/${certSerial}/status`,
+        data: body
+    });
+};
+
+export const updateCAStatus = async (caID: string, status: CertificateStatus, revocationReason?: string): Promise<CertificateAuthority> => {
+    const body: any = {
+        status: status
+    };
+
+    if (body.status === CertificateStatus.Revoked) {
+        body.revocation_reason = revocationReason;
+    }
+
+    return apiRequest({
+        method: "POST",
+        url: `${window._env_.LAMASSU_CA_API}/v1/cas/${caID}/status`,
+        data: body
     });
 };

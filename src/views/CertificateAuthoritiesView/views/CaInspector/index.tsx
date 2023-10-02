@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { Grid, IconButton, Button, Typography, DialogContent, DialogContentText, Dialog, DialogActions, DialogTitle, Box, Alert, Paper, Skeleton } from "@mui/material";
+import { Grid, IconButton, Button, Typography, Box, Alert, Paper, Skeleton, MenuItem } from "@mui/material";
 import { LamassuChip } from "components/LamassuComponents/Chip";
 import DeleteIcon from "@mui/icons-material/Delete";
 import moment from "moment";
@@ -17,6 +17,28 @@ import Label from "components/LamassuComponents/dui/typographies/Label";
 import { CloudProviders } from "./CloudProviders";
 import { TabsListWithRouter } from "components/LamassuComponents/dui/TabsListWithRouter";
 import { errorToString } from "ducks/services/api";
+import { MonoChromaticButton } from "components/LamassuComponents/dui/MonoChromaticButton";
+import { Modal } from "components/LamassuComponents/dui/Modal";
+import { TextField } from "components/LamassuComponents/dui/TextField";
+import { KeyValueLabel } from "components/LamassuComponents/dui/KeyValueLabel";
+import { FetchViewer } from "components/LamassuComponents/lamassu/FetchViewer";
+import CAViewer from "components/LamassuComponents/lamassu/CAViewer";
+import * as caApiCalls from "ducks/features/cav3/apicalls";
+import { Select } from "components/LamassuComponents/dui/Select";
+
+const revokeCodes = [
+    ["AACompromise", "It is known, or suspected, that aspects of the Attribute Authority (AA) validated in the attribute certificate have been compromised."],
+    ["AffiliationChanged", "The subject's name, or other validated information in the certificate, has changed without anything being compromised."],
+    ["CACompromise", "The private key, or another validated portion of a Certificate Authority (CA) certificate, is suspected to have been compromised."],
+    ["CertificateHold", "The certificate is temporarily suspended, and may either return to service or become permanently revoked in the future."],
+    ["CessationOfOperation", "The certificate is no longer needed, but nothing is suspected to be compromised."],
+    ["KeyCompromise", "The private key, or another validated portion of an end-entity certificate, is suspected to have been compromised."],
+    ["PrivilegeWithdrawn", "A privilege contained within the certificate has been withdrawn."],
+    ["RemoveFromCrl", "The certificate was revoked with CertificateHold on a base Certificate Revocation List (CRL) and is being returned to service on a delta CRL."],
+    ["Superseded", "The certificate has been superseded, but without anything being compromised."],
+    ["Unspecified", "Revocation occurred for a reason that has no more specific value."],
+    ["WeakAlgorithmOrKey", "The certificate key uses a weak cryptographic algorithm, or the key is too short, or the key was generated in an unsafe manner."]
+];
 
 interface Props {
     caName: string
@@ -31,6 +53,7 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
     const [caData, setCAData] = React.useState<CertificateAuthority | undefined>(undefined);
     const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState<any | undefined>(undefined);
+    const [revokeReason, setRevokeReason] = useState("Unspecified");
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -78,7 +101,7 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                                     <LamassuChip label={caData.key_metadata.strength} rounded />
                                 </Grid>
                                 <Grid item xs="auto">
-                                    <LamassuChip label={caData.status} rounded style={{ marginLeft: "5px" }} />
+                                    <LamassuChip label={caData.status} color={caData.status !== caApiCalls.CertificateStatus.Active ? "red" : "gray"} rounded style={{ marginLeft: "5px" }} />
                                 </Grid>
                             </Grid>
                         </Grid>
@@ -148,28 +171,65 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                         }
                     ]}
                 />
-                <Dialog open={isRevokeDialogOpen} onClose={() => setIsRevokeDialogOpen(false)}>
-                    <DialogTitle>Revoke CA: {caData.id}</DialogTitle>
-                    <DialogContent>
-                        <DialogContentText>
-                            You are about to revoke a CA. By revoing the certificate, you will also revoke al issued certificates.
-                        </DialogContentText>
-                        <Grid container style={{ marginTop: "10px" }}>
-                            <Grid item xs={12}>
-                                <Typography variant="button">CA Name: </Typography>
-                                <Typography variant="button" style={{ background: theme.palette.mode === "light" ? "#efefef" : "#666", padding: 5, fontSize: 12 }}>{caData.id}</Typography>
+                <Modal
+                    title={"Revoke CA Certificate"}
+                    subtitle={""}
+                    isOpen={isRevokeDialogOpen}
+                    onClose={function (): void {
+                        setIsRevokeDialogOpen(false);
+                    }}
+                    content={(
+                        <Grid container flexDirection={"column"} spacing={4} width={"1500px"}>
+                            <Grid item>
+                                <TextField label="CA ID" value={caData.id} disabled />
                             </Grid>
-                            <Grid item xs={12}>
-                                <Typography variant="button">CA Serial Number: </Typography>
-                                <Typography variant="button" style={{ background: theme.palette.mode === "light" ? "#efefef" : "#666", padding: 5, fontSize: 12 }}>{caData.serial_number}</Typography>
+                            <Grid item>
+                                <TextField label="Certificate Serial Number" value={caData.serial_number} disabled />
+                            </Grid>
+                            <Grid item container flexDirection={"column"} spacing={2}>
+                                <Grid item>
+                                    <KeyValueLabel
+                                        label=""
+                                        value={(
+                                            <FetchViewer fetcher={() => caApiCalls.getEngines()} errorPrefix="Could not fetch Crypto Engines" renderer={(engines) => {
+                                                return (
+                                                    <CAViewer caData={caData} engine={engines.find(eng => eng.id === caData.engine_id)!} />
+                                                );
+                                            }} />
+                                        )}
+                                    />
+                                </Grid>
+                                <Grid item>
+                                    <Select label="Select Revocation Reason" value={revokeReason} onChange={(ev: any) => setRevokeReason(ev.target.value!)}>
+                                        {
+                                            revokeCodes.map((rCode, idx) => (
+                                                <MenuItem key={idx} value={rCode[0]} >
+                                                    <Grid container spacing={2}>
+                                                        <Grid item xs={2}>
+                                                            <Typography>{rCode[0]}</Typography>
+                                                        </Grid>
+                                                        <Grid item xs="auto">
+                                                            <Typography fontSize={"12px"}>{rCode[1]}</Typography>
+                                                        </Grid>
+                                                    </Grid>
+                                                </MenuItem>
+                                            ))
+                                        }
+                                    </Select>
+                                </Grid>
                             </Grid>
                         </Grid>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={() => setIsRevokeDialogOpen(false)} variant="outlined">Cancel</Button>
-                        <Button onClick={() => { setIsRevokeDialogOpen(false); }} variant="contained">Revoke</Button>
-                    </DialogActions>
-                </Dialog>
+                    )}
+                    actions={
+                        <Box>
+                            <Button onClick={() => { setIsRevokeDialogOpen(false); }}>Close</Button>
+                            <MonoChromaticButton onClick={async () => {
+                                caApiCalls.updateCAStatus(caData.id, caApiCalls.CertificateStatus.Revoked, revokeReason);
+                                setIsRevokeDialogOpen(false);
+                            }}>Revoke CA Certificate</MonoChromaticButton>
+                        </Box>
+                    }
+                />
             </Box>
         );
     }

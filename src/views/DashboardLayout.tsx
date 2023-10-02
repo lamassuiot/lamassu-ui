@@ -55,6 +55,12 @@ export const DashboardLayout = () => {
         cookies.set("paletteMode", darkTheme === true ? "dark" : "light", { path: "/" });
     }, [darkTheme]);
 
+    console.log(auth.isAuthenticated, auth.isLoading);
+
+    if (!auth.isAuthenticated) {
+        return <></>;
+    }
+
     const routes = [
         {
             menuTitle: "",

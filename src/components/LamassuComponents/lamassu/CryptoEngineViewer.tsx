@@ -37,9 +37,10 @@ export interface CryptoEngineViewerProps {
     engine: CryptoEngine,
     simple?: boolean,
     withDebugMetadata?: boolean,
+    style?: React.CSSProperties
 }
 
-export const CryptoEngineViewer: React.FC<CryptoEngineViewerProps> = ({ engine, simple = false, withDebugMetadata = false }) => {
+export const CryptoEngineViewer: React.FC<CryptoEngineViewerProps> = ({ engine, simple = false, withDebugMetadata = false, style = {} }) => {
     const theme = useTheme();
     const [showMeta, setShowMeta] = useState(false);
 
@@ -61,7 +62,7 @@ export const CryptoEngineViewer: React.FC<CryptoEngineViewerProps> = ({ engine, 
     }
 
     return (
-        <Grid container spacing={2} alignItems={"center"}>
+        <Grid container spacing={2} alignItems={"center"} sx={{ ...style }}>
             <Grid item xs={"auto"}>
                 <Box component={Paper} sx={{ height: "40px", width: "40px" }}>
                     <img src={engines.find(eng => eng.uniqueID === engine.type)?.icon} height={"100%"} width={"100%"} />

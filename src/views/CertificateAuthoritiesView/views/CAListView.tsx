@@ -151,7 +151,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaName, engines }) => {
                                                         navigate(caItem.id);
                                                     }}
                                                     ca={caItem}
-                                                    engine={engines.find(engine => engine.default)!}
+                                                    engine={engines.find(engine => caItem.engine_id === engine.id)!}
                                                     selected={selectedCa !== undefined ? caItem.id === selectedCa : false}
                                                 />
                                             </Grid>

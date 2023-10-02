@@ -11,7 +11,6 @@ import * as deviceLogsSelector from "ducks/features/devices-logs/reducer";
 import * as deviceLogsActions from "ducks/features/devices-logs/actions";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "ducks/hooks";
-import { Modal } from "components/Modal";
 import { materialLight, materialOceanic } from "react-syntax-highlighter/dist/esm/styles/prism";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import Timeline from "@mui/lab/Timeline";
@@ -32,6 +31,7 @@ import { AWSCloudConnectorDeviceActions } from "../components/AWSCloudConnectorD
 import { CloudProviderIcon } from "components/CloudProviderIcons";
 import { pSBC } from "components/utils/colors";
 import { AzureCloudConnectorDeviceActions } from "../components/AzureCloudConnectorDeviceActions";
+import { Modal } from "components/LamassuComponents/dui/Modal";
 
 interface Props {
     slotID: string,

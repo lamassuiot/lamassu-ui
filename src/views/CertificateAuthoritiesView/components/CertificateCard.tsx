@@ -3,7 +3,7 @@ import { Grid, Paper, Typography, useTheme } from "@mui/material";
 import { Box } from "@mui/system";
 import { LamassuChip } from "components/LamassuComponents/Chip";
 import moment from "moment";
-import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/apicalls";
+import { CertificateAuthority, CertificateStatus, CryptoEngine } from "ducks/features/cav3/apicalls";
 import { CryptoEngineViewer } from "components/LamassuComponents/lamassu/CryptoEngineViewer";
 
 interface Props {
@@ -17,6 +17,9 @@ interface Props {
 export const CertificateCard: React.FC<Props> = ({ ca, engine, selected = false, onClick = () => { }, style = {} }) => {
     const theme = useTheme();
     const height = 120;
+
+    console.log(ca);
+    console.log(engine);
 
     return (
         <Box elevation={selected ? 4 : 1}
@@ -51,7 +54,7 @@ export const CertificateCard: React.FC<Props> = ({ ca, engine, selected = false,
             <Box style={{ height: "40%" }}>
                 <Grid container style={{ height: "100%", padding: "0 10px 0 20px" }} justifyContent="space-between" alignItems="center">
                     <Grid item xs={8}>
-                        <Typography style={{ fontWeight: "400", fontSize: "13px" }}>{`${ca.status} · ${moment(ca.valid_to).format("DD/MM/YYYY")} ·  ${moment.duration(moment(ca.valid_to).diff(moment())).humanize(true)}`}</Typography>
+                        <Typography style={{ fontWeight: "400", fontSize: "13px", ...ca.status !== CertificateStatus.Active && { color: "red" } }} >{`${ca.status} · ${moment(ca.valid_to).format("DD/MM/YYYY")} ·  ${moment.duration(moment(ca.valid_to).diff(moment())).humanize(true)}`}</Typography>
                     </Grid>
                     <Grid item xs="auto">
                         {
@@ -64,6 +67,6 @@ export const CertificateCard: React.FC<Props> = ({ ca, engine, selected = false,
             </Box>
 
             <Box style={{ width: 10, height: height * 0.6, borderTopRightRadius: 10, borderBottomRightRadius: 10, background: selected ? theme.palette.primary.main : "transparent", position: "relative", top: -height * 0.80 }} />
-        </Box>
+        </Box >
     );
 };
