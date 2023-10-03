@@ -1,8 +1,6 @@
 import { pSBC } from "./colors";
 
 export const getColor = (theme: any, color: string | [string, string]) => {
-    console.log(theme);
-
     switch (color) {
     case "green":
         return [theme.palette.success.main, theme.palette.mode === "light" ? pSBC(0.7, theme.palette.success.main) : pSBC(-0.8, theme.palette.success.main)];
