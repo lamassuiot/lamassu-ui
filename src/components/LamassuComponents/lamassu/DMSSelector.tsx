@@ -15,6 +15,8 @@ type Props = {
 const DMSSelector: React.FC<Props> = (props: Props) => {
     return (
         <GenericSelector
+            searchBarFilterKey="name"
+            filtrableProps={[]}
             fetcher={async () => {
                 const dmsResp = await getDMSList(100, 0, "asc", "", []);
                 console.log(dmsResp);
@@ -25,7 +27,6 @@ const DMSSelector: React.FC<Props> = (props: Props) => {
             label={props.label}
             selectLabel={props.selectLabel}
             multiple={props.multiple}
-            filterKeys={["name"]}
             optionID={(dms) => dms.name}
             optionRenderer={(dms) => <DMSViewer dms={dms} />}
             onSelect={(dms) => { console.log(dms); props.onSelect(dms); }}

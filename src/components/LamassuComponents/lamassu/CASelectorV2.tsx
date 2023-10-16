@@ -3,6 +3,7 @@ import { CertificateAuthority, CryptoEngine, getCAs, getEngines } from "ducks/fe
 import { GenericSelector } from "./GenericSelector";
 import CAViewer from "./CAViewer";
 import { FetchViewer } from "./FetchViewer";
+import { FieldType } from "components/FilterInput";
 
 type Props = {
     onSelect: (ca: CertificateAuthority | CertificateAuthority[]) => void
@@ -19,8 +20,21 @@ const CASelectorV2: React.FC<Props> = (props: Props) => {
         renderer={(engines: CryptoEngine[]) => {
             return (
                 <GenericSelector
-                    fetcher={async () => {
-                        const casResp = await getCAs();
+                    searchBarFilterKey="id"
+                    filtrableProps={[
+                        { key: "id", label: "CA ID", type: FieldType.String },
+                        { key: "status", label: "Status", type: FieldType.Enum, fieldOptions: ["ACTIVE", "EXPIRED", "REVOKED"] },
+                        { key: "valid_to", label: "Expires At", type: FieldType.Date },
+                        { key: "valid_from", label: "Valid From", type: FieldType.Date }
+                    ]}
+                    fetcher={async (filters) => {
+                        const casResp = await getCAs({
+                            limit: 25,
+                            bookmark: "",
+                            filters: filters.map(filter => { return `${filter.propertyField.key}[${filter.propertyOperator}]${filter.propertyValue}`; }),
+                            sortField: "",
+                            sortMode: "asc"
+                        });
                         return new Promise<CertificateAuthority[]>(resolve => {
                             resolve(casResp.list);
                         });
@@ -28,9 +42,8 @@ const CASelectorV2: React.FC<Props> = (props: Props) => {
                     label={props.label}
                     selectLabel={props.selectLabel}
                     multiple={props.multiple}
-                    filterKeys={["id", "subject.common_name"]}
                     optionID={(ca) => ca.id}
-                    optionRenderer={(ca) => <CAViewer caData={ca} engine={engines.find(eng => eng.id === ca.engine_id)!} elevation={false}/>}
+                    optionRenderer={(ca) => <CAViewer caData={ca} engine={engines.find(eng => eng.id === ca.engine_id)!} elevation={false} />}
                     onSelect={(ca) => { console.log(ca); props.onSelect(ca); }}
                     value={props.value} />
             );

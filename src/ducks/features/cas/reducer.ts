@@ -1,7 +1,7 @@
 /* eslint-disable prefer-const */
 import { createReducer } from "typesafe-actions";
 import { CAInfo, CAStats, Certificate, CertificateAuthority, CryptoEngine, OCAStatus } from "./models";
-import { ActionStatus, ORequestStatus, ORequestType } from "ducks/reducers_utils";
+import { ActionStatus, RequestStatus, RequestType } from "ducks/reducers_utils";
 import { RootState } from "ducks/reducers";
 import { actions, RootAction } from "ducks/actions";
 import { keyStrengthToColor, statusToColor } from "./utils";
@@ -33,8 +33,8 @@ const initialState = {
     },
     status: {
         isLoading: false,
-        status: ORequestStatus.Idle,
-        type: ORequestType.None
+        status: RequestStatus.Idle,
+        type: RequestType.None
     },
     caStats: {
         issued_certificates: 0,
@@ -43,8 +43,8 @@ const initialState = {
     },
     issuedCertsStatus: {
         isLoading: false,
-        status: ORequestStatus.Idle,
-        type: ORequestType.None
+        status: RequestStatus.Idle,
+        type: RequestType.None
     },
     signedCertificate: undefined,
     list: [],
@@ -53,34 +53,34 @@ const initialState = {
 
 export const certificateAuthoritiesReducer = createReducer<CertificateAuthoritiesState, RootAction>(initialState)
     .handleAction(actions.caActions.getInfoAction.request, (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Read } };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Read } };
     })
     .handleAction(actions.caActions.getInfoAction.success, (state, action) => {
-        return { ...state, info: action.payload, status: { ...state.status, isLoading: false, status: ORequestStatus.Success } };
+        return { ...state, info: action.payload, status: { ...state.status, isLoading: false, status: RequestStatus.Success } };
     })
     .handleAction(actions.caActions.getInfoAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.caActions.getCryptoEngineAction.request, (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Read } };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Read } };
     })
     .handleAction(actions.caActions.getCryptoEngineAction.success, (state, action) => {
-        return { ...state, cryptoEngine: action.payload, status: { ...state.status, isLoading: false, status: ORequestStatus.Success } };
+        return { ...state, cryptoEngine: action.payload, status: { ...state.status, isLoading: false, status: RequestStatus.Success } };
     })
     .handleAction(actions.caActions.getCryptoEngineAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.caActions.getCAsAction.request, (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Read }, list: [], totalCAs: 0 };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Read }, list: [], totalCAs: 0 };
     })
     .handleAction(actions.caActions.getStatsAction.success, (state, action) => {
         return { ...state, caStats: action.payload };
     })
 
     .handleAction(actions.caActions.getCAsAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.caActions.getCAsAction.success, (state, action) => {
@@ -94,15 +94,15 @@ export const certificateAuthoritiesReducer = createReducer<CertificateAuthoritie
             list.push(ca);
         });
 
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Success }, list: list, totalCAs: action.payload.total_cas };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Success }, list: list, totalCAs: action.payload.total_cas };
     })
 
     .handleAction(actions.caActions.getIssuedCertsActions.request, (state, action) => {
-        return { ...state, issuedCertsStatus: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Read } };
+        return { ...state, issuedCertsStatus: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Read } };
     })
 
     .handleAction(actions.caActions.getIssuedCertsActions.failure, (state, action) => {
-        return { ...state, issuedCertsStatus: { ...state.issuedCertsStatus, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, issuedCertsStatus: { ...state.issuedCertsStatus, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.caActions.getIssuedCertsActions.success, (state, action) => {
@@ -126,15 +126,15 @@ export const certificateAuthoritiesReducer = createReducer<CertificateAuthoritie
                 cas[i].total_issued_certificates = response.total_certificates;
             }
         }
-        return { ...state, issuedCertsStatus: { ...state.issuedCertsStatus, isLoading: false, status: ORequestStatus.Success }, list: cas };
+        return { ...state, issuedCertsStatus: { ...state.issuedCertsStatus, isLoading: false, status: RequestStatus.Success }, list: cas };
     })
 
     .handleAction(actions.caActions.createCAAction.request, (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Create } };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Create } };
     })
 
     .handleAction(actions.caActions.createCAAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.caActions.createCAAction.success, (state, action) => {
@@ -148,15 +148,15 @@ export const certificateAuthoritiesReducer = createReducer<CertificateAuthoritie
         issuedCert.total_issued_certificates = 0;
 
         currentList.push(issuedCert);
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Success }, list: currentList };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Success }, list: currentList };
     })
 
     .handleAction(actions.caActions.importCAAction.request, (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Create } };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Create } };
     })
 
     .handleAction(actions.caActions.importCAAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.caActions.importCAAction.success, (state, action) => {
@@ -169,11 +169,11 @@ export const certificateAuthoritiesReducer = createReducer<CertificateAuthoritie
         issuedCert.total_issued_certificates = 0;
 
         currentList.push(issuedCert);
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Success }, list: currentList };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Success }, list: currentList };
     })
 
     .handleAction(actions.caActions.revokeCAAction.request, (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Delete } };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Delete } };
     })
 
     .handleAction(actions.caActions.revokeCAAction.success, (state, action) => {
@@ -184,15 +184,15 @@ export const certificateAuthoritiesReducer = createReducer<CertificateAuthoritie
             currentList[index].status_color = statusToColor(currentList[index].status);
         }
 
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Success }, list: currentList };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Success }, list: currentList };
     })
 
     .handleAction(actions.caActions.revokeCAAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.caActions.revokeCertAction.request, (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Delete } };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Delete } };
     })
 
     .handleAction(actions.caActions.revokeCertAction.success, (state, action) => {
@@ -206,27 +206,27 @@ export const certificateAuthoritiesReducer = createReducer<CertificateAuthoritie
             }
         }
 
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Success }, list: currentList };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Success }, list: currentList };
     })
 
     .handleAction(actions.caActions.revokeCertAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.caActions.signCertAction.request, (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Create } };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Create } };
     })
 
     .handleAction(actions.caActions.signCertAction.success, (state, action) => {
-        return { ...state, status: { isLoading: false, status: ORequestStatus.Success, type: ORequestType.Create }, signedCertificate: action.payload.certificate };
+        return { ...state, status: { isLoading: false, status: RequestStatus.Success, type: RequestType.Create }, signedCertificate: action.payload.certificate };
     })
 
     .handleAction(actions.caActions.signCertAction.failure, (state, action) => {
-        return { ...state, status: { isLoading: false, status: ORequestStatus.Failed, type: ORequestType.Create } };
+        return { ...state, status: { isLoading: false, status: RequestStatus.Failed, type: RequestType.Create } };
     })
 
     .handleAction(actions.caActions.resetStateAction, (state, _) => {
-        return { ...state, status: { isLoading: false, status: ORequestStatus.Idle, type: ORequestType.None } };
+        return { ...state, status: { isLoading: false, status: RequestStatus.Idle, type: RequestType.None } };
     });
 
 const getSelector = (state: RootState): CertificateAuthoritiesState => state.cas;

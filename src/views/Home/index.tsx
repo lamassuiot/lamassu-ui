@@ -138,7 +138,7 @@ export const Home = () => {
                             <Box component={Paper} style={{
                                 borderRadius: 10,
                                 padding: 20,
-                                width: 300,
+                                width: 400,
                                 display: "flex",
                                 flexDirection: "column",
                                 background: "#265da2",

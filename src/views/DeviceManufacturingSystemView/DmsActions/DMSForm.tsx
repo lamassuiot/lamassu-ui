@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { Button, Divider, Grid, MenuItem, Skeleton } from "@mui/material";
+import { Alert, Button, Divider, Grid, MenuItem, Skeleton, useTheme } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { Icon } from "components/LamassuComponents/dui/IconInput";
 import { FormTextField } from "components/LamassuComponents/dui/form/TextField";
@@ -12,6 +12,7 @@ import { DMS } from "ducks/features/dms-enroller/models";
 import { FormMultiTextInput } from "components/LamassuComponents/dui/form/MultiTextInput";
 import { CertificateAuthority, getCAs } from "ducks/features/cav3/apicalls";
 import CASelectorV2 from "components/LamassuComponents/lamassu/CASelectorV2";
+import { TextField } from "components/LamassuComponents/dui/TextField";
 
 type FormData = {
     dmsDefinition: {
@@ -33,6 +34,8 @@ type FormData = {
     },
     reEnroll: {
         allowedRenewalDelta: string;
+        preventiveDelta: string;
+        criticalDelta: string;
         allowExpired: boolean;
         additionalValidationCAs: CertificateAuthority[];
     },
@@ -57,6 +60,7 @@ interface Props {
 export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create" }) => {
     const editMode = dms !== undefined;
     const [loading, setLoading] = useState(true);
+    const theme = useTheme();
 
     const { control, setValue, reset, getValues, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
         defaultValues: {
@@ -83,6 +87,8 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
             },
             reEnroll: {
                 allowedRenewalDelta: "100d",
+                preventiveDelta: "31d",
+                criticalDelta: "7d",
                 allowExpired: false,
                 additionalValidationCAs: []
             },
@@ -99,12 +105,15 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
         }
     });
 
+    const watchEnrollmentCA = watch("enrollProtocol.enrollmentCA");
+    // console.log(watchAll);
+
     useEffect(() => {
         const run = async () => {
             if (!editMode) {
                 setLoading(false);
             } else {
-                const casResp = await getCAs();
+                const casResp = await getCAs({ bookmark: "", filters: [], limit: 25, sortField: "", sortMode: "asc" });
                 const updateDMS: FormData = {
                     dmsDefinition: {
                         name: dms.name,
@@ -130,7 +139,9 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                     reEnroll: {
                         allowedRenewalDelta: dms!.identity_profile.reenrollment_settings.preventive_renewal_interval,
                         allowExpired: dms!.identity_profile.reenrollment_settings.allow_expired_renewal,
-                        additionalValidationCAs: dms!.identity_profile.reenrollment_settings.additional_validation_cas.map(ca => casResp.list.find(caF => caF.id === ca)!)
+                        additionalValidationCAs: dms!.identity_profile.reenrollment_settings.additional_validation_cas.map(ca => casResp.list.find(caF => caF.id === ca)!),
+                        preventiveDelta: "31d",
+                        criticalDelta: "7d"
                     },
                     caDistribution: {
                         includeAuthorized: true,
@@ -296,8 +307,17 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                     <Grid item xs={12}>
                         <FormSwitch control={control} name="reEnroll.allowExpired" label="Allow Expired Renewal" />
                     </Grid>
-                    <Grid item xs={12}>
-                        <FormTextField control={control} name="reEnroll.allowedRenewalDelta" label="Allowed Renewal Period" />
+                    <Grid item xs={3}>
+                        <TextField value={watchEnrollmentCA?.issuance_expiration.type === "Duration" ? watchEnrollmentCA?.issuance_expiration.duration : watchEnrollmentCA?.issuance_expiration.time} label="Certificate Lifespan" disabled />
+                    </Grid>
+                    <Grid item xs={3}>
+                        <FormTextField control={control} name="reEnroll.allowedRenewalDelta" label="Allowed Renewal Delta" />
+                    </Grid>
+                    <Grid item xs={3}>
+                        <FormTextField control={control} name="reEnroll.preventiveDelta" label="Preventive Renewal Delta" />
+                    </Grid>
+                    <Grid item xs={3}>
+                        <FormTextField control={control} name="reEnroll.criticalDelta" label="Critical Renewal Delta" />
                     </Grid>
                     <Grid item xs={12}>
                         <CASelectorV2 value={getValues("reEnroll.additionalValidationCAs")} onSelect={(elems) => {
@@ -307,6 +327,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         }} multiple={true} label="Additional Validation CAs" selectLabel="Select Validation CAs"
                         />
                     </Grid>
+
                 </Grid>
 
                 <Grid item sx={{ width: "100%" }}>
@@ -341,18 +362,63 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         <SubsectionTitle>AWS IoT Settings</SubsectionTitle>
                     </Grid>
 
+                    <Grid item xs={12}>
+                        <SubsectionTitle fontSize={"16px"}>Provisioning Template</SubsectionTitle>
+                    </Grid>
+
                     <Grid item xs={12} container flexDirection={"column"}>
-                        <FormSwitch control={control} name="iotIntegrations.enableShadow" label="Enable Shadow Sync" />
+                        <Alert severity="warning">
+                            <Grid container flexDirection={"column"}>
+                                <Grid item>
+                                    The selected Enrollment CA is not registered in AWS. Make sure to synchronize it.
+                                </Grid>
+                                <Grid item>
+                                    <Button>Synchronize CA</Button>
+                                </Grid>
+                            </Grid>
+                        </Alert>
+                    </Grid>
+
+                    <Grid item xs={12} container flexDirection={"column"}>
+                        <FormMultiTextInput control={control} name="enrollDeviceRegistration.tags" label="AWS Thing Groups" />
+                    </Grid>
+
+                    <Grid item xs={12} container flexDirection={"column"}>
+                        <FormMultiTextInput control={control} name="enrollDeviceRegistration.tags" label="AWS Policies" />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                        <SubsectionTitle fontSize={"16px"}>Device Automation</SubsectionTitle>
+                    </Grid>
+
+                    <Grid item xs={12} container flexDirection={"column"}>
+                        <FormSwitch control={control} name="iotIntegrations.enableShadow" label="Enable IoT Core 'ReEnrollment' alerts Jobs" />
                     </Grid>
 
                     <Grid item xs={12} container flexDirection={"column"}>
                         <FormSwitch control={control} name="iotIntegrations.enableCADistributionSync" label="Enable CA Distribution using retained message" />
                     </Grid>
 
+                    <Grid item xs={12}>
+                        <SubsectionTitle fontSize={"16px"}>Lamassu &harr; AWS IoT Synchronization</SubsectionTitle>
+                    </Grid>
+
                     <Grid item xs={12} container flexDirection={"column"}>
-                        <FormSelect control={control} name="iotIntegrations.shadowType" label="AWS Shadow Type">
-                            <MenuItem value={"classic"}>Classic Shadow</MenuItem>
-                            <MenuItem value={"named"}>Named Shadow</MenuItem>
+                        <FormSelect control={control} name="iotIntegrations.shadowType" label="IoT core certificate check">
+                            <MenuItem value={"classic"}>Real Time</MenuItem>
+                            <MenuItem value={"named"}>OCSP (uses IoT core onConnect Event. Requires)</MenuItem>
+                            <MenuItem value={"named"}>CRL (uses IoT Defender Audit Check)</MenuItem>
+                        </FormSelect>
+                    </Grid>
+
+                    <Grid item xs={12}>
+                        <FormSwitch control={control} name="reEnroll.allowExpired" label="Allow Expired Renewal" />
+                    </Grid>
+
+                    <Grid item xs={12} container flexDirection={"column"}>
+                        <FormSelect control={control} name="iotIntegrations.shadowType" label="Revocation Origin">
+                            <MenuItem value={"classic"}>Only Lamassu</MenuItem>
+                            <MenuItem value={"named"}>Allow Revocations from AWS (requires infra)</MenuItem>
                         </FormSelect>
                     </Grid>
                 </Grid>

@@ -1,7 +1,7 @@
 /* eslint-disable prefer-const */
 import { createReducer } from "typesafe-actions";
 import { AlertsInfo, CloudEvent, UserSubscription } from "./models";
-import { ActionStatus, ORequestStatus, ORequestType } from "ducks/reducers_utils";
+import { ActionStatus, RequestStatus, RequestType } from "ducks/reducers_utils";
 import { RootState } from "ducks/reducers";
 import { actions, RootAction } from "ducks/actions";
 
@@ -20,13 +20,13 @@ const initialState = {
     },
     eventsStatus: {
         isLoading: false,
-        status: ORequestStatus.Idle,
-        type: ORequestType.None
+        status: RequestStatus.Idle,
+        type: RequestType.None
     },
     subscriptionsStatus: {
         isLoading: false,
-        status: ORequestStatus.Idle,
-        type: ORequestType.None
+        status: RequestStatus.Idle,
+        type: RequestType.None
     },
     events: [],
     subscription: {
@@ -37,61 +37,61 @@ const initialState = {
 
 export const alertsReducer = createReducer<AlertsState, RootAction>(initialState)
     .handleAction(actions.alertsActions.getInfoAction.request, (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Read } };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Read } };
     })
     .handleAction(actions.alertsActions.getInfoAction.success, (state, action) => {
-        return { ...state, info: action.payload, eventsStatus: { ...state.eventsStatus, isLoading: false, status: ORequestStatus.Success } };
+        return { ...state, info: action.payload, eventsStatus: { ...state.eventsStatus, isLoading: false, status: RequestStatus.Success } };
     })
     .handleAction(actions.alertsActions.getInfoAction.failure, (state, action) => {
-        return { ...state, eventsStatus: { ...state.eventsStatus, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, eventsStatus: { ...state.eventsStatus, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.alertsActions.getEvents.request, (state, action) => {
-        return { ...state, eventsStatus: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Read }, events: [] };
+        return { ...state, eventsStatus: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Read }, events: [] };
     })
 
     .handleAction(actions.alertsActions.getEvents.success, (state, action) => {
-        return { ...state, eventsStatus: { ...state.eventsStatus, isLoading: false, status: ORequestStatus.Success }, events: action.payload };
+        return { ...state, eventsStatus: { ...state.eventsStatus, isLoading: false, status: RequestStatus.Success }, events: action.payload };
     })
 
     .handleAction(actions.alertsActions.getEvents.failure, (state, action) => {
-        return { ...state, eventsStatus: { ...state.eventsStatus, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, eventsStatus: { ...state.eventsStatus, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.alertsActions.getSubscriptions.request, (state, action) => {
-        return { ...state, subscriptionsStatus: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Read }, subscription: { email: "", subscriptions: [] } };
+        return { ...state, subscriptionsStatus: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Read }, subscription: { email: "", subscriptions: [] } };
     })
 
     .handleAction(actions.alertsActions.getSubscriptions.success, (state, action) => {
-        return { ...state, subscriptionsStatus: { ...state.subscriptionsStatus, isLoading: false, status: ORequestStatus.Success }, subscription: action.payload };
+        return { ...state, subscriptionsStatus: { ...state.subscriptionsStatus, isLoading: false, status: RequestStatus.Success }, subscription: action.payload };
     })
 
     .handleAction(actions.alertsActions.getSubscriptions.failure, (state, action) => {
-        return { ...state, subscriptionsStatus: { ...state.subscriptionsStatus, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, subscriptionsStatus: { ...state.subscriptionsStatus, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.alertsActions.subscribeAction.request, (state, action) => {
-        return { ...state, subscriptionsStatus: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Read } };
+        return { ...state, subscriptionsStatus: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Read } };
     })
 
     .handleAction(actions.alertsActions.subscribeAction.success, (state, action) => {
-        return { ...state, subscriptionsStatus: { ...state.subscriptionsStatus, isLoading: false, status: ORequestStatus.Success } };
+        return { ...state, subscriptionsStatus: { ...state.subscriptionsStatus, isLoading: false, status: RequestStatus.Success } };
     })
 
     .handleAction(actions.alertsActions.subscribeAction.failure, (state, action) => {
-        return { ...state, subscriptionsStatus: { ...state.subscriptionsStatus, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, subscriptionsStatus: { ...state.subscriptionsStatus, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.alertsActions.unsubscribeAction.request, (state, action) => {
-        return { ...state, subscriptionsStatus: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Read } };
+        return { ...state, subscriptionsStatus: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Read } };
     })
 
     .handleAction(actions.alertsActions.unsubscribeAction.success, (state, action) => {
-        return { ...state, subscriptionsStatus: { ...state.subscriptionsStatus, isLoading: false, status: ORequestStatus.Success } };
+        return { ...state, subscriptionsStatus: { ...state.subscriptionsStatus, isLoading: false, status: RequestStatus.Success } };
     })
 
     .handleAction(actions.alertsActions.unsubscribeAction.failure, (state, action) => {
-        return { ...state, subscriptionsStatus: { ...state.subscriptionsStatus, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, subscriptionsStatus: { ...state.subscriptionsStatus, isLoading: false, status: RequestStatus.Failed } };
     });
 
 const getSelector = (state: RootState): AlertsState => state.alerts;

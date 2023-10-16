@@ -10,11 +10,12 @@ type Props = {
 
 const CryptoEngineSelector: React.FC<Props> = (props: Props) => {
     return <GenericSelector
+        searchBarFilterKey="id"
+        filtrableProps={[]}
         fetcher={() => getEngines()}
         label="Crypto Engine"
         selectLabel="Select Crypto Engine"
         multiple={false}
-        filterKeys={["id", "name", "provider", "type"]}
         optionID={(engine) => engine.id}
         optionRenderer={(engine) => <CryptoEngineViewer engine={engine} withDebugMetadata />}
         onSelect={(engine) => { console.log(engine); props.onSelect(engine); }}

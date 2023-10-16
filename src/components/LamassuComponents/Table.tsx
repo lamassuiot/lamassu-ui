@@ -145,7 +145,7 @@ export const LamassuTable: React.FC<LamassuTableProps> = ({ data, sortProperties
                     <Grid item columns={listRender.columnConf.reduce((prev: number, item: any) => prev + item.size, 0)} container alignItems="center" style={{ padding: "0 10px 0 10px" }}>
                         {
                             listRender.columnConf.map((item: any, idx: number) => (
-                                <Grid item xs={item.size} container justifyContent="center" style={{ marginBottom: 15, cursor: sort.enabled ? "pointer" : "initial" }} key={idx + "-col"} alignItems="initial" onClick={() => {
+                                <Grid item xs={item.size} container justifyContent={item.align ? item.align : "center"} style={{ marginBottom: 15, cursor: sort.enabled ? "pointer" : "initial" }} key={idx + "-col"} alignItems="initial" onClick={() => {
                                     if (sort.enabled) {
                                         if (item.key === sort.prop) {
                                             if (sort.mode === "asc") {

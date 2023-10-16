@@ -9,9 +9,9 @@ import * as dmsApicalls from "ducks/features/dms-enroller/apicalls";
 import * as dmsActions from "ducks/features/dms-enroller/actions";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "ducks/hooks";
-import { ORequestStatus } from "ducks/reducers_utils";
 import StandardWrapperView from "views/StandardWrapperView";
 import { DMSCACertificates } from "./DmsActions/CACertificates";
+import { RequestStatus } from "ducks/reducers_utils";
 
 export const DMSView = () => {
     const navigate = useNavigate();
@@ -106,7 +106,7 @@ const UpdateDMSForm: React.FC<UpdateDMSFormProps> = ({ dmsName }) => {
 
     console.log(dms);
 
-    if (requestStatus.status === ORequestStatus.Success && dms !== undefined) {
+    if (requestStatus.status === RequestStatus.Success && dms !== undefined) {
         return <DMSForm
             dms={dms}
             actionLabel="Update"

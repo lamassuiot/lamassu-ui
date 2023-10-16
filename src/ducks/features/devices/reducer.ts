@@ -1,7 +1,7 @@
 /* eslint-disable prefer-const */
 import { createReducer } from "typesafe-actions";
 import { Device, DeviceManagerInfo, ODeviceStatus, OSlotCertificateStatus } from "./models";
-import { ActionStatus, ORequestStatus, ORequestType } from "ducks/reducers_utils";
+import { ActionStatus, RequestStatus, RequestType } from "ducks/reducers_utils";
 import { RootState } from "ducks/reducers";
 import { actions, RootAction } from "ducks/actions";
 import { keyStrengthToColor } from "../cas/utils";
@@ -38,8 +38,8 @@ const initialState = {
     },
     status: {
         isLoading: false,
-        status: ORequestStatus.Idle,
-        type: ORequestType.None
+        status: RequestStatus.Idle,
+        type: RequestType.None
     },
     stats: {
         devices_stats: baseDeviceStats,
@@ -50,24 +50,24 @@ const initialState = {
     totalDevices: 0,
     historyCertsStatus: {
         isLoading: false,
-        status: ORequestStatus.Idle,
-        type: ORequestType.None
+        status: RequestStatus.Idle,
+        type: RequestType.None
     }
 };
 
 export const devicesReducer = createReducer<DevicesState, RootAction>(initialState)
     .handleAction(actions.devicesActions.getInfoAction.request, (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Read } };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Read } };
     })
     .handleAction(actions.devicesActions.getInfoAction.success, (state, action) => {
-        return { ...state, info: action.payload, status: { ...state.status, isLoading: false, status: ORequestStatus.Success } };
+        return { ...state, info: action.payload, status: { ...state.status, isLoading: false, status: RequestStatus.Success } };
     })
     .handleAction(actions.devicesActions.getInfoAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.devicesActions.getDevicesAction.request, (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Read }, list: [] };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Read }, list: [] };
     })
 
     .handleAction(actions.devicesActions.getStatsAction.success, (state, action) => {
@@ -98,7 +98,7 @@ export const devicesReducer = createReducer<DevicesState, RootAction>(initialSta
     })
 
     .handleAction(actions.devicesActions.getDevicesAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.devicesActions.getDevicesAction.success, (state, action) => {
@@ -107,11 +107,11 @@ export const devicesReducer = createReducer<DevicesState, RootAction>(initialSta
         for (let i = 0; i < devices.length; i++) {
             devices[i] = parseDevice(devices[i]);
         }
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Success }, list: devices, totalDevices: action.payload.total_devices };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Success }, list: devices, totalDevices: action.payload.total_devices };
     })
 
     .handleAction(actions.devicesActions.getDeviceByIDAction.request, (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Read } };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Read } };
     })
 
     .handleAction(actions.devicesActions.getDeviceByIDAction.success, (state, action) => {
@@ -127,39 +127,39 @@ export const devicesReducer = createReducer<DevicesState, RootAction>(initialSta
             devices[index] = newDevice;
         }
 
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Success }, list: devices };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Success }, list: devices };
     })
 
     .handleAction(actions.devicesActions.getDeviceByIDAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.devicesActions.revokeActiveDeviceCertificateAction.request, (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Delete } };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Delete } };
     })
     .handleAction(actions.devicesActions.revokeActiveDeviceCertificateAction.success, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: true, status: ORequestStatus.Success } };
+        return { ...state, status: { ...state.status, isLoading: true, status: RequestStatus.Success } };
     })
     .handleAction(actions.devicesActions.revokeActiveDeviceCertificateAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: true, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: true, status: RequestStatus.Failed } };
     })
     .handleAction(actions.devicesActions.decommissionDeviceAction.request, (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Delete } };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Delete } };
     })
     .handleAction(actions.devicesActions.decommissionDeviceAction.success, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: true, status: ORequestStatus.Success } };
+        return { ...state, status: { ...state.status, isLoading: true, status: RequestStatus.Success } };
     })
     .handleAction(actions.devicesActions.decommissionDeviceAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: true, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: true, status: RequestStatus.Failed } };
     })
     .handleAction(actions.devicesActions.registerDeviceAction.request, (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Create } };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Create } };
     })
     .handleAction(actions.devicesActions.registerDeviceAction.success, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: true, status: ORequestStatus.Success } };
+        return { ...state, status: { ...state.status, isLoading: true, status: RequestStatus.Success } };
     })
     .handleAction(actions.devicesActions.registerDeviceAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: true, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: true, status: RequestStatus.Failed } };
     });
 
 const getSelector = (state: RootState): DevicesState => state.devices;

@@ -2,6 +2,38 @@ import { apiRequest } from "ducks/services/api";
 import { Moment } from "moment";
 import { SignPayloadResponse, VerifyPayloadResponse } from "../cas/models";
 
+export type QueryParameters = {
+    bookmark: string
+    filters: string[]
+    limit: number
+    sortMode: "asc" | "desc"
+    sortField: string
+}
+
+export interface ListRequest extends QueryParameters{}
+
+const queryParametersToURL = (params: QueryParameters): string => {
+    if (params.bookmark !== "") {
+        return "?bookmark=" + params.bookmark;
+    }
+
+    const query: string[] = [];
+    if (params.sortField !== "") {
+        query.push(`sort_by=${params.sortField}`);
+        query.push(`sort_mode=${params.sortMode}`);
+    }
+
+    if (params.limit > 0) {
+        query.push(`page_size=${params.limit}`);
+    }
+
+    params.filters.forEach(f => {
+        query.push(`filter=${f}`);
+    });
+
+    return "?" + query.join("&");
+};
+
 export interface CAStats {
     cas: {
         total: number,
@@ -101,10 +133,10 @@ export interface List<T> {
     list: T[]
 }
 
-export const getCAs = async (): Promise<List<CertificateAuthority>> => {
+export const getCAs = async (params: QueryParameters): Promise<List<CertificateAuthority>> => {
     return apiRequest({
         method: "GET",
-        url: `${window._env_.LAMASSU_CA_API}/v1/cas`
+        url: `${window._env_.LAMASSU_CA_API}/v1/cas${queryParametersToURL(params)}`
     }) as Promise<List<CertificateAuthority>>;
 };
 

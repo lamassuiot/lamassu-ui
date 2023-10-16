@@ -91,7 +91,7 @@ export const DeviceList = () => {
                     <DynamicIcon icon={device.icon_name} size={16} color={device.icon_color_fg} />
                 </Box>
             ),
-            id: <Typography style={{ fontWeight: "700", fontSize: 14, color: theme.palette.text.primary }}>#{device.id}</Typography>,
+            id: <Typography style={{ fontWeight: "700", fontSize: 14, color: theme.palette.text.primary }}>{device.id}</Typography>,
             alias: <Typography style={{ fontWeight: "500", fontSize: 14, color: theme.palette.text.primary, textAlign: "center" }}>{device.alias}</Typography>,
             status: <LamassuChip label={capitalizeFirstLetter(device.status)} color={device.status_color} />,
             creation_timestamp: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary, textAlign: "center" }}>{moment(device.creation_timestamp).format("DD/MM/YYYY HH:mm")}</Typography>,

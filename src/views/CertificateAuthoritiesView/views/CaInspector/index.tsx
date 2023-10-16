@@ -115,7 +115,7 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                     </Grid>
                     <Grid item container spacing={2} justifyContent="flex-start" style={{ marginTop: 0 }}>
                         <Grid item style={{ paddingTop: 0 }}>
-                            <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 13 }}>#{`${caData.key_metadata.type} ${caData.key_metadata.bits}`}</Typography>
+                            <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 13 }}>{`${caData.key_metadata.type} ${caData.key_metadata.bits}`}</Typography>
                         </Grid>
                         <Grid item style={{ paddingTop: 0 }}>
                             <Box style={{ display: "flex", alignItems: "center" }}>
@@ -133,16 +133,19 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                         {
                             label: "Overview",
                             path: "",
+                            goto: "",
                             element: <CertificateOverview caData={caData} engines={engines} />
                         },
                         {
                             label: "Metadata",
                             path: "metadata",
+                            goto: "metadata",
                             element: <CAMetadata caData={caData} />
                         },
                         {
                             label: "CA Certificate",
                             path: "root",
+                            goto: "root",
                             element: (
                                 <Grid container padding={"20px 0px"}>
                                     <Grid item xs={6}>
@@ -157,16 +160,19 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                         {
                             label: "Issued Certificate",
                             path: "certificates",
+                            goto: "certificates",
                             element: <IssuedCertificates caData={caData} />
                         },
                         {
                             label: "Sign & Verify",
                             path: "signature",
+                            goto: "signature",
                             element: <SignVerifyView caData={caData} />
                         },
                         {
                             label: "Cloud Providers",
-                            path: "cloud",
+                            path: "cloud/*",
+                            goto: "cloud",
                             element: <CloudProviders caData={caData} />
                         }
                     ]}

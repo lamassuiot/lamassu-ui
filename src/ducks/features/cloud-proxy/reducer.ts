@@ -1,7 +1,7 @@
 /* eslint-disable prefer-const */
 import { createReducer } from "typesafe-actions";
 import { AWSDeviceConfig, AWSSynchronizedCA, AzureDeviceConfig, AzureSynchronizedCA, CloudConnector, CloudProxyInfo, OCloudProvider } from "./models";
-import { ActionStatus, ORequestStatus, ORequestType } from "ducks/reducers_utils";
+import { ActionStatus, RequestStatus, RequestType } from "ducks/reducers_utils";
 import { RootState } from "ducks/reducers";
 import { actions, RootAction } from "ducks/actions";
 import { awsCaStatusToColor, awsDeviceStatusToColor, awsPolicyStatusToColor, azuresDeviceStatusToColor, cloudConnectorStatusToColor } from "./utils";
@@ -21,8 +21,8 @@ const initialState = {
     },
     status: {
         isLoading: false,
-        status: ORequestStatus.Idle,
-        type: ORequestType.None
+        status: RequestStatus.Idle,
+        type: RequestType.None
     },
     list: [],
     deviceCloudConfigurationID: "",
@@ -31,17 +31,17 @@ const initialState = {
 
 export const cloudProxyReducer = createReducer<CloudProxyState, RootAction>(initialState)
     .handleAction(actions.cloudProxyActions.getInfoAction.request, (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Read } };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Read } };
     })
     .handleAction(actions.cloudProxyActions.getInfoAction.success, (state, action) => {
-        return { ...state, info: action.payload, status: { ...state.status, isLoading: false, status: ORequestStatus.Success } };
+        return { ...state, info: action.payload, status: { ...state.status, isLoading: false, status: RequestStatus.Success } };
     })
     .handleAction(actions.cloudProxyActions.getInfoAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.cloudProxyActions.getConnectorsAction.request, (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Read }, list: [] };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Read }, list: [] };
     })
 
     .handleAction(actions.cloudProxyActions.getConnectorsAction.success, (state, action) => {
@@ -77,39 +77,39 @@ export const cloudProxyReducer = createReducer<CloudProxyState, RootAction>(init
             connector.synchronized_cas = syncCAs;
             connectors.push(connector);
         }
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Success }, list: connectors };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Success }, list: connectors };
     })
 
     .handleAction(actions.cloudProxyActions.getConnectorsAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.cloudProxyActions.forceSynchronizeCloudConnectorAction.request, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Update } };
+        return { ...state, status: { ...state.status, isLoading: true, status: RequestStatus.Pending, type: RequestType.Update } };
     })
 
     .handleAction(actions.cloudProxyActions.forceSynchronizeCloudConnectorAction.success, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: true, status: ORequestStatus.Success } };
+        return { ...state, status: { ...state.status, isLoading: true, status: RequestStatus.Success } };
     })
 
     .handleAction(actions.cloudProxyActions.forceSynchronizeCloudConnectorAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.cloudProxyActions.updateConfiguration.request, (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Update } };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Update } };
     })
 
     .handleAction(actions.cloudProxyActions.forceSynchronizeCloudConnectorAction.success, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Success } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Success } };
     })
 
     .handleAction(actions.cloudProxyActions.forceSynchronizeCloudConnectorAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.cloudProxyActions.getCloudConnectorDeviceConfigAction.request, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Read } };
+        return { ...state, status: { ...state.status, isLoading: true, status: RequestStatus.Pending, type: RequestType.Read } };
     })
 
     .handleAction(actions.cloudProxyActions.getCloudConnectorDeviceConfigAction.success, (state, action) => {
@@ -140,11 +140,11 @@ export const cloudProxyReducer = createReducer<CloudProxyState, RootAction>(init
             }
         }
         // @ts-ignore
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Success }, deviceCloudConfiguration: deviceCloudConfig, deviceCloudConfigurationID: action.meta.deviceID };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Success }, deviceCloudConfiguration: deviceCloudConfig, deviceCloudConfigurationID: action.meta.deviceID };
     })
 
     .handleAction(actions.cloudProxyActions.getCloudConnectorDeviceConfigAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     });
 
 const getSelector = (state: RootState): CloudProxyState => state.cloudproxy;

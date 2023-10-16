@@ -10,6 +10,7 @@ interface TabsListWithRouterProps extends TabsListProps {
 
 export interface TabsListItemsWithRoute extends TabsListItemsProps {
     path: string
+    goto: string
 }
 
 const TabsListWithRouter: React.FC<TabsListWithRouterProps> = ({ tabs, headerStyle = {}, contentStyle = {}, useParamsKey }) => {
@@ -19,7 +20,7 @@ const TabsListWithRouter: React.FC<TabsListWithRouterProps> = ({ tabs, headerSty
     const [value, setValue] = useState(2);
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
-        navigate(tabs[newValue].path);
+        navigate(tabs[newValue].goto);
     };
 
     useEffect(() => {

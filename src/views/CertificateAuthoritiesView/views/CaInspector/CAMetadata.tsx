@@ -4,6 +4,7 @@ import { Grid } from "@mui/material";
 import { CertificateAuthority, updateMetadata } from "ducks/features/cav3/apicalls";
 import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
 import { MultiKeyValueInput } from "components/LamassuComponents/dui/MultiKeyValueInput";
+import deepEqual from "fast-deep-equal/es6";
 
 interface Props {
     caData: CertificateAuthority
@@ -19,7 +20,9 @@ export const CAMetadata: React.FC<Props> = ({ caData }) => {
             </Grid>
             <Grid item container flexDirection={"column"}>
                 <MultiKeyValueInput label="" value={caData.metadata} onChange={(meta) => {
-                    updateMetadata(caData.id, meta);
+                    if (!deepEqual(caData.metadata, meta)) {
+                        updateMetadata(caData.id, meta);
+                    }
                 }} />
             </Grid>
         </Grid >

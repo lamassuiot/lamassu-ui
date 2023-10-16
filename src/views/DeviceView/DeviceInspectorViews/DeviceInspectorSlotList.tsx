@@ -26,7 +26,7 @@ export const DeviceInspectorSlotList: React.FC<Props> = ({ deviceID, onSlotClick
                                     <Grid flexDirection={"column"} >
                                         <Grid item xs sx={{ margin: "20px" }}>
                                             <Typography variant="h6" fontSize="25px" textAlign={"center"}>Slot {slot.id}</Typography>
-                                            <Typography fontSize="12px" textAlign={"center"}>#{slot.active_certificate.serial_number}</Typography>
+                                            <Typography fontSize="12px" textAlign={"center"}>{slot.active_certificate.serial_number}</Typography>
                                         </Grid>
                                         <Grid item xs container spacing={8}>
                                             <Grid item xs container flexDirection="column" justifyContent={"center"} alignItems="center">

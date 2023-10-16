@@ -8,7 +8,6 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useNavigate } from "react-router-dom";
 import * as cloudProxyActions from "ducks/features/cloud-proxy/actions";
 import * as devicesAction from "ducks/features/devices/actions";
-import * as deviceApiCalls from "ducks/features/devices/apicalls";
 import * as devicesSelector from "ducks/features/devices/reducer";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "ducks/hooks";
@@ -18,7 +17,6 @@ import moment from "moment";
 import { capitalizeFirstLetter } from "ducks/reducers_utils";
 import SplitButton from "components/LamassuComponents/SplitButton";
 import { ODeviceStatus } from "ducks/features/devices/models";
-import { IssueCertificateFromDMS } from "views/DeviceManufacturingSystemView/DmsActions/IssueCertificateFromDMS";
 
 interface Props {
     deviceID: string,
@@ -95,7 +93,7 @@ export const DeviceInspector: React.FC<Props> = ({ deviceID, slotID }) => {
                                         : (
                                             <>
                                                 <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 26, lineHeight: "24px", marginRight: "10px" }}>{device!.alias}</Typography>
-                                                <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 13 }}>#{device!.id}</Typography>
+                                                <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 13 }}>{device!.id}</Typography>
                                             </>
                                         )
                                 }
@@ -188,14 +186,6 @@ export const DeviceInspector: React.FC<Props> = ({ deviceID, slotID }) => {
                                             navigate(slotId);
                                         }} />
                                     )
-                            }
-                            {
-                                showProvisionDevice && (
-                                    <IssueCertificateFromDMS dmsName={device.dms_name} defaultCN={device.id} isOpen={showProvisionDevice} onClose={() => setShowProvisionDevice(false)} onCreate={async (certSN, caName, certPEM) => {
-                                        await deviceApiCalls.assignCertificateToDevice(device.id, "default", caName, certSN);
-                                        refreshAction();
-                                    }} />
-                                )
                             }
                         </>
                     )

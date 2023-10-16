@@ -1,21 +1,18 @@
 
-export const ORequestStatus = {
-    Idle: "Idle",
-    Pending: "Pending",
-    Success: "Success",
-    Failed: "Failed"
+export enum RequestStatus {
+    Idle= "Idle",
+    Pending= "Pending",
+    Success = "Success",
+    Failed ="Failed"
 };
 
-export const ORequestType = {
-    None: "None",
-    Read: "Read",
-    Create: "Create",
-    Update: "Update",
-    Delete: "Delete"
+export enum RequestType {
+    None = "None",
+    Read = "Read",
+    Create = "Create",
+    Update = "Update",
+    Delete = "Delete"
 };
-
-export type RequestStatus = typeof ORequestStatus[keyof typeof ORequestStatus];
-export type RequestType = typeof ORequestType[keyof typeof ORequestType];
 
 export interface ActionStatus {
     isLoading: boolean

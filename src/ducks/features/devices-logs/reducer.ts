@@ -1,7 +1,7 @@
 /* eslint-disable prefer-const */
 import { createReducer } from "typesafe-actions";
 import { DeviceLog } from "./models";
-import { ActionStatus, ORequestStatus, ORequestType } from "ducks/reducers_utils";
+import { ActionStatus, RequestStatus, RequestType } from "ducks/reducers_utils";
 import { RootState } from "ducks/reducers";
 import { actions, RootAction } from "ducks/actions";
 import { logTypeToColor } from "./utils";
@@ -18,8 +18,8 @@ export interface DevicesLogsState {
 const initialState = {
     status: {
         isLoading: false,
-        status: ORequestStatus.Idle,
-        type: ORequestType.None
+        status: RequestStatus.Idle,
+        type: RequestType.None
     },
     map: new Map<String, DeviceLogsInfo>()
 };
@@ -27,7 +27,7 @@ const initialState = {
 export const devicesLogsReducer = createReducer<DevicesLogsState, RootAction>(initialState)
     .handleAction(actions.devicesLogsActions.getDeviceLogs.request, (state, action) => {
         const map = new Map<String, DeviceLogsInfo>();
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Read }, map: map };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Read }, map: map };
     })
 
     .handleAction(actions.devicesLogsActions.getDeviceLogs.success, (state, action) => {
@@ -40,11 +40,11 @@ export const devicesLogsReducer = createReducer<DevicesLogsState, RootAction>(in
             newLogs = newLogs.concat(coloredLogs);
         }
         currentLogMap.set(action.meta.deviceID, { logs: newLogs });
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Success }, map: currentLogMap };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Success }, map: currentLogMap };
     })
 
     .handleAction(actions.devicesLogsActions.getDeviceLogs.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     });
 
 const getSelector = (state: RootState): DevicesLogsState => state.devicesLogs;

@@ -28,7 +28,7 @@ export const DeviceCard: React.FC<Props> = ({ device, ...props }) => {
                     </Grid>
                     <Grid item>
                         <Typography sx={{ fontWeight: "500", fontSize: "15px" }}>{`${device.alias}`}</Typography>
-                        <Typography sx={{ fontSize: 12 }}>{`#${device.id}`}</Typography>
+                        <Typography sx={{ fontSize: 12 }}>{`${device.id}`}</Typography>
                     </Grid>
                 </Grid>
                 <Grid item xs={12} sx={{ marginTop: "5px" }}>

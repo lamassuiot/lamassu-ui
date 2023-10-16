@@ -8,7 +8,7 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import * as eventsActions from "ducks/features/alerts/actions";
 import * as eventsSelector from "ducks/features/alerts/reducer";
 import { useAppSelector } from "ducks/hooks";
-import { ORequestStatus } from "ducks/reducers_utils";
+import { RequestStatus } from "ducks/reducers_utils";
 import moment from "moment";
 import { SubscribeDialog } from "./SubscribeDialog";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
@@ -82,7 +82,7 @@ export const AlertsView = () => {
                         </Grid>
                     </Grid>
                     {
-                        eventRequestStatus.status !== ORequestStatus.Pending && subscriptionsRequestStatus.status !== ORequestStatus.Pending
+                        eventRequestStatus.status !== RequestStatus.Pending && subscriptionsRequestStatus.status !== RequestStatus.Pending
                             ? (
                                 events.map((event, index) => (
                                     <>

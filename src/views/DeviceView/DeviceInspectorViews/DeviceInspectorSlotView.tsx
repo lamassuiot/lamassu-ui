@@ -136,8 +136,8 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, deviceID }) =
 
     const certificatesRenderer = (cert: SlotCertificate) => {
         return {
-            serialNumber: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary }}>#{cert.serial_number}</Typography>,
-            caName: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary }}>#{cert.ca_name}</Typography>,
+            serialNumber: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary }}>{cert.serial_number}</Typography>,
+            caName: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary }}>{cert.ca_name}</Typography>,
             certificateStatus: (
                 <LamassuChip label={cert.status} color={cert.status_color} />
             ),
@@ -161,9 +161,9 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, deviceID }) =
 
         const awsTableRenderer = (cert: any) => {
             return {
-                serialNumber: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary }}>#{cert.serial_number}</Typography>,
-                arn: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary, overflowWrap: "anywhere" }}>#{cert.arn}</Typography>,
-                certificateId: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary }}>#{cert.id}</Typography>,
+                serialNumber: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary }}>{cert.serial_number}</Typography>,
+                arn: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary, overflowWrap: "anywhere" }}>{cert.arn}</Typography>,
+                certificateId: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary }}>{cert.id}</Typography>,
                 status: (
                     <LamassuChip label={cert.status} color={cert.status_color} />
                 ),
@@ -279,7 +279,7 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, deviceID }) =
         };
 
         return {
-            id: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary }}>#{connector.id}</Typography>,
+            id: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary }}>{connector.id}</Typography>,
             connectorType: (
                 <Box>
                     <Grid container spacing={1} alignItems="center">

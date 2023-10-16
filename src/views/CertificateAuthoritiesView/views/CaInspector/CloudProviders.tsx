@@ -1,172 +1,98 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import { Box, Button, Grid, IconButton, Paper, Typography, useTheme } from "@mui/material";
 import { LamassuStatusChip } from "components/LamassuComponents/Chip";
-import { ListWithDataController, OperandTypes } from "components/LamassuComponents/Table";
-import FormatAlignJustifyIcon from "@mui/icons-material/FormatAlignJustify";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { CloudProviderIcon } from "components/CloudProviderIcons";
-import { Outlet, Route, Routes, useNavigate, useParams } from "react-router-dom";
-import moment from "moment";
+import { ListWithDataController } from "components/LamassuComponents/Table";
+import { useNavigate } from "react-router-dom";
 import { GoLinkExternal } from "react-icons/go";
 import AddIcon from "@mui/icons-material/Add";
-import { useAppSelector } from "ducks/hooks";
-import * as cloudProxySelector from "ducks/features/cloud-proxy/reducer";
-import * as cloudProxyActions from "ducks/features/cloud-proxy/actions";
-import { CloudConnector } from "ducks/features/cloud-proxy/models";
 import { useDispatch } from "react-redux";
-import { EnabledConnectorSynchronizationModal } from "./CloudProviders/Actions/EnabledConnectorSynchronization";
-import AwsIotCore from "./CloudProviders/Types/AWSIotCore";
-import Azure from "./CloudProviders/Types/Azure";
-import { CertificateAuthority } from "ducks/features/cav3/apicalls";
+import { CertificateAuthority, updateMetadata } from "ducks/features/cav3/apicalls";
+import { pSBC } from "components/utils/colors";
+import Label from "components/LamassuComponents/dui/typographies/Label";
+import { Modal } from "components/LamassuComponents/dui/Modal";
 
-interface CloudProvidersProps {
+interface Props {
     caData: CertificateAuthority
 }
 
-export const CloudProviders: React.FC<CloudProvidersProps> = ({ caData }) => {
-    return (
-        <Routes>
-            <Route path="/" element={<Outlet />}>
-                <Route path="aws" element={<Outlet />}>
-                    <Route path=":connectorId" element={<RoutedAwsIotCoreConnector caName={caData.id} />} />
-                </Route>
-                <Route path="azure" element={<Outlet />}>
-                    <Route path=":connectorId" element={<RoutedAzureConnector caName={caData.id} />} />
-                </Route>
-                <Route index element={<CloudProviderSelector caName={caData.id} />} />
-            </Route>
-        </Routes>
-    );
-};
-
-interface RoutedAwsIotCoreConnectorProps {
-    caName: string
-}
-
-const RoutedAwsIotCoreConnector: React.FC<RoutedAwsIotCoreConnectorProps> = ({ caName }) => {
-    const params = useParams();
-
-    if (params.connectorId !== undefined) {
-        return (
-            <AwsIotCore caName={caName} connectorID={params.connectorId} />
-        );
-    }
-    return <Box sx={{ fontStyle: "italic" }}>Missing cloud connector ID</Box>;
-};
-
-interface RoutedAzureConnectorProps {
-    caName: string
-}
-
-const RoutedAzureConnector: React.FC<RoutedAzureConnectorProps> = ({ caName }) => {
-    const params = useParams();
-
-    if (params.connectorId !== undefined) {
-        return (
-            <Azure caName={caName} connectorID={params.connectorId} />
-        );
-    }
-    return <Box sx={{ fontStyle: "italic" }}>Missing cloud connector ID</Box>;
-};
-
-interface Props {
-    caName: string
-}
-
-export const CloudProviderSelector: React.FC<Props> = ({ caName }) => {
+export const CloudProviders: React.FC<Props> = ({ caData }) => {
     const theme = useTheme();
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    useEffect(() => {
-        dispatch(cloudProxyActions.getConnectorsAction.request());
-    }, []);
-
-    const requestStatus = useAppSelector((state) => cloudProxySelector.getRequestStatus(state));
-    const cloudConnectors = useAppSelector((state) => cloudProxySelector.getCloudConnectors(state)!);
-
     const [isEnableConnectorOpen, setIsEnableConnectorOpen] = useState({ isOpen: false, connectorId: "" });
+    const caMeta = caData.metadata;
+    console.log(caMeta);
+
+    const cloudConnectors = window._env_.CLOUD_CONNECTORS;
 
     const cloudConnectorTableColumns = [
-        { key: "connectorId", dataKey: "id", title: "Connector ID", query: true, type: OperandTypes.string, align: "start", size: 4 },
-        { key: "connectorStatus", dataKey: "status", title: "Connector Status", type: OperandTypes.enum, align: "center", size: 2 },
+        { key: "connectorIcon", title: "", align: "start", size: 1 },
+        { key: "connectorId", title: "Connector ID", align: "start", size: 2 },
         { key: "syncStatus", title: "Synchronization Status", align: "center", size: 2 },
-        { key: "connectorType", dataKey: "cloud_provider", title: "Connector Type", type: OperandTypes.enum, align: "center", size: 2 },
-        { key: "connectorAlias", dataKey: "name", title: "Alias", type: OperandTypes.string, query: true, align: "center", size: 2 },
-        { key: "connectorEnabled", title: "Connector Enabled", align: "center", size: 2 },
         { key: "actions", title: "", align: "end", size: 2 }
     ];
 
-    const cloudConnectorsRender = (cloudConnector: CloudConnector) => {
-        const filteredSynchronizedCAs = cloudConnector.synchronized_cas.filter(syncCa => syncCa.ca_name === caName);
+    const cloudConnectorsRender = (cloudConnector: string) => {
+        let enabled = false;
+        const enabledKey = `lamassu.io/iot-automation/${cloudConnector}`;
+        if (enabledKey in caMeta && caMeta[enabledKey] === true) {
+            enabled = true;
+        }
 
-        const enabledConnectorSync = filteredSynchronizedCAs.length === 1;
+        let logo = "";
+        if (cloudConnector.includes("aws")) {
+            logo = "AWS.png";
+        } else if (cloudConnector.includes("azure")) {
+            logo = "AZURE.png";
+        }
         return {
-            connectorId: <Typography style={{ fontWeight: "500", fontSize: 14, color: theme.palette.text.primary }}>#{cloudConnector.id}</Typography>,
+            connectorId: <Typography style={{ fontWeight: "500", fontSize: 14, color: theme.palette.text.primary }}>{cloudConnector}</Typography>,
+            connectorIcon: (
+                <img src={process.env.PUBLIC_URL + "/assets/" + logo} height={"50px"} />
+            ),
             syncStatus: (
-                <LamassuStatusChip label={enabledConnectorSync ? "Enabled" : "Disabled"} color={enabledConnectorSync ? "green" : "red"} />
+                <LamassuStatusChip label={enabled ? "Registered" : "Not Registered"} color={enabled ? "green" : "orange"} />
             ),
-            connectorStatus: (
-                <LamassuStatusChip label={cloudConnector.status} color={cloudConnector.status_color} />
-            ),
-            connectorType: (
-                <Box>
-                    <Grid container spacing={1} alignItems="center">
-                        <Grid item>
-                            <CloudProviderIcon cloudProvider={cloudConnector.cloud_provider} />
-                        </Grid>
-                        {/* <Grid item>
-                            <Typography style={{fontWeight: "400", fontSize: 14, color: theme.palette.text.primary}}>{cloudConnector.cloud_provider}</Typography>
-                        </Grid> */}
-                    </Grid>
-                </Box>
-            ),
-            connectorAlias: (
-                <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary }}>{cloudConnector.name}</Typography>
-            ),
-            connectorDeployed: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary, textAlign: "center" }}>{"-"}</Typography>,
-            connectorEnabled: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary, textAlign: "center" }}>{
-                enabledConnectorSync ? moment(filteredSynchronizedCAs[0].enabled).format("DD/MM/YYYY") : "-"
-            }</Typography>,
             actions: (
-                <Box>
-                    <Grid container spacing={1}>
+                <>
+                    {
+                        !enabled && (
+                            <Box>
+                                <Grid container spacing={1}>
+                                    <Grid item>
+                                        <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
+                                            <IconButton onClick={(ev) => { ev.stopPropagation(); setIsEnableConnectorOpen({ isOpen: true, connectorId: cloudConnector }); }} >
+                                                <AddIcon fontSize={"small"} />
+                                            </IconButton>
+                                        </Box>
+                                    </Grid>
+                                </Grid>
+                            </Box>
+                        )
+                    }
+                </>
+            ),
+            expandedRowElement: (
+                <Box sx={{ width: "calc(100% - 65px)", borderLeft: `4px solid ${theme.palette.primary.main}`, background: pSBC(theme.palette.mode === "dark" ? 0.01 : -0.03, theme.palette.background.paper), marginLeft: "20px", padding: "20px 20px 0 20px", marginBottom: "20px" }}>
+                    <Grid container flexDirection={"column"} spacing={1}>
                         {
-                            enabledConnectorSync
-                                ? (
-                                    cloudConnector.status === "passing" && (
-                                        <>
-                                            <Grid item>
-                                                <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
-                                                    <IconButton onClick={() => navigate(`${cloudConnector.cloud_provider + "/" + cloudConnector.id}`)} >
-                                                        <FormatAlignJustifyIcon fontSize={"small"} />
-                                                    </IconButton>
-                                                </Box>
-                                            </Grid>
-                                            <Grid item>
-                                                <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
-                                                    <IconButton >
-                                                        <DeleteIcon fontSize={"small"} />
-                                                    </IconButton>
-                                                </Box>
-                                            </Grid>
-                                        </>
-                                    )
-                                )
-                                : (
-                                    cloudConnector.status === "passing" && (
-                                        <>
-                                            <Grid item>
-                                                <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
-                                                    <IconButton onClick={() => setIsEnableConnectorOpen({ isOpen: true, connectorId: cloudConnector.id })} >
-                                                        <AddIcon fontSize={"small"} />
-                                                    </IconButton>
-                                                </Box>
-                                            </Grid>
-                                        </>
-                                    )
-                                )
+                            [
+                                ["Certificate ID", "121564889"],
+                                ["Created At", "22/05/2021"]
+                            ].map((keyVal, idx) => {
+                                return (
+                                    <Grid item key={idx} container>
+                                        <Grid item xs={1}>
+                                            <Label>{keyVal[0]}</Label>
+                                        </Grid>
+                                        <Grid item xs>
+                                            <Typography>{keyVal[1]}</Typography>
+                                        </Grid>
+                                    </Grid>
+                                );
+                            })
                         }
                     </Grid>
                 </Box>
@@ -181,14 +107,14 @@ export const CloudProviderSelector: React.FC<Props> = ({ caName }) => {
                 listConf={cloudConnectorTableColumns}
                 totalDataItems={cloudConnectors.length}
                 invertContrast={true}
-                isLoading={requestStatus.isLoading}
+                isLoading={false}
                 onChange={(ev: any) => { console.log("callback", ev); }}
                 emptyContentComponent={
                     <Grid container justifyContent={"center"} alignItems={"center"} sx={{ height: "100%" }}>
                         <Grid item xs="auto" container justifyContent={"center"} alignItems={"center"} flexDirection="column">
                             <img src={process.env.PUBLIC_URL + "/assets/icon-cloud.png"} height={150} style={{ marginBottom: "25px" }} />
                             <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 22, lineHeight: "24px", marginRight: "10px" }}>
-                            Synchronize your PKI with Cloud Providers
+                                Synchronize your PKI with Cloud Providers
                             </Typography>
                             <Typography>Install different cloud connectors to synchronize your certificates with AWS, Azure or Google Cloud</Typography>
                             <Button
@@ -199,19 +125,60 @@ export const CloudProviderSelector: React.FC<Props> = ({ caName }) => {
                                     window.open("https://www.lamassu.io/docs/setup/#deploy-aws-iot-core-connectors", "_blank");
                                 }}
                             >
-                            Go to install instructions
+                                Go to install instructions
                             </Button>
                         </Grid>
                     </Grid>
                 }
                 listRender={{
                     renderFunc: cloudConnectorsRender,
-                    enableRowExpand: false
+                    enableRowExpand: true
                 }}
-                withRefresh={() => { dispatch(cloudProxyActions.getConnectorsAction.request()); }}
             />
-            <EnabledConnectorSynchronizationModal isOpen={isEnableConnectorOpen.isOpen} connectorID={isEnableConnectorOpen.connectorId} caName={caName} onClose={() => setIsEnableConnectorOpen({ isOpen: false, connectorId: "" })} />
-        </>
+            {
+                isEnableConnectorOpen.isOpen && (
+                    <Modal
+                        isOpen={true}
+                        onClose={() => setIsEnableConnectorOpen({ connectorId: "", isOpen: false })}
+                        content={
+                            <Grid container flexDirection={"column"} spacing={2}>
+                                <Grid item>
+                                    You are about to enable the synchronization between this connector and the selected CA. Please, confirm your action.
+                                </Grid>
+                                <Grid item container flexDirection={"column"} spacing={1}>
+                                    <Grid item>
+                                        <Typography variant="button">Connector ID: </Typography>
+                                        <Typography variant="button" style={{ background: theme.palette.background.darkContrast, padding: 5, fontSize: 12 }}>{isEnableConnectorOpen.connectorId}</Typography>
+                                    </Grid>
 
+                                    <Grid item>
+                                        <Typography variant="button">CA ID: </Typography>
+                                        <Typography variant="button" style={{ background: theme.palette.background.darkContrast, padding: 5, fontSize: 12 }}>{caData.id}</Typography>
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+                        }
+                        subtitle=""
+                        title="Register CA in Cloud Provider"
+                        actions={
+                            <Grid container justifyContent={"flex-end"}>
+                                <Grid item>
+                                    <Button onClick={() => setIsEnableConnectorOpen({ connectorId: "", isOpen: false })}>Close</Button>
+                                </Grid>
+                                <Grid item>
+                                    <Button variant="contained" onClick={async () => {
+                                        const newMeta = caMeta;
+                                        newMeta[`lamassu.io/iot-automation/${isEnableConnectorOpen.connectorId}`] = true;
+                                        await updateMetadata(caData.id, newMeta);
+                                        setIsEnableConnectorOpen({ connectorId: "", isOpen: false });
+                                    }
+                                    }>Register</Button>
+                                </Grid>
+                            </Grid >
+                        }
+                    />
+                )
+            }
+        </>
     );
 };

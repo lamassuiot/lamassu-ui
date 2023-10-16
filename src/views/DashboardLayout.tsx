@@ -27,7 +27,7 @@ import SelectAllOutlinedIcon from "@mui/icons-material/SelectAllOutlined";
 import { AlertsView } from "./AlertsView";
 import { useAuth } from "react-oidc-context";
 import { LoggedOutView } from "./LoggedOutView";
-
+import { TbCertificate } from "react-icons/tb";
 export const DashboardLayout = () => {
     const auth = useAuth();
     const cookies = new Cookies();
@@ -83,14 +83,15 @@ export const DashboardLayout = () => {
                     link: "/cas",
                     icon: <AccountBalanceOutlinedIcon key="/1b" />,
                     content: <CAView />
+                },
+                {
+                    title: "Certificates",
+                    path: "/certificates/*",
+                    link: "/certificates",
+                    icon: <TbCertificate key="/1c" />,
+                    content: <CAView />
                 }
-                // {
-                //     title: "CA Scan Jobs",
-                //     path: "/ca-jobs/*",
-                //     link: "/ca-jobs",
-                //     icon: <AiOutlineFileSync key="/1a"/>,
-                //     content: <CertificateAuthoritiesLogsView />
-                // }
+
             ]
         },
         {

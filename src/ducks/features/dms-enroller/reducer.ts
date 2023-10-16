@@ -1,7 +1,7 @@
 /* eslint-disable prefer-const */
 import { createReducer } from "typesafe-actions";
 import { DMS, DMSManagerInfo } from "./models";
-import { ActionStatus, ORequestStatus, ORequestType } from "ducks/reducers_utils";
+import { ActionStatus, RequestStatus, RequestType } from "ducks/reducers_utils";
 import { RootState } from "ducks/reducers";
 import { actions, RootAction } from "ducks/actions";
 import { dmsStatusToColor } from "./utils";
@@ -22,8 +22,8 @@ const initialState = {
     },
     status: {
         isLoading: false,
-        status: ORequestStatus.Idle,
-        type: ORequestType.None
+        status: RequestStatus.Idle,
+        type: RequestType.None
     },
     list: [],
     totalDMSs: 0,
@@ -32,13 +32,13 @@ const initialState = {
 
 export const dmsReducer = createReducer<DeviceManufacturingSystemStatus, RootAction>(initialState)
     .handleAction(actions.dmsActions.getInfoAction.request, (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Read } };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Read } };
     })
     .handleAction(actions.dmsActions.getInfoAction.success, (state, action) => {
-        return { ...state, info: action.payload, status: { ...state.status, isLoading: false, status: ORequestStatus.Success } };
+        return { ...state, info: action.payload, status: { ...state.status, isLoading: false, status: RequestStatus.Success } };
     })
     .handleAction(actions.dmsActions.getInfoAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.dmsActions.getDMSAction.success, (state, action) => {
@@ -49,15 +49,15 @@ export const dmsReducer = createReducer<DeviceManufacturingSystemStatus, RootAct
             dms.remote_access_identity.key_metadata.strength_color = keyStrengthToColor(dms.remote_access_identity.key_metadata.strength);
         }
 
-        return { ...state, status: { isLoading: false, status: ORequestStatus.Success, type: ORequestType.Read }, list: [dms], totalDMSs: 0 };
+        return { ...state, status: { isLoading: false, status: RequestStatus.Success, type: RequestType.Read }, list: [dms], totalDMSs: 0 };
     })
 
     .handleAction([actions.dmsActions.getDMSListAction.request, actions.dmsActions.getDMSAction.request], (state, action) => {
-        return { ...state, status: { isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Read }, list: [], totalDMSs: 0 };
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Read }, list: [], totalDMSs: 0 };
     })
 
     .handleAction([actions.dmsActions.getDMSListAction.failure, actions.dmsActions.getDMSAction.failure], (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.dmsActions.getDMSListAction.success, (state, action) => {
@@ -69,31 +69,31 @@ export const dmsReducer = createReducer<DeviceManufacturingSystemStatus, RootAct
                 dmss[i].remote_access_identity.key_metadata.strength_color = keyStrengthToColor(dmss[i].remote_access_identity.key_metadata.strength);
             }
         }
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Success }, list: dmss, totalDMSs: action.payload.total_dmss };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Success }, list: dmss, totalDMSs: action.payload.total_dmss };
     })
 
     .handleAction(actions.dmsActions.approveDMSRequestAction.request, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Update } };
+        return { ...state, status: { ...state.status, isLoading: true, status: RequestStatus.Pending, type: RequestType.Update } };
     })
 
     .handleAction(actions.dmsActions.approveDMSRequestAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     })
     .handleAction(actions.dmsActions.approveDMSRequestAction.success, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Success } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Success } };
     })
 
     .handleAction(actions.dmsActions.createDMSWithFormAction.request, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: true, status: ORequestStatus.Pending, type: ORequestType.Create } };
+        return { ...state, status: { ...state.status, isLoading: true, status: RequestStatus.Pending, type: RequestType.Create } };
     })
 
     .handleAction(actions.dmsActions.createDMSWithFormAction.failure, (state, action) => {
-        return { ...state, status: { ...state.status, isLoading: false, status: ORequestStatus.Failed } };
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
     })
     .handleAction(actions.dmsActions.createDMSWithFormAction.success, (state, action) => {
         console.log(action);
 
-        return { ...state, privateKey: action.payload.private_key, status: { ...state.status, isLoading: false, status: ORequestStatus.Success } };
+        return { ...state, privateKey: action.payload.private_key, status: { ...state.status, isLoading: false, status: RequestStatus.Success } };
     });
 
 const getSelector = (state: RootState): DeviceManufacturingSystemStatus => state.dmss;

@@ -18,9 +18,6 @@ export const CertificateCard: React.FC<Props> = ({ ca, engine, selected = false,
     const theme = useTheme();
     const height = 120;
 
-    console.log(ca);
-    console.log(engine);
-
     return (
         <Box elevation={selected ? 4 : 1}
             component={Paper}
@@ -37,7 +34,7 @@ export const CertificateCard: React.FC<Props> = ({ ca, engine, selected = false,
                         )
                     }
                     <Grid item xs>
-                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>#{`${ca.key_metadata.type} ${ca.key_metadata.bits}`}</Typography>
+                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>{`${ca.key_metadata.type} ${ca.key_metadata.bits}`}</Typography>
                         <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 20, lineHeight: "24px" }}>{ca.subject.common_name}</Typography>
                         <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>{ca.id}</Typography>
                     </Grid>
