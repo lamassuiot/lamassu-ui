@@ -392,7 +392,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                     </Grid>
 
                     <Grid item xs={12} container flexDirection={"column"}>
-                        <FormSwitch control={control} name="iotIntegrations.enableShadow" label="Enable IoT Core 'ReEnrollment' alerts Jobs" />
+                        <FormSwitch control={control} name="iotIntegrations.enableShadow" label="Enable IoT Core 'ReEnrollment' and 'CACertificate' alerts Jobs" />
                     </Grid>
 
                     <Grid item xs={12} container flexDirection={"column"}>
@@ -406,7 +406,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                     <Grid item xs={12} container flexDirection={"column"}>
                         <FormSelect control={control} name="iotIntegrations.shadowType" label="IoT core certificate check">
                             <MenuItem value={"classic"}>Real Time</MenuItem>
-                            <MenuItem value={"named"}>OCSP (uses IoT core onConnect Event. Requires)</MenuItem>
+                            <MenuItem value={"named"}>OCSP (uses IoT core onConnect Event. Requires infra)</MenuItem>
                             <MenuItem value={"named"}>CRL (uses IoT Defender Audit Check)</MenuItem>
                         </FormSelect>
                     </Grid>

@@ -8,11 +8,11 @@ import * as apicalls from "./apicalls";
 import { isActionOf, PayloadAction } from "typesafe-actions";
 import { RootAction } from "ducks/actions";
 
-export const getCAsEpic: Epic<RootAction, RootAction, RootState, {}> = (action$, store$) =>
+export const getCAs: Epic<RootAction, RootAction, RootState, {}> = (action$, store$) =>
     action$.pipe(
         filter(isActionOf(actions.getCAs.request)),
         tap((item: any) => console.log("%c Epic ", "background:#399999; border-radius:5px;font-weight: bold;", "", item)),
-        exhaustMap((action: PayloadAction<string, actions.GetCAsAction>) =>
+        exhaustMap((action: PayloadAction<string, apicalls.ListRequest>) =>
             from(
                 apicalls.getCAs({
                     sortMode: action.payload.sortMode,
@@ -27,4 +27,24 @@ export const getCAsEpic: Epic<RootAction, RootAction, RootState, {}> = (action$,
                 catchError((message) => of(actions.getCAs.failure(message)))
             )
         )
+    );
+
+export const triggerGetCAs: Epic<RootAction, RootAction, RootState, {}> = (action$, store$) =>
+    action$.pipe(
+        filter((rootAction, value) => isActionOf([
+            actions.createCA,
+            actions.importCAReadonly,
+            actions.importCAWithKey,
+            actions.updateCAMetadata,
+            actions.revokeCA
+        ], rootAction)),
+        map((val: any) => {
+            return actions.getCAs.request({
+                sortMode: "asc",
+                sortField: "",
+                limit: 25,
+                filters: [],
+                bookmark: ""
+            });
+        })
     );

@@ -1,6 +1,5 @@
 import { apiRequest } from "ducks/services/api";
 import { Moment } from "moment";
-import { SignPayloadResponse, VerifyPayloadResponse } from "../cas/models";
 
 export type QueryParameters = {
     bookmark: string
@@ -10,7 +9,7 @@ export type QueryParameters = {
     sortField: string
 }
 
-export interface ListRequest extends QueryParameters{}
+export interface ListRequest extends QueryParameters { }
 
 const queryParametersToURL = (params: QueryParameters): string => {
     if (params.bookmark !== "") {
@@ -294,3 +293,12 @@ export const updateCAStatus = async (caID: string, status: CertificateStatus, re
         data: body
     });
 };
+
+export type SignPayloadResponse = {
+    signature: string
+    signing_algorithm: string
+}
+
+export type VerifyPayloadResponse = {
+    verification: boolean
+}

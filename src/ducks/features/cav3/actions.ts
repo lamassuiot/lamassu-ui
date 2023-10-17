@@ -1,17 +1,26 @@
-import { createAsyncAction } from "typesafe-actions";
+import { createAction, createAsyncAction } from "typesafe-actions";
 import { failed, success } from "ducks/actionTypes";
 import { CertificateAuthority, List, ListRequest } from "./apicalls";
 
 export const actionTypes = {
-    GET_CAS_V3: "GET_CAS_V3",
-    CREATE_CA: "CREATE_CA",
-    IMPORT_CA: "IMPORT_CA"
+    GET_CAS: "GET_CAS",
+
+    CREATE_CA_SUCCESS: "CREATE_CA",
+    IMPORT_CA_WITH_KEY_SUCCESS: "IMPORT_CA_WITH_KEY",
+    IMPORT_CA_READONLY_SUCCESS: "IMPORT_CA_READONLY",
+    UPDATE_CA_METADATA_SUCCESS: "UPDATE_CA_METADATA",
+    REVOKE_CA_SUCCESS: "REVOKE_CA",
+    GET_CA_SUCCESS: "GET_CA"
 };
 
 export const getCAs = createAsyncAction(
-    [actionTypes.GET_CAS_V3, (req: GetCAsAction) => req],
-    [success(actionTypes.GET_CAS_V3), (req: List<CertificateAuthority>) => req],
-    [failed(actionTypes.GET_CAS_V3), (req: Error) => req]
-)();
+    actionTypes.GET_CAS,
+    success(actionTypes.GET_CAS),
+    failed(actionTypes.GET_CAS)
+)<ListRequest, List<CertificateAuthority>, Error>();
 
-export interface GetCAsAction extends ListRequest {}
+export const createCA = createAction(actionTypes.CREATE_CA_SUCCESS)();
+export const importCAWithKey = createAction(actionTypes.IMPORT_CA_WITH_KEY_SUCCESS)();
+export const importCAReadonly = createAction(actionTypes.IMPORT_CA_READONLY_SUCCESS)();
+export const updateCAMetadata = createAction(actionTypes.UPDATE_CA_METADATA_SUCCESS)();
+export const revokeCA = createAction(actionTypes.REVOKE_CA_SUCCESS)();
