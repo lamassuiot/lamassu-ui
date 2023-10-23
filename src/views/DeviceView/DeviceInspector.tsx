@@ -6,17 +6,12 @@ import { LamassuChip } from "components/LamassuComponents/Chip";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useNavigate } from "react-router-dom";
-import * as cloudProxyActions from "ducks/features/cloud-proxy/actions";
-import * as devicesAction from "ducks/features/devices/actions";
-import * as devicesSelector from "ducks/features/devices/reducer";
 import { useDispatch } from "react-redux";
-import { useAppSelector } from "ducks/hooks";
 import { DeviceInspectorSlotList } from "./DeviceInspectorViews/DeviceInspectorSlotList";
 import { DeviceInspectorSlotView } from "./DeviceInspectorViews/DeviceInspectorSlotView";
 import moment from "moment";
 import { capitalizeFirstLetter } from "ducks/reducers_utils";
 import SplitButton from "components/LamassuComponents/SplitButton";
-import { ODeviceStatus } from "ducks/features/devices/models";
 
 interface Props {
     deviceID: string,
@@ -28,19 +23,9 @@ export const DeviceInspector: React.FC<Props> = ({ deviceID, slotID }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const requestStatus = useAppSelector((state) => devicesSelector.getRequestStatus(state));
-    const device = useAppSelector((state) => devicesSelector.getDevice(state, deviceID));
-
-    const refreshAction = () => {
-        dispatch(devicesAction.getDeviceByIDAction.request({ deviceID: deviceID }));
-        dispatch(cloudProxyActions.getConnectorsAction.request());
-    };
-
     useEffect(() => {
         refreshAction();
     }, []);
-
-    const [showProvisionDevice, setShowProvisionDevice] = useState(false);
 
     const [anchorDeviceActionEl, setAnchorDeviceActionEl] = useState(null);
 

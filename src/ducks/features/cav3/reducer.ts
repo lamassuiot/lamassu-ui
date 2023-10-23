@@ -3,7 +3,7 @@ import { createReducer } from "typesafe-actions";
 import { ActionStatus, RequestStatus, RequestType } from "ducks/reducers_utils";
 import { RootState } from "ducks/reducers";
 import { actions, RootAction } from "ducks/actions";
-import { CertificateAuthority } from "./apicalls";
+import { CertificateAuthority } from "./models";
 
 export interface CertificateAuthoritiesState {
     status: ActionStatus

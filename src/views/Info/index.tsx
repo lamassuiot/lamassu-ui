@@ -5,48 +5,21 @@ import { useDispatch } from "react-redux";
 import { useAppSelector } from "ducks/hooks";
 import * as alertsAction from "ducks/features/alerts/actions";
 import * as alertsSelector from "ducks/features/alerts/reducer";
-import * as devicesAction from "ducks/features/devices/actions";
-import * as devicesSelector from "ducks/features/devices/reducer";
-import * as caAction from "ducks/features/cas/actions";
-import * as caSelector from "ducks/features/cas/reducer";
-import * as dmsEnrollerAction from "ducks/features/dms-enroller/actions";
-import * as dmsEnrollerSelector from "ducks/features/dms-enroller/reducer";
 
 export const InfoView = () => {
     const theme = useTheme();
 
     const dispatch = useDispatch();
 
-    const dmsManagerApiInfo = useAppSelector((state) => dmsEnrollerSelector.getInfo(state));
-    const deviceManagerApiInfo = useAppSelector((state) => devicesSelector.getInfo(state));
     const alertsApiInfo = useAppSelector((state) => alertsSelector.getInfo(state));
-    const caApiInfo = useAppSelector((state) => caSelector.getInfo(state));
 
     const refreshAction = () => {
-        dispatch(caAction.getInfoAction.request());
-        dispatch(devicesAction.getInfoAction.request());
         dispatch(alertsAction.getInfoAction.request());
-        dispatch(dmsEnrollerAction.getInfoAction.request());
     };
 
     useEffect(() => {
         refreshAction();
     }, []);
-
-    const caInfo: Array<[string, any]> = [
-        ["Build Version", caApiInfo.build_version],
-        ["Build Time", caApiInfo.build_time]
-    ];
-
-    const dmsInfo: Array<[string, any]> = [
-        ["Build Version", dmsManagerApiInfo.build_version],
-        ["Build Time", dmsManagerApiInfo.build_time]
-    ];
-
-    const deviceManagerInfo: Array<[string, any]> = [
-        ["Build Version", deviceManagerApiInfo.build_version],
-        ["Build Time", deviceManagerApiInfo.build_time]
-    ];
 
     const alertsInfo: Array<[string, any]> = [
         ["Build Version", alertsApiInfo.build_version],
@@ -54,10 +27,6 @@ export const InfoView = () => {
     ];
 
     const servicesInfo = [
-        { service: "Certificate Authority", info: caInfo },
-        { service: "Validation Authority", info: caInfo },
-        { service: "DMS Manager Service", info: dmsInfo },
-        { service: "Device Manager Service", info: deviceManagerInfo },
         { service: "Alerts", info: alertsInfo }
     ];
 
