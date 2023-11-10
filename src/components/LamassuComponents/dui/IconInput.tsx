@@ -113,6 +113,13 @@ const IconInput: React.FC<IconInputProps> = ({ label, size = 45, iconSize = size
         if (icon.name !== value.name) setIcon(value);
     }, [value]);
 
+    let iconRender = <></>;
+    if (icon !== undefined && icon.name !== "") {
+        const iconFromList = icons.find(i => i[0] === icon.name);
+        if (iconFromList !== undefined && iconFromList.length === 2) {
+            iconRender = iconFromList[1]({ fontSize: iconSize, color: icon.fg });
+        }
+    }
     return (
         <>
             <Grid container flexDirection={"column"}>
@@ -130,7 +137,7 @@ const IconInput: React.FC<IconInputProps> = ({ label, size = 45, iconSize = size
                                         }
                                     }} sx={{ display: "flex", alignItems: "center", justifyContent: "center", width: size, height: size, background: icon.bg, cursor: !readonly ? "pointer" : "inherit", borderRadius: "8px" }} component={Paper}>
                                         {
-                                            icons.find(i => i[0] === icon.name)![1]({ fontSize: iconSize, color: icon.fg })
+                                            iconRender
                                         }
                                     </Box>
                                 </Grid>

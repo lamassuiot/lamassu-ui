@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { CryptoEngine } from "ducks/features/cav3/apicalls";
+import { CryptoEngine } from "ducks/features/cav3/models";
 import { Grid, Box, Paper, Typography, IconButton, Button, Dialog, DialogActions, DialogContent, useTheme } from "@mui/material";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import { MultiKeyValueInput } from "../dui/MultiKeyValueInput";
@@ -20,7 +20,7 @@ const engines = [
         icon: process.env.PUBLIC_URL + "/assets/AWS-KMS.png"
     },
     {
-        uniqueID: "VaultKV2",
+        uniqueID: "HASHICORP_VAULT_KV_V2",
         icon: process.env.PUBLIC_URL + "/assets/HASHICORP-VAULT.png"
     },
     {

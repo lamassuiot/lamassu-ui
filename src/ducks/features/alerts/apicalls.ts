@@ -1,54 +1,35 @@
 import { apiRequest } from "ducks/services/api";
-import { getSub } from "ducks/services/api/token";
+import { Event, SubChannel, Subscription, SubscriptionCondition } from "./models";
 
-export const getInfo = async (): Promise<any> => {
+export const getEvents = async (): Promise<Array<Event>> => {
     return apiRequest({
         method: "GET",
-        url: window._env_.LAMASSU_ALERTS + "/info"
-    });
+        url: `${window._env_.LAMASSU_ALERTS}/v1/events/latests`
+    }) as Promise<Array<Event>>;
 };
 
-export const getEvents = async (): Promise<any> => {
-    const url = window._env_.LAMASSU_ALERTS + "/v1/lastevents";
+export const getSubscriptions = async (userId: string): Promise<Array<Subscription>> => {
     return apiRequest({
         method: "GET",
-        url: url
-    });
+        url: `${window._env_.LAMASSU_ALERTS}/v1/user/${userId}/subscriptions`
+    }) as Promise<Array<Subscription>>;
 };
 
-export const getSubscriptions = async (): Promise<any> => {
-    const url = window._env_.LAMASSU_ALERTS + "/v1/subscriptions/" + getSub();
-
-    return apiRequest({
-        method: "GET",
-        url: url
-    });
-};
-
-export const subscribe = async (eventType: string, channel: any, condition_type: string, conditions: Array<string>): Promise<any> => {
-    const url = window._env_.LAMASSU_ALERTS + "/v1/subscribe";
-
+export const subscribe = async (userId: string, eventType: string, conditions: SubscriptionCondition[], channel: SubChannel): Promise<Subscription> => {
     return apiRequest({
         method: "POST",
-        url: url,
+        url: `${window._env_.LAMASSU_ALERTS}/v1/user/${userId}/subscribe`,
         data: {
             event_type: eventType,
-            user_id: getSub(),
-            channel: channel,
             conditions: conditions,
-            condition_type: condition_type
+            channel: channel
         }
-    });
+    }) as Promise<Subscription>;
 };
 
-export const unsubscribe = async (subscriptionID: string): Promise<any> => {
-    const url = window._env_.LAMASSU_ALERTS + "/v1/unsubscribe";
+export const unsubscribe = async (userId: string, subId: string): Promise<Subscription> => {
     return apiRequest({
         method: "POST",
-        url: url,
-        data: {
-            user_id: getSub(),
-            subscription_id: subscriptionID
-        }
-    });
+        url: `${window._env_.LAMASSU_ALERTS}/v1/user/${userId}/unsubscribe/${subId}`
+    }) as Promise<Subscription>;
 };

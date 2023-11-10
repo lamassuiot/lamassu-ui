@@ -22,20 +22,13 @@ export type Certificate = {
     revocation_timestamp: Moment
     revocation_reason: string
     metadata: any
+    ca_level: number
     issuer_metadata: {
-        ca_name: string
+        level: number
+        id: string
         serial_number: string
     },
 }
-export type QueryParameters = {
-    bookmark: string
-    filters: string[]
-    limit: number
-    sortMode: "asc" | "desc"
-    sortField: string
-}
-
-export interface ListRequest extends QueryParameters { }
 
 export interface CAStats {
     cas: {
@@ -89,11 +82,6 @@ export interface CertificateAuthority extends Certificate {
     creation_ts: Moment
 }
 
-export interface List<T> {
-    next: string,
-    list: T[]
-}
-
 export type SignPayloadResponse = {
     signature: string
     signing_algorithm: string
@@ -104,6 +92,8 @@ export type VerifyPayloadResponse = {
 }
 
 export type CreateCAPayload = {
+    parent_id: string | undefined
+    id: string | undefined
     engine_id: string | undefined
     subject: {
         common_name: string

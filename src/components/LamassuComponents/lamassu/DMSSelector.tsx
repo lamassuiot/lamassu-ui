@@ -1,8 +1,8 @@
 import React from "react";
 import { GenericSelector } from "./GenericSelector";
-import { DMS } from "ducks/features/dms-enroller/models";
-import { getDMSList } from "ducks/features/dms-enroller/apicalls";
 import { DMSViewer } from "./DMSViewer";
+import { DMS } from "ducks/features/ra/models";
+import { apicalls } from "ducks/apicalls";
 
 type Props = {
     onSelect: (dms: DMS | DMS[]) => void
@@ -18,10 +18,15 @@ const DMSSelector: React.FC<Props> = (props: Props) => {
             searchBarFilterKey="name"
             filtrableProps={[]}
             fetcher={async () => {
-                const dmsResp = await getDMSList(100, 0, "asc", "", []);
-                console.log(dmsResp);
+                const dmsResp = await apicalls.dms.getDMSs({
+                    bookmark: "",
+                    filters: [],
+                    limit: 15,
+                    sortField: "id",
+                    sortMode: "asc"
+                });
                 return new Promise<DMS[]>(resolve => {
-                    resolve(dmsResp.dmss);
+                    resolve(dmsResp.list);
                 });
             }}
             label={props.label}

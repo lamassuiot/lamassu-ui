@@ -1,7 +1,8 @@
 import React from "react";
-import { CryptoEngine, getEngines } from "ducks/features/cav3/apicalls";
+import { getEngines } from "ducks/features/cav3/apicalls";
 import { GenericSelector } from "./GenericSelector";
 import { CryptoEngineViewer } from "./CryptoEngineViewer";
+import { CryptoEngine } from "ducks/features/cav3/models";
 
 type Props = {
     onSelect: (engine: CryptoEngine | CryptoEngine[]) => void

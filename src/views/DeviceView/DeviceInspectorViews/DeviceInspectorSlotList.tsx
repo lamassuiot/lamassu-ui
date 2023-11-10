@@ -1,8 +1,5 @@
-import { Grid, Paper, Typography } from "@mui/material";
 import { Box, useTheme } from "@mui/system";
 import React from "react";
-import moment from "moment";
-import { LamassuChip } from "components/LamassuComponents/Chip";
 import { useAppSelector } from "ducks/hooks";
 import * as devicesSelector from "ducks/features/devices/reducer";
 
@@ -17,7 +14,7 @@ export const DeviceInspectorSlotList: React.FC<Props> = ({ deviceID, onSlotClick
 
     return (
         <Box>
-            <Grid container sx={{ padding: "20px" }} spacing={4}>
+            {/* <Grid container sx={{ padding: "20px" }} spacing={4}>
                 {
                     device?.slots.map((slot, idx) => {
                         return (
@@ -48,7 +45,7 @@ export const DeviceInspectorSlotList: React.FC<Props> = ({ deviceID, onSlotClick
                         );
                     })
                 }
-            </Grid>
+            </Grid> */}
         </Box>
     );
 };

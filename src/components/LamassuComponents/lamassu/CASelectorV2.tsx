@@ -1,9 +1,10 @@
 import React from "react";
-import { CertificateAuthority, CryptoEngine, getCAs, getEngines } from "ducks/features/cav3/apicalls";
+import { getCAs, getEngines } from "ducks/features/cav3/apicalls";
 import { GenericSelector } from "./GenericSelector";
 import CAViewer from "./CAViewer";
 import { FetchViewer } from "./FetchViewer";
 import { FieldType } from "components/FilterInput";
+import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/models";
 
 type Props = {
     onSelect: (ca: CertificateAuthority | CertificateAuthority[]) => void

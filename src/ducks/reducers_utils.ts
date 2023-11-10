@@ -18,6 +18,7 @@ export interface ActionStatus {
     isLoading: boolean
     status: RequestStatus
     type: RequestType
+    err: string
 }
 
 export function capitalizeFirstLetter (string: string) {

@@ -1,18 +1,31 @@
 import { combineReducers } from "redux";
-import { certificateAuthoritiesReducer as certificateAuthoritiesReducerV3, CertificateAuthoritiesState as CertificateAuthoritiesStateV3 } from "./features/cav3/reducer";
-import { alertsReducer, AlertsState } from "./features/alerts/reducer";
+import * as cas from "./features/cav3/reducer";
+import * as devices from "./features/devices/reducer";
 import { notificationsReducer, NotificationsState } from "./features/notifications/reducer";
+import * as dms from "./features/ra/reducer";
+import * as alerts from "./features/alerts/reducer";
 
 export type RootState = {
-  cav3: CertificateAuthoritiesStateV3,
+  cav3: cas.CertificateAuthoritiesState,
   notifications: NotificationsState,
-  alerts: AlertsState
+  devices: devices.DevicesState
+  dmss: dms.DMSsState
+  alerts: alerts.AlertsState
 }
 
 const reducers = combineReducers({
-    cav3: certificateAuthoritiesReducerV3,
+    cav3: cas.certificateAuthoritiesReducer,
     notifications: notificationsReducer,
-    alerts: alertsReducer
+    devices: devices.devicesReducer,
+    dmss: dms.dmssReducer,
+    alerts: alerts.alertsReducer
 });
+
+export const selectors = {
+    alerts: alerts,
+    cas: cas,
+    devices: devices,
+    dms: dms
+};
 
 export default reducers;

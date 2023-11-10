@@ -6,16 +6,13 @@ import { useNavigate } from "react-router-dom";
 import { Chart, registerables } from "chart.js";
 import { DeviceStatusChart } from "./charts/DeviceStatus";
 import { useDispatch } from "react-redux";
-import { useAppSelector } from "ducks/hooks";
 
-import * as devicesAction from "ducks/features/devices/actions";
-import * as devicesSelector from "ducks/features/devices/reducer";
 import * as caApicalls from "ducks/features/cav3/apicalls";
-import * as dmsEnrollerAction from "ducks/features/dms-enroller/actions";
-import * as dmsEnrollerSelector from "ducks/features/dms-enroller/reducer";
+
 import { numberToHumanReadableString } from "components/utils/NumberToHumanReadableString";
 import { FetchViewer } from "components/LamassuComponents/lamassu/FetchViewer";
 import { CryptoEngineViewer } from "components/LamassuComponents/lamassu/CryptoEngineViewer";
+import { CAStats, CryptoEngine } from "ducks/features/cav3/models";
 
 Chart.register(...registerables);
 
@@ -24,35 +21,33 @@ export const Home = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    const devices = useAppSelector((state) => devicesSelector.getTotalDevices(state));
-    const dmsList = useAppSelector((state) => dmsEnrollerSelector.getDMSs(state));
+    // const cas = useAppSelector((state) => selectors.cas.getTotalCAs(state));
+    // const devices = useAppSelector((state) => devicesSelector.getTotalDevices(state));
+    // const dmsList = useAppSelector((state) => dmsA.getDMSs(state));
 
-    const devicesRequestStatus = useAppSelector((state) => devicesSelector.getRequestStatus(state));
-    const dmsRequestStatus = useAppSelector((state) => dmsEnrollerSelector.getRequestStatus(state));
+    // const devicesRequestStatus = useAppSelector((state) => devicesSelector.getDeviceListRequestStatus(state));
+    // const dmsRequestStatus = useAppSelector((state) => dmsSelector.getDMSListRequestStatus(state));
 
     const refreshAction = () => {
-        dispatch(devicesAction.getStatsAction.request({ force: false }));
-        dispatch(devicesAction.getDevicesAction.request({ offset: 0, limit: 10, sortField: "id", sortMode: "asc", filterQuery: [] }));
-        dispatch(dmsEnrollerAction.getDMSListAction.request({
-            filterQuery: [],
-            limit: 10,
-            offset: 0,
-            sortField: "id",
-            sortMode: "asc"
-        }));
+        // dispatch(actions.devicesActions.getDevices.request({ bookmark: "", filters: [], limit: 1, sortField: "id", sortMode: "asc" }));
+        // dispatch(actions.dmsActions.getDMSs.request({ bookmark: "", filters: [], limit: 1, sortField: "id", sortMode: "asc" }));
+        // dispatch(actions.caActionsV3.getCAs.request({ bookmark: "", filters: [], limit: 1, sortField: "id", sortMode: "asc" }));
     };
 
     useEffect(() => {
         refreshAction();
     }, []);
 
-    const dmss = dmsList.length;
+    const dmss = -1;
+    const cas = -1;
+    const certs = -1;
+    const devices = -1;
 
     return (
         <FetchViewer
             fetcher={() => Promise.all([caApicalls.getStats(), caApicalls.getEngines()])}
             errorPrefix={"Could not fetch CA stats"}
-            renderer={(item: [caApicalls.CAStats, caApicalls.CryptoEngine[]]) => {
+            renderer={(item: [CAStats, CryptoEngine[]]) => {
                 const caStats = item[0];
                 const engines = item[1];
                 return (
@@ -109,7 +104,8 @@ export const Home = () => {
                                         onClick={(ev: any) => { ev.stopPropagation(); navigate("/dms"); }}
                                     >
                                         <Box>
-                                            <Typography variant="h3" style={{ color: theme.palette.homeCharts.mainCard.text, fontSize: 25 }}>{dmsRequestStatus.isLoading ? "-" : numberToHumanReadableString(dmss, ".")}</Typography>
+                                            {/* <Typography variant="h3" style={{ color: theme.palette.homeCharts.mainCard.text, fontSize: 25 }}>{dmsRequestStatus.isLoading ? "-" : numberToHumanReadableString(dmss, ".")}</Typography> */}
+                                            <Typography variant="h3" style={{ color: theme.palette.homeCharts.mainCard.text, fontSize: 25 }}>{-1}</Typography>
                                             <Typography variant="h5" style={{ color: theme.palette.homeCharts.mainCard.text, fontSize: 15 }}>Device Manufacturing Systems</Typography>
                                         </Box>
                                         <Box>
@@ -121,7 +117,8 @@ export const Home = () => {
                                     <Box component={Paper} style={{ marginTop: 10, background: theme.palette.homeCharts.mainCard.secondary, padding: 15, width: 250, display: "flex", justifyContent: "space-between", alignItems: "center" }}
                                         onClick={(ev: any) => { ev.stopPropagation(); navigate("/devmanager"); }}>
                                         <Box>
-                                            <Typography variant="h3" style={{ color: theme.palette.homeCharts.mainCard.text, fontSize: 25 }}>{devicesRequestStatus.isLoading ? "-" : numberToHumanReadableString(devices, ".")}</Typography>
+                                            {/* <Typography variant="h3" style={{ color: theme.palette.homeCharts.mainCard.text, fontSize: 25 }}>{devicesRequestStatus.isLoading ? "-" : numberToHumanReadableString(devices, ".")}</Typography> */}
+                                            <Typography variant="h3" style={{ color: theme.palette.homeCharts.mainCard.text, fontSize: 25 }}>{-1}</Typography>
                                             <Typography variant="h5" style={{ color: theme.palette.homeCharts.mainCard.text, fontSize: 15 }}>Devices</Typography>
                                         </Box>
                                         <Box>
@@ -146,11 +143,11 @@ export const Home = () => {
                             }}
                             >
                                 <Typography variant="button" fontWeight="bold" sx={{ color: theme.palette.homeCharts.deviceStatusCard.text }}>Crypto Engines</Typography>
-                                <Grid container spacing={2}sx={{ marginTop: "5px" }}>
+                                <Grid container spacing={2} sx={{ marginTop: "5px" }}>
                                     {
                                         engines.map((engine, idx) => (
                                             <Grid item xs={12} key={idx}>
-                                                <CryptoEngineViewer engine={engine} style={{ color: "#fff" }}/>
+                                                <CryptoEngineViewer engine={engine} style={{ color: "#fff" }} />
                                             </Grid>
                                         ))
                                     }

@@ -19,7 +19,7 @@ export type Device = {
     dms_owner: string;
     logs: { [key: string]: LogMsg };
     identity: Slot<SlotType>
-    slots: Slot<SlotType>
+    slots: { [key: string]: Slot<SlotType> }
 }
 
 export enum CryptoSecretType {
@@ -31,9 +31,6 @@ export enum CryptoSecretType {
 
 type SlotType = {}
 
-export interface x509SlotType extends SlotType {
-    certificate_serial_number: string
-}
 export enum SlotStatus {
     Active = "ACTIVE",
     WarnExpiration = "WARN",
@@ -59,4 +56,14 @@ export enum LogCriticality {
 export type LogMsg = {
     message: string;
     Criticality: LogCriticality;
+}
+
+export type CreateDevicePayload = {
+    id: string,
+    alias: string,
+    tags: string[],
+    metadata: { [key: string]: any },
+    dms_id: string,
+    icon: string,
+    icon_color: string,
 }

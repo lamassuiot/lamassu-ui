@@ -10,7 +10,7 @@ import { useTheme } from "@mui/system";
 import deepEqual from "fast-deep-equal/es6";
 import { IssueCert } from "../CaActions/IssueCertificate";
 import { CodeCopier } from "components/LamassuComponents/dui/CodeCopier";
-import { CertificateAuthority, Certificate } from "ducks/features/cav3/apicalls";
+import { CertificateAuthority, Certificate, CertificateStatus } from "ducks/features/cav3/models";
 import { Select } from "components/LamassuComponents/dui/Select";
 import { TextField } from "components/LamassuComponents/dui/TextField";
 import CAViewer from "components/LamassuComponents/lamassu/CAViewer";
@@ -19,6 +19,8 @@ import { KeyValueLabel } from "components/LamassuComponents/dui/KeyValueLabel";
 import { Modal } from "components/LamassuComponents/dui/Modal";
 import { MonoChromaticButton } from "components/LamassuComponents/dui/MonoChromaticButton";
 import UnarchiveOutlinedIcon from "@mui/icons-material/UnarchiveOutlined";
+import { MultiKeyValueInput } from "components/LamassuComponents/dui/MultiKeyValueInput";
+import { apicalls } from "ducks/apicalls";
 
 const revokeCodes = [
     ["AACompromise", "It is known, or suspected, that aspects of the Attribute Authority (AA) validated in the attribute certificate have been compromised."],
@@ -116,7 +118,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
                 <LamassuChip label={`${cert.key_metadata.type}-${cert.key_metadata.bits} ${cert.key_metadata.strength}`} />
             ),
             certificateStatus: (
-                <LamassuChip label={cert.status} color={cert.status === caApiCalls.CertificateStatus.Active ? "green" : "red" } />
+                <LamassuChip label={cert.status} color={cert.status === CertificateStatus.Active ? "green" : "red"} />
             ),
             certificateIssuance: (
                 <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -187,22 +189,34 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
                                 </Box>
                             </Tooltip>
                             <Modal
-                                title=""
-                                isOpen={showCertificate === cert.serial_number}
-                                onClose={() => { setShowCertificate(undefined); }}
+                                title={`Certificate ${cert.serial_number}`}
                                 subtitle=""
+                                isOpen={showCertificate === cert.serial_number}
+                                maxWidth={false}
+                                onClose={() => { setShowCertificate(undefined); }}
                                 actions={
                                     <Box>
                                         <Button onClick={() => { setShowCertificate(undefined); }}>Close</Button>
                                     </Box>
                                 }
                                 content={
-                                    <CodeCopier code={window.window.atob(cert.certificate)} enableDownload downloadFileName={caData.id + "_" + cert.serial_number + ".crt"} />
+                                    <Grid container spacing={4} width={"100%"}>
+                                        <Grid item xs="auto">
+                                            <CodeCopier code={window.window.atob(cert.certificate)} enableDownload downloadFileName={caData.id + "_" + cert.serial_number + ".crt"} />
+                                        </Grid>
+                                        <Grid item xs container flexDirection={"column"}>
+                                            <MultiKeyValueInput label="Metadata" value={cert.metadata} onChange={(meta) => {
+                                                if (!deepEqual(cert.metadata, meta)) {
+                                                    apicalls.cas.updateCertificateMetadata(cert.serial_number, meta);
+                                                }
+                                            }} />
+                                        </Grid>
+                                    </Grid>
                                 }
                             />
                         </Grid>
                         {
-                            cert.status !== caApiCalls.CertificateStatus.Revoked && (
+                            cert.status !== CertificateStatus.Revoked && (
                                 <Grid item>
                                     <Tooltip title="Revoke Certificate">
                                         <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
@@ -215,14 +229,14 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
                             )
                         }
                         {
-                            cert.status === caApiCalls.CertificateStatus.Revoked && (
+                            cert.status === CertificateStatus.Revoked && (
                                 cert.revocation_reason === "CertificateHold" && (
                                     <Grid item>
                                         <Tooltip title="ReActivate certificate">
                                             <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
                                                 <IconButton>
                                                     <UnarchiveOutlinedIcon fontSize={"small"} onClick={() => {
-                                                        caApiCalls.updateCertificateStatus(cert.serial_number, caApiCalls.CertificateStatus.Active);
+                                                        caApiCalls.updateCertificateStatus(cert.serial_number, CertificateStatus.Active);
                                                     }} />
                                                 </IconButton>
                                             </Box>
@@ -326,7 +340,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
                     <Box>
                         <Button onClick={() => { setIsRevokeDialogOpen({ isOpen: false, serialNumber: "" }); }}>Close</Button>
                         <MonoChromaticButton onClick={async () => {
-                            caApiCalls.updateCertificateStatus(isRevokeDialogOpen.serialNumber, caApiCalls.CertificateStatus.Revoked, revokeReason);
+                            caApiCalls.updateCertificateStatus(isRevokeDialogOpen.serialNumber, CertificateStatus.Revoked, revokeReason);
                             setIsRevokeDialogOpen({ isOpen: false, serialNumber: "" });
                         }}>Revoke Certificate</MonoChromaticButton>
                     </Box>

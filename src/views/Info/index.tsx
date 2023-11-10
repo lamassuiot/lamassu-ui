@@ -2,19 +2,14 @@ import { Box, Divider, Grid, Paper, Typography, useTheme } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { useAppSelector } from "ducks/hooks";
-import * as alertsAction from "ducks/features/alerts/actions";
-import * as alertsSelector from "ducks/features/alerts/reducer";
 
 export const InfoView = () => {
     const theme = useTheme();
 
     const dispatch = useDispatch();
 
-    const alertsApiInfo = useAppSelector((state) => alertsSelector.getInfo(state));
-
     const refreshAction = () => {
-        dispatch(alertsAction.getInfoAction.request());
+        // dispatch(alertsAction.getInfoAction.request());
     };
 
     useEffect(() => {
@@ -22,8 +17,8 @@ export const InfoView = () => {
     }, []);
 
     const alertsInfo: Array<[string, any]> = [
-        ["Build Version", alertsApiInfo.build_version],
-        ["Build Time", alertsApiInfo.build_time]
+        ["Build Version", "-1"],
+        ["Build Time", "-1"]
     ];
 
     const servicesInfo = [

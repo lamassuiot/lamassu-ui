@@ -4,7 +4,7 @@ import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
 import { LoadingButton, Alert } from "@mui/lab";
 import moment, { Moment } from "moment";
 import CertificateImporter from "components/LamassuComponents/composed/Certificates/CertificateImporter";
-import { CryptoEngine, ExpirationFormat, importCA } from "ducks/features/cav3/apicalls";
+import { importCA } from "ducks/features/cav3/apicalls";
 import CryptoEngineSelector from "components/LamassuComponents/lamassu/CryptoEngineSelector";
 import { useForm } from "react-hook-form";
 import { FormTextField } from "components/LamassuComponents/dui/form/TextField";
@@ -12,6 +12,10 @@ import * as duration from "components/utils/duration";
 import { FormDateInput } from "components/LamassuComponents/dui/form/DateInput";
 import { CATimeline } from "views/CertificateAuthoritiesView/components/CATimeline";
 import { X509Certificate, parseCRT } from "components/utils/cryptoUtils/crt";
+import { CryptoEngine, ExpirationFormat } from "ducks/features/cav3/models";
+import { actions } from "ducks/actions";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const keyPlaceHolder = `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIOUXa254YMYXWksCADpHFdJ+ly+nrQFsa0ozEuTZXmP5oAoGCCqGSM49
@@ -39,6 +43,8 @@ interface CAImporterProps {
 
 export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
     const theme = useTheme();
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     const { control, getValues, setValue, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
         defaultValues: {
@@ -64,7 +70,6 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
     const handleImport = handleSubmit(async (data) => {
         setIsLoading(true);
         let issuanceDur: ExpirationFormat;
-        console.log("aaaaaaa");
 
         if (data.issuerExpiration.type === "duration") {
             issuanceDur = {
@@ -79,6 +84,8 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
         }
         try {
             await importCA(data.id, data.cryptoEngine.id, window.btoa(data.certificate!), window.btoa(data.privateKey), issuanceDur);
+            dispatch(actions.caActionsV3.importCAWithKey(data.id));
+            navigate(`/cas/${data.id}`);
         } catch (error) {
             console.log(error);
             setHasError(true);

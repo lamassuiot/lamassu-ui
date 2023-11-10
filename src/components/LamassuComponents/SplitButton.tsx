@@ -9,7 +9,7 @@ import Popper from "@mui/material/Popper";
 import MenuItem from "@mui/material/MenuItem";
 import MenuList from "@mui/material/MenuList";
 
-interface Option {
+export interface Option {
     label: string
     disabled: boolean
     onClick: Function

@@ -5,7 +5,7 @@ import moment from "moment";
 import { CodeCopier } from "../dui/CodeCopier";
 import { LamassuChip } from "../Chip";
 import CertificateDecoder from "../composed/Certificates/CertificateDecoder";
-import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/apicalls";
+import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/models";
 import { CryptoEngineViewer } from "./CryptoEngineViewer";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 

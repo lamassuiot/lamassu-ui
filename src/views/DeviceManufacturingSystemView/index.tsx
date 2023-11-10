@@ -4,14 +4,14 @@ import React, { useEffect } from "react";
 import { Outlet, Route, Routes, useNavigate, useParams } from "react-router-dom";
 import { DmsList } from "./DmsList";
 import { DMSForm } from "./DmsActions/DMSForm";
-import * as dmsSelector from "ducks/features/dms-enroller/reducer";
-import * as dmsApicalls from "ducks/features/dms-enroller/apicalls";
-import * as dmsActions from "ducks/features/dms-enroller/actions";
+
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "ducks/hooks";
 import StandardWrapperView from "views/StandardWrapperView";
 import { DMSCACertificates } from "./DmsActions/CACertificates";
 import { RequestStatus } from "ducks/reducers_utils";
+import { apicalls } from "ducks/apicalls";
+import { selectors } from "ducks/reducers";
 
 export const DMSView = () => {
     const navigate = useNavigate();
@@ -48,8 +48,7 @@ export const DMSView = () => {
                     tabs={[
                         {
                             element: <DMSForm onSubmit={async (dms) => {
-                                await dmsApicalls.createDMS(dms);
-                                await dmsApicalls.updateDMS({ ...dms, status: "APPROVED" });
+                                await apicalls.dms.updateDMS(dms.id, dms);
                                 navigate("/dms");
                             }} />,
                             label: "default"
@@ -85,13 +84,13 @@ interface UpdateDMSFormProps {
 }
 
 const UpdateDMSForm: React.FC<UpdateDMSFormProps> = ({ dmsName }) => {
-    const dms = useAppSelector((state) => dmsSelector.getDMS(state, dmsName)!);
-    const requestStatus = useAppSelector((state) => dmsSelector.getRequestStatus(state)!);
+    const dms = useAppSelector((state) => selectors.dms.getDMS(state, dmsName)!);
+    const requestStatus = useAppSelector((state) => selectors.dms.getDMSListRequestStatus(state)!);
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
     useEffect(() => {
-        dispatch(dmsActions.getDMSAction.request({ name: dmsName }));
+        // dispatch(dmsActions.getDMSAction.request({ name: dmsName }));
     }, []);
 
     if (requestStatus.isLoading) {
@@ -111,7 +110,7 @@ const UpdateDMSForm: React.FC<UpdateDMSFormProps> = ({ dmsName }) => {
             dms={dms}
             actionLabel="Update"
             onSubmit={async (dms) => {
-                await dmsApicalls.updateDMS({ ...dms });
+                await apicalls.dms.updateDMS(dms.id, dms);
                 navigate("/dms");
             }} />;
     }

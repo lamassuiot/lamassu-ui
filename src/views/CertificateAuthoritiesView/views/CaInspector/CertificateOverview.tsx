@@ -2,11 +2,12 @@ import React, { useEffect, useState } from "react";
 import moment from "moment";
 import { useTheme } from "@mui/system";
 import { Grid, Skeleton } from "@mui/material";
-import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/apicalls";
 import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
 import { TextField } from "components/LamassuComponents/dui/TextField";
 import { X509Certificate, parseCRT } from "components/utils/cryptoUtils/crt";
 import { CryptoEngineViewer } from "components/LamassuComponents/lamassu/CryptoEngineViewer";
+import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/models";
+import CAFetchViewer from "components/LamassuComponents/lamassu/CAFetchViewer";
 
 interface Props {
     caData: CertificateAuthority
@@ -72,6 +73,18 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
     return (
         <Grid item container sx={{ width: "100%" }} spacing={0}>
             <Grid item xs={12} container spacing={2}>
+                {
+                    caData.issuer_metadata.id !== caData.id && (
+                        <Grid item xs={12} container flexDirection={"column"}>
+                            <Grid item>
+                                <SubsectionTitle>Parent CA</SubsectionTitle>
+                            </Grid>
+                            <Grid item flexDirection={"column"} spacing={1}>
+                                <CAFetchViewer caName={caData.issuer_metadata.id} elevation={false}/>
+                            </Grid>
+                        </Grid>
+                    )
+                }
                 {
                     caData.type !== "EXTERNAL" && (
                         <Grid item xs={12} container flexDirection={"column"}>

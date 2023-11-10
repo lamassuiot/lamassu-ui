@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Typography, useTheme } from "@mui/material";
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Typography, useTheme } from "@mui/material";
 import { useDispatch } from "react-redux";
 import * as caApicalls from "ducks/features/cav3/apicalls";
 import Stepper from "@mui/material/Stepper/Stepper";
@@ -109,14 +109,9 @@ export const IssueCert: React.FC<Props> = ({ caName, isOpen, onClose = () => { }
                                                                 {
                                                                     <>
                                                                         <Grid item xs={12}>
-                                                                            <Box sx={{ background: theme.palette.success.light, padding: "10px", borderRadius: "5px", width: "fit-content" }}>
-                                                                                <Typography sx={{ color: theme.palette.success.main, fontSize: "0.85rem" }}>Certificate generated successfully</Typography>
-                                                                            </Box>
-                                                                        </Grid>
-                                                                        <Grid item xs={12} container>
-                                                                            <Grid item xs={4}>
-                                                                                <Typography>{chunk(parsedSignedCert.serialNumber, 2).join("-")}</Typography>
-                                                                            </Grid>
+                                                                            <Alert severity="success">
+                                                                                Certificate generated successfully. Certificate Serial Number: {chunk(parsedSignedCert.serialNumber, 2).join("-")}
+                                                                            </Alert>
                                                                         </Grid>
                                                                     </>
                                                                 }

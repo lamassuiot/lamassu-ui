@@ -10,7 +10,7 @@ import { useForm } from "react-hook-form";
 import * as caApiCalls from "ducks/features/cav3/apicalls";
 import { LoadingButton } from "@mui/lab";
 import { CodeCopier } from "components/LamassuComponents/dui/CodeCopier";
-import { CertificateAuthority } from "ducks/features/cav3/apicalls";
+import { CertificateAuthority } from "ducks/features/cav3/models";
 
 interface Props {
     caData: CertificateAuthority

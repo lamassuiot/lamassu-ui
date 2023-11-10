@@ -1,17 +1,11 @@
 import React, { useEffect, useState } from "react";
 
 import { Box, Button, Collapse, Grid, IconButton, Paper, Tooltip, Typography, useTheme } from "@mui/material";
-import { ListWithDataController, ListWithDataControllerConfigProps, OperandTypes } from "components/LamassuComponents/Table";
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
 import { GoLinkExternal } from "react-icons/go";
-import { DMS } from "ducks/features/dms-enroller/models";
-import * as dmsAction from "ducks/features/dms-enroller/actions";
-import * as dmsSelector from "ducks/features/dms-enroller/reducer";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "ducks/hooks";
-import deepEqual from "fast-deep-equal/es6";
-import CloudOffIcon from "@mui/icons-material/CloudOff";
 import { IconInput } from "components/LamassuComponents/dui/IconInput";
 import { KeyValueLabel } from "components/LamassuComponents/dui/KeyValueLabel";
 import { Chip } from "components/LamassuComponents/dui/Chip";
@@ -28,130 +22,111 @@ import { pSBC } from "components/utils/colors";
 import CloseIcon from "@mui/icons-material/Close";
 import CheckIcon from "@mui/icons-material/Check";
 import { LamassuChip } from "components/LamassuComponents/Chip";
+import { RootState, selectors } from "ducks/reducers";
+import { DMS } from "ducks/features/ra/models";
+import { actions } from "ducks/actions";
+import RefreshIcon from "@mui/icons-material/Refresh";
 
 export const DmsList = () => {
-    const theme = useTheme();
-
-    const navigate = useNavigate();
     const dispatch = useDispatch();
+    const theme = useTheme();
+    const navigate = useNavigate();
 
-    const requestStatus = useAppSelector((state) => dmsSelector.getRequestStatus(state));
-    const dmsList = useAppSelector((state) => dmsSelector.getDMSs(state));
-    const totalDMSs = useAppSelector((state) => dmsSelector.getTotalDMSs(state));
+    const requestStatus = useAppSelector((state: RootState) => selectors.dms.getDMSListRequestStatus(state));
+    const dmsList = useAppSelector((state: RootState) => selectors.dms.getDMSs(state));
 
-    const [tableConfig, setTableConfig] = useState<ListWithDataControllerConfigProps>(
-        {
-            filter: {
-                enabled: true,
-                filters: []
-            },
-            sort: {
-                enabled: true,
-                selectedField: "name",
-                selectedMode: "asc"
-            },
-            pagination: {
-                enabled: true,
-                options: [9, 18, 27],
-                selectedItemsPerPage: 9,
-                selectedPage: 0
-            }
-        }
-    );
-
-    const refreshAction = () => dispatch(dmsAction.getDMSListAction.request({
-        offset: tableConfig.pagination.selectedPage! * tableConfig.pagination.selectedItemsPerPage!,
-        limit: tableConfig.pagination.selectedItemsPerPage!,
-        sortField: tableConfig.sort.selectedField!,
-        sortMode: tableConfig.sort.selectedMode!,
-        filterQuery: tableConfig.filter.filters!.map((f: any) => { return f.propertyKey + "[" + f.propertyOperator + "]=" + f.propertyValue; })
+    const refreshAction = () => dispatch(actions.dmsActions.getDMSs.request({
+        bookmark: "",
+        filters: [],
+        limit: 35,
+        sortField: "id",
+        sortMode: "asc"
     }));
 
     useEffect(() => {
         refreshAction();
     }, []);
 
-    const dmsTableColumns = [
-        { key: "name", title: "DMS Name", dataKey: "name", align: "center", query: true, type: OperandTypes.string, size: 2 },
-        { key: "creation_timestamp", title: "Creation Date", dataKey: "creation_timestamp", type: OperandTypes.date, align: "center", size: 1 },
-        { key: "cloudHosted", title: "Cloud Hosted DMS", dataKey: "status", type: OperandTypes.string, align: "center", size: 1 },
-        { key: "status", title: "Status", dataKey: "status", type: OperandTypes.enum, align: "center", size: 1 },
-        // { key: "enrolled", title: "Enrolled Devices", align: "center", size: 1 },
-        { key: "actions", title: "Actions", align: "right", size: 2 }
-    ];
+    let content = <EmptyDMSListHint />;
 
-    useEffect(() => {
-        if (tableConfig !== undefined) {
-            refreshAction();
-        }
-    }, [tableConfig]);
+    if (!requestStatus.isLoading && dmsList.length > 0) {
+        content = (
+            <Grid container>
+                {
+                    dmsList.map((dms, idx) => (
+                        <Grid item xs={4} key={idx}>
+                            <DMSCardRenderer dms={dms} />
+                        </Grid>
+                    ))
+                }
+            </Grid>
+        );
+    }
 
     return (
-        <Box sx={{ padding: "40px", height: "calc(100% - 40px)", overflowY: "auto" }}>
-            <Grid container spacing={2}>
-                <ListWithDataController
-                    defaultRender="CARD"
-                    data={dmsList}
-                    totalDataItems={totalDMSs}
-                    isLoading={requestStatus.isLoading}
-                    withAdd={() => { navigate("create"); }}
-                    config={tableConfig}
-                    onChange={(ev: any) => {
-                        if (!deepEqual(ev, tableConfig)) {
-                            setTableConfig(prev => ({ ...prev, ...ev }));
-                        }
-                    }}
-                    listConf={dmsTableColumns}
-                    cardRender={{
-                        renderFunc: (dms: DMS) => <DMSCardRenderer dms={dms} />
-                    }}
-                    tableProps={{
-                        component: Paper,
-                        style: {
-                            padding: "30px",
-                            width: "calc(100% - 60px)"
-                        }
-                    }}
-                    emptyContentComponent={
-                        <Grid container justifyContent={"center"} alignItems={"center"} sx={{ height: "100%" }}>
-                            <Grid item xs="auto" container justifyContent={"center"} alignItems={"center"} flexDirection="column">
-                                <img src={process.env.PUBLIC_URL + "/assets/icon-dms.png"} height={150} style={{ marginBottom: "25px" }} />
-                                <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 22, lineHeight: "24px", marginRight: "10px" }}>
-                                    Enroll your Device Manufacturing Systems
-                                </Typography>
-                                <Typography>Manage the enrollment process of your devices by registering and enrolling your DMS instance first</Typography>
-                                <Button
-                                    endIcon={<GoLinkExternal />}
-                                    variant="contained"
-                                    sx={{ marginTop: "10px", color: theme.palette.primary.main, background: theme.palette.primary.light }}
-                                    onClick={() => {
-                                        window.open("https://www.lamassu.io/docs/usage/#register-a-new-device-manufacturing-system", "_blank");
-                                    }}
-                                >
-                                    Go to DMS enrollment instructions
-                                </Button>
-                                <Typography sx={{ margin: "10px", textAlign: "center" }}>or</Typography>
-                                <Button
-                                    endIcon={<AddIcon />}
-                                    variant="contained"
-                                    sx={{ color: theme.palette.primary.main, background: theme.palette.primary.light }}
-                                    onClick={() => {
-                                        navigate("create");
-                                    }}
-                                >
-                                    Register your first DMS
-                                </Button>
-                            </Grid>
-                        </Grid>
-                    }
-                    withRefresh={() => { refreshAction(); }}
-                />
+        <Box padding={"20px"}>
+            <Grid container flexDirection={"column"} spacing={2}>
+                <Grid item container>
+                    <Grid item xs={"auto"} container justifyContent={"flex-end"}>
+                        <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 40, height: 40, marginLeft: 10 }}>
+                            <IconButton style={{ background: theme.palette.primary.light }} onClick={() => { refreshAction(); }}>
+                                <RefreshIcon style={{ color: theme.palette.primary.main }} />
+                            </IconButton>
+                        </Box>
+                    </Grid>
+                    <Grid item xs={"auto"} container justifyContent={"flex-end"}>
+                        <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 40, height: 40, marginLeft: 10 }}>
+                            <IconButton style={{ background: theme.palette.primary.light }} onClick={() => { navigate("create"); }}>
+                                <AddIcon style={{ color: theme.palette.primary.main }} />
+                            </IconButton>
+                        </Box>
+                    </Grid>
+                </Grid>
+                <Grid item>
+                    {content}
+                </Grid>
             </Grid>
-
-        </Box >
+        </Box>
     );
 };
 
+const EmptyDMSListHint: React.FC = () => {
+    const theme = useTheme();
+    const navigate = useNavigate();
+
+    return (
+        <Grid container justifyContent={"center"} alignItems={"center"} sx={{ height: "100%" }}>
+            <Grid item xs="auto" container justifyContent={"center"} alignItems={"center"} flexDirection="column">
+                <img src={process.env.PUBLIC_URL + "/assets/icon-dms.png"} height={150} style={{ marginBottom: "25px" }} />
+                <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 22, lineHeight: "24px", marginRight: "10px" }}>
+                    Enroll your Device Manufacturing Systems
+                </Typography>
+                <Typography>Manage the enrollment process of your devices by registering and enrolling your DMS instance first</Typography>
+                <Button
+                    endIcon={<GoLinkExternal />}
+                    variant="contained"
+                    sx={{ marginTop: "10px", color: theme.palette.primary.main, background: theme.palette.primary.light }}
+                    onClick={() => {
+                        window.open("https://www.lamassu.io/docs/usage/#register-a-new-device-manufacturing-system", "_blank");
+                    }}
+                >
+                    Go to DMS enrollment instructions
+                </Button>
+                <Typography sx={{ margin: "10px", textAlign: "center" }}>or</Typography>
+                <Button
+                    endIcon={<AddIcon />}
+                    variant="contained"
+                    sx={{ color: theme.palette.primary.main, background: theme.palette.primary.light }}
+                    onClick={() => {
+                        navigate("create");
+                    }}
+                >
+                    Register your first DMS
+                </Button>
+            </Grid>
+        </Grid>
+    );
+};
 interface DMSCardRendererProps {
     dms: DMS
 }
@@ -167,46 +142,28 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
 
     const [expanded, setExpanded] = useState(false);
 
-    const splitColors = dms.identity_profile.enrollment_settings.color.split("-");
+    const splitColors = dms.settings.enrollment_settings.device_provisioning_profile.icon_color.split("-");
     let iconBG = "";
     let iconFG = "";
     if (splitColors.length === 2) {
         iconBG = splitColors[0];
         iconFG = splitColors[1];
-    } else {
-        iconBG = dms.identity_profile.enrollment_settings.color;
-        iconFG = dms.identity_profile.enrollment_settings.color;
     }
 
     return (
-        <Grid item xs={4}>
+        <>
             <Box component={Paper} padding={"10px"}>
                 <Grid container flexDirection={"column"} spacing={1}>
                     <Grid item container spacing={1} flexDirection={"column"}>
                         <Grid item container spacing={1}>
                             <Grid item xs container spacing={1}>
                                 <Grid item>
-                                    <IconInput readonly label="" size={35} value={{ bg: iconBG, fg: iconFG, name: dms.identity_profile.enrollment_settings.icon }} />
+                                    <IconInput readonly label="" size={35} value={{ bg: iconBG, fg: iconFG, name: dms.settings.enrollment_settings.device_provisioning_profile.icon }} />
                                 </Grid>
                                 <Grid item xs container flexDirection={"column"}>
                                     <Grid item>
                                         <Typography>{dms.name}</Typography>
-                                    </Grid>
-                                    <Grid item container spacing={1}>
-                                        <Grid item xs="auto">
-                                            {
-                                                dms.cloud_dms
-                                                    ? (
-                                                        <Chip label="Cloud DMS" compact compactFontSize color="warn" />
-                                                    )
-                                                    : (
-                                                        <CloudOffIcon sx={{ fontSize: "1.15rem", color: "#555" }} />
-                                                    )
-                                            }
-                                        </Grid>
-                                        <Grid item xs="auto">
-                                            <Chip label={`AWS Shadow: ${dms.aws.shadow_type}`} compact compactFontSize color="warn" />
-                                        </Grid>
+                                        <Chip label={dms.id} compact color="warn" />
                                     </Grid>
                                 </Grid>
                             </Grid>
@@ -215,7 +172,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                     <Grid item xs="auto">
                                         <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
                                             <Tooltip title="CA Certificates">
-                                                <IconButton onClick={(ev) => { navigate(`${dms.name}/cacerts`); }}>
+                                                <IconButton onClick={(ev) => { navigate(`${dms.id}/cacerts`); }}>
                                                     <AccountBalanceOutlinedIcon fontSize={"small"} />
                                                 </IconButton>
                                             </Tooltip>
@@ -224,7 +181,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                     <Grid item xs="auto">
                                         <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
                                             <Tooltip title="cURL enrollment commands">
-                                                <IconButton onClick={(ev) => { setEnrollDMSCmds({ open: true, dmsName: dms.name }); }}>
+                                                <IconButton onClick={(ev) => { setEnrollDMSCmds({ open: true, dmsName: dms.id }); }}>
                                                     <TerminalIcon fontSize={"small"} />
                                                 </IconButton>
                                             </Tooltip>
@@ -235,7 +192,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                     <Grid item xs="auto">
                                         <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
                                             <Tooltip title="Edit">
-                                                <IconButton onClick={(ev) => { navigate(`${dms.name}/edit`); }}>
+                                                <IconButton onClick={(ev) => { navigate(`${dms.id}/edit`); }}>
                                                     <EditIcon fontSize={"small"} />
                                                 </IconButton>
                                             </Tooltip>
@@ -244,7 +201,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                     {/* <Grid item xs="auto">
                                         <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
                                             <Tooltip title="Delete">
-                                                <IconButton onClick={(ev) => { navigate(`${dms.name}/edit`); }}>
+                                                <IconButton onClick={(ev) => { navigate(`${dms.id}/edit`); }}>
                                                     <DeleteIcon fontSize={"small"} />
                                                 </IconButton>
                                             </Tooltip>
@@ -274,7 +231,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                             <KeyValueLabel
                                                 label="EST Enrollment Endpoint"
                                                 value={
-                                                    <Typography style={{ color: theme.palette.text.primary, fontSize: 12 }}>{"https://" + window.location.hostname + "/api/dmsmanager/.well-known/est/" + dms.name + "/simpleenroll"}</Typography>
+                                                    <Typography style={{ color: theme.palette.text.primary, fontSize: 12 }}>{"https://" + window.location.hostname + "/api/dmsmanager/.well-known/est/" + dms.id + "/simpleenroll"}</Typography>
                                                 }
                                             />
                                         </Grid>
@@ -282,7 +239,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                             <KeyValueLabel
                                                 label="Enrollment CA"
                                                 value={
-                                                    <CAFetchViewer caName={dms.identity_profile.enrollment_settings.authorized_ca} size="small" />
+                                                    <CAFetchViewer caName={dms.settings.enrollment_settings.enrollment_ca} size="small" />
                                                 }
                                             />
                                         </Grid>
@@ -292,7 +249,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                                 value={
                                                     <Grid container flexDirection={"column"} spacing={1}>
                                                         {
-                                                            dms.identity_profile.enrollment_settings.bootstrap_cas.map((caName, idx) => {
+                                                            dms.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.validation_cas.map((caName, idx) => {
                                                                 return (
                                                                     <Grid item xs key={idx}>
                                                                         <CAFetchViewer caName={caName} size="small" />
@@ -310,7 +267,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                                 <KeyValueLabel
                                                     label="Authentication Mode"
                                                     value={
-                                                        <LamassuChip label={dms.identity_profile.enrollment_settings.authentication_mode} />
+                                                        <LamassuChip label={dms.settings.enrollment_settings.est_rfc7030_settings.auth_mode} />
                                                     }
                                                 />
                                             </Grid>
@@ -319,7 +276,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                                 <KeyValueLabel
                                                     label="Registration Mode"
                                                     value={
-                                                        <LamassuChip label={dms.identity_profile.enrollment_settings.registration_mode} />
+                                                        <LamassuChip label={dms.settings.enrollment_settings.registration_mode} />
                                                     }
                                                 />
                                             </Grid>
@@ -328,7 +285,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                                 <KeyValueLabel
                                                     label="Allow Override Enrollment"
                                                     value={
-                                                        dms.identity_profile.enrollment_settings.allow_new_auto_enrollment
+                                                        dms.settings.enrollment_settings.enable_replaceable_enrollment
                                                             ? (
                                                                 <Box sx={{
                                                                     width: "30px",
@@ -353,7 +310,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                                 <KeyValueLabel
                                                     label="Chain Validation"
                                                     value={
-                                                        <LamassuChip label={`${dms.identity_profile.enrollment_settings.chain_validation_level} LEVELS`} />
+                                                        <LamassuChip label={`${dms.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.chain_level_validation} LEVELS`} />
                                                     }
                                                 />
                                             </Grid>
@@ -369,7 +326,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                                 <KeyValueLabel
                                                     label="EST ReEnrollment Endpoint"
                                                     value={
-                                                        <Typography style={{ color: theme.palette.text.primary, fontSize: 12 }}>{"https://" + window.location.hostname + "/api/dmsmanager/.well-known/est/" + dms.name + "/simplereenroll"}</Typography>
+                                                        <Typography style={{ color: theme.palette.text.primary, fontSize: 12 }}>{"https://" + window.location.hostname + "/api/dmsmanager/.well-known/est/" + dms.id + "/simplereenroll"}</Typography>
                                                     }
                                                 />
                                             </Grid>
@@ -381,7 +338,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                                 value={
                                                     <Grid container flexDirection={"column"} spacing={1}>
                                                         {
-                                                            dms.identity_profile.reenrollment_settings.additional_validation_cas.map((caName, idx) => {
+                                                            dms.settings.reenrollment_settings.additional_validation_cas.map((caName, idx) => {
                                                                 return (
                                                                     <Grid item xs key={idx}>
                                                                         <CAFetchViewer caName={caName} size="small" />
@@ -399,7 +356,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                                 <KeyValueLabel
                                                     label="Allowed Renewal Delta"
                                                     value={
-                                                        <LamassuChip label={dms.identity_profile.reenrollment_settings.preventive_renewal_interval} />
+                                                        <LamassuChip label={dms.settings.reenrollment_settings.reenrollment_delta} />
                                                     }
                                                 />
                                             </Grid>
@@ -408,7 +365,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                                 <KeyValueLabel
                                                     label="Allow Expired Renewal"
                                                     value={
-                                                        dms.identity_profile.reenrollment_settings.allow_expired_renewal
+                                                        dms.settings.reenrollment_settings.enable_expired_renewal
                                                             ? (
                                                                 <Box sx={{
                                                                     width: "30px",
@@ -497,6 +454,6 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                     />
                 )
             }
-        </Grid>
+        </>
     );
 };

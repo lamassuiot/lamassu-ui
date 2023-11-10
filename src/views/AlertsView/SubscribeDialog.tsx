@@ -4,7 +4,6 @@ import { CloudEvent } from "cloudevents";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import WebhookOutlinedIcon from "@mui/icons-material/WebhookOutlined";
 import { useDispatch } from "react-redux";
-import * as eventsActions from "ducks/features/alerts/actions";
 import { createSchema } from "genson-js";
 import { materialLight, materialOceanic } from "react-syntax-highlighter/dist/esm/styles/prism";
 import SyntaxHighlighter from "react-syntax-highlighter";
@@ -444,7 +443,7 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                                 : (
 
                                                     <Button onClick={() => {
-                                                        dispatch(eventsActions.subscribeAction.request({ eventType: event.type, channels: channels, condition_type: selectedConditionType, conditions: [jsonFilter] }));
+                                                        // dispatch(eventsActions.subscribeAction.request({ eventType: event.type, channels: channels, condition_type: selectedConditionType, conditions: [jsonFilter] }));
                                                         clean();
                                                         onClose();
                                                     }} variant="contained">Subscribe</Button>

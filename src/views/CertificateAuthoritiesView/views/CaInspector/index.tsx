@@ -6,7 +6,6 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import moment from "moment";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useTheme } from "@mui/system";
-import { CertificateAuthority, CryptoEngine, getCA } from "ducks/features/cav3/apicalls";
 import { CertificateOverview } from "./CertificateOverview";
 import { CAMetadata } from "./CAMetadata";
 import { CertificateView } from "./CertificateView";
@@ -16,7 +15,6 @@ import { SignVerifyView } from "./SignVerify";
 import Label from "components/LamassuComponents/dui/typographies/Label";
 import { CloudProviders } from "./CloudProviders";
 import { TabsListWithRouter } from "components/LamassuComponents/dui/TabsListWithRouter";
-import { errorToString } from "ducks/services/api";
 import { MonoChromaticButton } from "components/LamassuComponents/dui/MonoChromaticButton";
 import { Modal } from "components/LamassuComponents/dui/Modal";
 import { TextField } from "components/LamassuComponents/dui/TextField";
@@ -25,6 +23,12 @@ import { FetchViewer } from "components/LamassuComponents/lamassu/FetchViewer";
 import CAViewer from "components/LamassuComponents/lamassu/CAViewer";
 import * as caApiCalls from "ducks/features/cav3/apicalls";
 import { Select } from "components/LamassuComponents/dui/Select";
+import { CertificateStatus, CryptoEngine } from "ducks/features/cav3/models";
+import { useDispatch } from "react-redux";
+import { actions } from "ducks/actions";
+import { useAppSelector } from "ducks/hooks";
+import { selectors } from "ducks/reducers";
+import RefreshIcon from "@mui/icons-material/Refresh";
 
 const revokeCodes = [
     ["AACompromise", "It is known, or suspected, that aspects of the Attribute Authority (AA) validated in the attribute certificate have been compromised."],
@@ -47,34 +51,28 @@ interface Props {
 
 export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
     const theme = useTheme();
+    const dispatch = useDispatch();
 
     const [isRevokeDialogOpen, setIsRevokeDialogOpen] = useState(false);
 
-    const [caData, setCAData] = React.useState<CertificateAuthority | undefined>(undefined);
-    const [isLoading, setIsLoading] = React.useState(true);
-    const [error, setError] = React.useState<any | undefined>(undefined);
+    const caData = useAppSelector(state => selectors.cas.getCA(state, caName));
+    const requestState = useAppSelector(state => selectors.cas.getCAItemRequestStatus(state));
+
     const [revokeReason, setRevokeReason] = useState("Unspecified");
 
-    const fetchData = async () => {
-        setIsLoading(true);
-        try {
-            const resp = await getCA(caName);
-            setCAData(resp);
-        } catch (err: any) {
-            setError(errorToString(err));
-        }
-        setIsLoading(false);
+    const refreshAction = async () => {
+        dispatch(actions.caActionsV3.getCAByID.request(caName));
     };
 
     useEffect(() => {
-        fetchData();
+        refreshAction();
     }, []);
 
     useEffect(() => {
-        fetchData();
+        refreshAction();
     }, [caName]);
 
-    if (isLoading) {
+    if (requestState.isLoading) {
         return (
             <Box padding={"30px"}>
                 <Skeleton variant="rectangular" width={"100%"} height={75} sx={{ borderRadius: "5px", marginBottom: "20px" }} />
@@ -101,11 +99,16 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                                     <LamassuChip label={caData.key_metadata.strength} rounded />
                                 </Grid>
                                 <Grid item xs="auto">
-                                    <LamassuChip label={caData.status} color={caData.status !== caApiCalls.CertificateStatus.Active ? "red" : "gray"} rounded style={{ marginLeft: "5px" }} />
+                                    <LamassuChip label={caData.status} color={caData.status !== CertificateStatus.Active ? "red" : "gray"} rounded style={{ marginLeft: "5px" }} />
                                 </Grid>
                             </Grid>
                         </Grid>
-                        <Grid item xs="auto" container justifyContent="flex-end">
+                        <Grid item xs="auto" container justifyContent="flex-end" spacing={2}>
+                            <Grid item>
+                                <IconButton style={{ background: theme.palette.primary.light }} onClick={() => { refreshAction(); }}>
+                                    <RefreshIcon style={{ color: theme.palette.primary.main }} />
+                                </IconButton>
+                            </Grid>
                             <Grid item>
                                 <IconButton onClick={() => setIsRevokeDialogOpen(true)} style={{ background: theme.palette.error.light }}>
                                     <DeleteIcon style={{ color: theme.palette.error.main }} />
@@ -115,7 +118,7 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                     </Grid>
                     <Grid item container spacing={2} justifyContent="flex-start" style={{ marginTop: 0 }}>
                         <Grid item style={{ paddingTop: 0 }}>
-                            <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 13 }}>{`${caData.key_metadata.type} ${caData.key_metadata.bits}`}</Typography>
+                            <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 13 }}>{`${caData.key_metadata.type} ${caData.key_metadata.bits} - ${caData.key_metadata.strength}`}</Typography>
                         </Grid>
                         <Grid item style={{ paddingTop: 0 }}>
                             <Box style={{ display: "flex", alignItems: "center" }}>
@@ -230,7 +233,7 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                         <Box>
                             <Button onClick={() => { setIsRevokeDialogOpen(false); }}>Close</Button>
                             <MonoChromaticButton onClick={async () => {
-                                caApiCalls.updateCAStatus(caData.id, caApiCalls.CertificateStatus.Revoked, revokeReason);
+                                caApiCalls.updateCAStatus(caData.id, CertificateStatus.Revoked, revokeReason);
                                 setIsRevokeDialogOpen(false);
                             }}>Revoke CA Certificate</MonoChromaticButton>
                         </Box>
@@ -247,8 +250,8 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                     "Could not fetch CA"
                 }
                 {
-                    typeof error === "string" && error.length > 1 && (
-                        <>: {error}</>
+                    typeof requestState.err === "string" && requestState.err.length > 1 && (
+                        <>: {requestState.err}</>
                     )
                 }
 

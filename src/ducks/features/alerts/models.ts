@@ -1,35 +1,48 @@
-export class AlertsInfo {
-    public build_version!: string
-    public build_time!: string
-    constructor (args?: {}) {
-        Object.assign(this, args);
-    }
+export type Event = {
+    event_types: string
+    event: any
+    seen_at: string
+    counter: number
+}
+export type Subscription = {
+    id: string,
+    user_id: string,
+    event_type: string,
+    subscription_ts: string,
+    conditions: SubscriptionCondition[],
+    channel: SubChannel,
 }
 
-export class CloudEvent {
-    public specversion!: string
-    public id!: string
-    public source!: string
-    public type!: string
-    public datacontenttype!: string
-    public time!: string
-    public data!: string
+export enum SubscriptionConditionType {
+    JsonSchema = "JSON-SCHEMA",
+    JsonPath = "JSON-PATH",
+}
+export type SubscriptionCondition = {
+    type: SubscriptionConditionType,
+    condition: string,
 }
 
-export class Subscription {
-    public id!: string
-    public event_type!: string
-    public subscription_date!: number
-    public user_id!: string
-    public conditions!: Array<string>
-    public channel!: Channel
-}
-export class Channel {
-    public type!: "email" | "webhook" | "msteams"
-    public name!: string
-    public config!: any
+export enum SubChannelType {
+    Email = "EMAIL",
+    Webhook = "WEBHOOK",
+    MsTeams = "MSTEAMS"
 }
 
-export class UserSubscription {
-    public subscriptions!: Array<Subscription>
+export type SubChannel = {
+    type: SubChannelType
+    name: string
+    config: any
+}
+
+export type SubChannelEmailConfig = {
+    email: string
+}
+
+export type SubChannelMSTeamsConfig = {
+    webhook_url: string
+}
+
+export type SubChannelWebhookConfig = {
+    webhook_url: string
+    webhook_method: string
 }

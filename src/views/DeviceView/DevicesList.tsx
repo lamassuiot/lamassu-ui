@@ -8,8 +8,6 @@ import { ListWithDataController, ListWithDataControllerConfigProps, OperandTypes
 import { GoLinkExternal } from "react-icons/go";
 import { Device } from "ducks/features/devices/models";
 import { useDispatch } from "react-redux";
-import * as devicesAction from "ducks/features/devices/actions";
-import * as devicesSelector from "ducks/features/devices/reducer";
 import { useAppSelector } from "ducks/hooks";
 import { DeviceCard } from "./components/DeviceCard";
 import deepEqual from "fast-deep-equal/es6";
@@ -19,6 +17,8 @@ import { materialLight, materialOceanic } from "react-syntax-highlighter/dist/es
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { capitalizeFirstLetter } from "ducks/reducers_utils";
 import moment from "moment";
+import { selectors } from "ducks/reducers";
+import { actions } from "ducks/actions";
 
 export const DeviceList = () => {
     const theme = useTheme();
@@ -27,9 +27,10 @@ export const DeviceList = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    const requestStatus = useAppSelector((state) => devicesSelector.getRequestStatus(state));
-    const deviceList = useAppSelector((state) => devicesSelector.getDevices(state));
-    const totalDevices = useAppSelector((state) => devicesSelector.getTotalDevices(state));
+    const requestStatus = useAppSelector((state) => selectors.devices.getDeviceListRequestStatus(state));
+    const deviceList = useAppSelector((state) => selectors.devices.getDevices(state));
+    const devicesNext = useAppSelector((state) => selectors.devices.getNextBookmark(state));
+    const totalDevices = -1;
 
     const [isESTDialogOpen, setIsESTDialogOpen] = useState<{ open: boolean, id: string, selectedTab: number }>({ open: false, id: "", selectedTab: 0 });
     const [isValidateCertOpen, setIsValidateCertOpen] = useState<{ open: boolean, device: Device | null }>({ open: false, device: null });
@@ -54,12 +55,12 @@ export const DeviceList = () => {
         }
     );
 
-    const refreshAction = () => dispatch(devicesAction.getDevicesAction.request({
-        offset: tableConfig.pagination.selectedPage! * tableConfig.pagination.selectedItemsPerPage!,
+    const refreshAction = () => dispatch(actions.devicesActions.getDevices.request({
+        bookmark: devicesNext,
         limit: tableConfig.pagination.selectedItemsPerPage!,
         sortField: tableConfig.sort.selectedField!,
         sortMode: tableConfig.sort.selectedMode!,
-        filterQuery: tableConfig.filter.filters!.map((f:any) => { return f.propertyKey + "[" + f.propertyOperator + "]=" + f.propertyValue; })
+        filters: []
     }));
 
     useEffect(() => {
@@ -84,27 +85,23 @@ export const DeviceList = () => {
     ];
 
     const deviceRender = (device: Device) => {
-        const dmsContent = device.dms_name;
+        const dmsContent = device.dms_owner;
         return {
             icon: (
-                <Box component={Paper} sx={{ padding: "5px", background: device.icon_color_bg, borderRadius: 2, width: 20, height: 20, display: "flex", justifyContent: "center", alignItems: "center" }}>
-                    <DynamicIcon icon={device.icon_name} size={16} color={device.icon_color_fg} />
+                <Box component={Paper} sx={{ padding: "5px", background: device.icon_color, borderRadius: 2, width: 20, height: 20, display: "flex", justifyContent: "center", alignItems: "center" }}>
+                    <DynamicIcon icon={device.icon} size={16} color={device.icon_color} />
                 </Box>
             ),
             id: <Typography style={{ fontWeight: "700", fontSize: 14, color: theme.palette.text.primary }}>{device.id}</Typography>,
             alias: <Typography style={{ fontWeight: "500", fontSize: 14, color: theme.palette.text.primary, textAlign: "center" }}>{device.alias}</Typography>,
-            status: <LamassuChip label={capitalizeFirstLetter(device.status)} color={device.status_color} />,
-            creation_timestamp: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary, textAlign: "center" }}>{moment(device.creation_timestamp).format("DD/MM/YYYY HH:mm")}</Typography>,
+            status: <LamassuChip label={capitalizeFirstLetter(device.status)} color={"grey"} />,
+            creation_timestamp: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary, textAlign: "center" }}>{moment(device.creation_ts).format("DD/MM/YYYY HH:mm")}</Typography>,
             dms: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary, textAlign: "center" }}>{dmsContent}</Typography>,
             slots: (
                 <Grid item xs={12} container spacing={1} justifyContent="center">
-                    {
-                        device.slots.map((slot, idx) => (
-                            <Grid item key={idx}>
-                                <LamassuChip color={slot.active_certificate.status_color} label={"slot " + slot.id} compact={true} compactFontSize />
-                            </Grid>
-                        ))
-                    }
+                    <Grid item>
+                        <LamassuChip color={"grey"} label={`IdentitySlot: ${device.identity.status}`} compact={true} compactFontSize />
+                    </Grid>
                 </Grid>
             ),
             tags: (
@@ -125,11 +122,7 @@ export const DeviceList = () => {
                             <Grid item>
                                 <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
                                     <IconButton onClick={() => {
-                                        if (device.slots.length > 1) {
-                                            navigate(device.id);
-                                        } else if (device.slots.length === 1) {
-                                            navigate(device.id + "/" + device.slots[0].id);
-                                        } else {
+                                        if (device.identity.active_version > 0) {
                                             navigate(device.id);
                                         }
                                     }}>

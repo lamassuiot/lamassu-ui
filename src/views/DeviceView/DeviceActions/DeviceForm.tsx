@@ -8,7 +8,7 @@ import { Icon } from "components/LamassuComponents/dui/IconInput";
 import { useForm } from "react-hook-form";
 import { FormTextField } from "components/LamassuComponents/dui/form/TextField";
 import DMSSelector from "components/LamassuComponents/lamassu/DMSSelector";
-import { DMS } from "ducks/features/dms-enroller/models";
+import { DMS } from "ducks/features/ra/models";
 import { Device } from "ducks/features/devices/models";
 
 type FormData = {
@@ -57,10 +57,10 @@ export const CreateDevice: React.FC<Props> = ({ onSubmit }) => {
                 id: data.deviceReg.id,
                 alias: data.deviceReg.alias,
                 dms_name: data.deviceReg.dms?.name,
-                tags: data.deviceReg.dms?.identity_profile.enrollment_settings.tags,
+                tags: data.deviceReg.dms?.settings.enrollment_settings.device_provisioning_profile.tags,
                 description: "",
-                icon_name: data.deviceReg.dms?.identity_profile.enrollment_settings.icon,
-                icon_color: data.deviceReg.dms?.identity_profile.enrollment_settings.color
+                icon_name: data.deviceReg.dms?.settings.enrollment_settings.device_provisioning_profile.icon,
+                icon_color: data.deviceReg.dms?.settings.enrollment_settings.device_provisioning_profile.icon_color
 
             };
             onSubmit(actionPayload);

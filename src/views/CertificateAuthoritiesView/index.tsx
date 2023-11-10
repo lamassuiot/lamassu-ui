@@ -8,8 +8,9 @@ import { CreateCA } from "./views/CaActions/CreateCA";
 import { CAReadonlyImporter } from "views/CertificateAuthoritiesView/views/CaActions/CAImporterRadonly";
 import { CAListView } from "./views/CAListView";
 import { FetchViewer } from "components/LamassuComponents/lamassu/FetchViewer";
-import { CryptoEngine, getEngines } from "ducks/features/cav3/apicalls";
+import { getEngines } from "ducks/features/cav3/apicalls";
 import { CAImporter } from "./views/CaActions/CAImporter";
+import { CryptoEngine } from "ducks/features/cav3/models";
 
 export const CAView = () => {
     return (

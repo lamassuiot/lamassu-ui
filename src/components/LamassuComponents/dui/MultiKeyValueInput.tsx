@@ -34,13 +34,17 @@ const MultiKeyValueInput: React.FC<MultiKeyValueInputProps> = ({ label, value = 
             <Grid item container spacing={1} flexDirection={"column"}>
                 {
                     Object.entries(keyValues).map(([key, value], idx) => {
+                        let strValue = value;
+                        if (typeof value === "object") {
+                            strValue = JSON.stringify(value);
+                        }
                         return (
                             <Grid key={key} item container spacing={2} alignItems={"center"}>
                                 <Grid item xs={4}>
                                     <TextField label="" value={key} disabled={disable} />
                                 </Grid>
                                 <Grid item xs>
-                                    <TextField label="" value={value} disabled={disable} />
+                                    <TextField label="" value={strValue} disabled={disable}/>
                                 </Grid>
                                 {
                                     !disable && (

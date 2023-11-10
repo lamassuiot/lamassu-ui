@@ -14,13 +14,17 @@ const KeyValueLabel: React.FC<KeyValueLabelProps> = ({ label, tooltip, value }) 
     const theme = useTheme();
     return (
         <Grid container flexDirection={"column"}>
-            <Grid item>
-                <Label>{label}</Label>
+            <Grid item container alignItems={"center"}>
+                <Grid item xs="auto">
+                    <Label>{label}</Label>
+                </Grid>
                 {
                     tooltip && (
-                        <Tooltip title={tooltip} sx={{}}>
-                            <HelpOutlinedIcon sx={{ fontSize: "16px", marginLeft: "5px", color: "#555" }} />
-                        </Tooltip>
+                        <Grid item xs="auto">
+                            <Tooltip title={tooltip} sx={{}}>
+                                <HelpOutlinedIcon sx={{ fontSize: "16px", marginLeft: "5px", color: "#555" }} />
+                            </Tooltip>
+                        </Grid>
                     )
                 }
             </Grid>

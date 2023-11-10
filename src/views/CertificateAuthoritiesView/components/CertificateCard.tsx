@@ -3,7 +3,7 @@ import { Grid, Paper, Typography, useTheme } from "@mui/material";
 import { Box } from "@mui/system";
 import { LamassuChip } from "components/LamassuComponents/Chip";
 import moment from "moment";
-import { CertificateAuthority, CertificateStatus, CryptoEngine } from "ducks/features/cav3/apicalls";
+import { CertificateAuthority, CertificateStatus, CryptoEngine } from "ducks/features/cav3/models";
 import { CryptoEngineViewer } from "components/LamassuComponents/lamassu/CryptoEngineViewer";
 
 interface Props {

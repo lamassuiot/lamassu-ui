@@ -13,9 +13,10 @@ import moment from "moment";
 import { SubscribeDialog } from "./SubscribeDialog";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import WebhookOutlinedIcon from "@mui/icons-material/WebhookOutlined";
-import { Subscription } from "ducks/features/alerts/models";
+import { SubChannelType, Subscription } from "ducks/features/alerts/models";
 import { ViewSubscriptionDialog } from "./ViewSubscriptionDialog";
 import { ColoredButton } from "components/LamassuComponents/ColoredButton";
+import { selectors } from "ducks/reducers";
 
 export const AlertsView = () => {
     const theme = useTheme();
@@ -26,8 +27,8 @@ export const AlertsView = () => {
 
     const [viewSubscription, setViewSubscription] = useState<Subscription>();
 
-    const eventRequestStatus = useAppSelector((state) => eventsSelector.getEventRequestStatus(state));
-    const subscriptionsRequestStatus = useAppSelector((state) => eventsSelector.getSubscriptionRequestStatus(state));
+    const eventRequestStatus = useAppSelector((state) => selectors.alerts.getEventsRequestStatus(state));
+    const subscriptionsRequestStatus = useAppSelector((state) => selectors.alerts.getSubscriptionsRequestStatus(state));
 
     const registeredEvents = useAppSelector((state) => eventsSelector.getEvents(state));
     const userSubscription = useAppSelector((state) => eventsSelector.getSubscriptions(state));
@@ -37,18 +38,20 @@ export const AlertsView = () => {
     }, []);
 
     const refreshAction = () => {
-        dispatch(eventsActions.getEvents.request());
-        dispatch(eventsActions.getSubscriptions.request());
+        dispatch(eventsActions.getEvents.request({}));
+        dispatch(eventsActions.getSubscriptions.request({}));
     };
 
     const events = registeredEvents.map(ev => {
         return {
-            EventTitle: ev.type,
-            EventType: ev.type,
-            EventSource: ev.source,
-            LastSeen: moment(ev.time).format("YYYY-MM-DD HH:mm:ss"),
-            LastSeenDiff: moment(ev.time).fromNow(),
-            Subscribed: userSubscription.subscriptions.filter(sub => sub.event_type === ev.type).length > 0,
+            EventTitle: ev.event.type,
+            EventType: ev.event.type,
+            EventSource: ev.event.source,
+            // LastSeen: moment(ev.time).format("YYYY-MM-DD HH:mm:ss"),
+            // LastSeenDiff: moment(ev.time).fromNow(),
+            LastSeen: moment(),
+            LastSeenDiff: moment(),
+            Subscribed: userSubscription.filter(sub => sub.event_type === ev.event.type).length > 0,
             Event: ev
         };
     });
@@ -109,13 +112,13 @@ export const AlertsView = () => {
                                             </Grid>
                                             <Grid item xs={2} container justifyContent={"center"} spacing={2}>
                                                 {
-                                                    userSubscription.subscriptions.filter(sub => sub.event_type === event.EventType).map((sub, idx) => {
+                                                    userSubscription.filter(sub => sub.event_type === event.EventType).map((sub, idx) => {
                                                         let icon = <></>;
-                                                        if (sub.channel.type === "email") {
+                                                        if (sub.channel.type === SubChannelType.Email) {
                                                             icon = <EmailOutlinedIcon />;
-                                                        } else if (sub.channel.type === "msteams") {
+                                                        } else if (sub.channel.type === SubChannelType.MsTeams) {
                                                             icon = <img src={process.env.PUBLIC_URL + "assets/msteams.png"} height="18px" />;
-                                                        } else if (sub.channel.type === "webhook") {
+                                                        } else if (sub.channel.type === SubChannelType.Webhook) {
                                                             icon = <WebhookOutlinedIcon />;
                                                         }
 
@@ -127,7 +130,7 @@ export const AlertsView = () => {
                                                                     onClick={() => {
                                                                         setViewSubscription(sub);
                                                                     }}
-                                                                    onDelete={() => dispatch(eventsActions.unsubscribeAction.request({ SubscriptionID: sub.id }))}
+                                                                    // onDelete={() => dispatch(actions.alertsActions.unsubscribe.request({  }))}
                                                                 />
                                                             </Grid>
                                                         );
@@ -137,11 +140,11 @@ export const AlertsView = () => {
                                             <Grid item xs={2} container justifyContent={"flex-end"} spacing={2}>
                                                 <Grid item xs="auto">
                                                     <IconButton onClick={() => {
-                                                        const idx = expandedEvents.indexOf(event.Event.id);
+                                                        const idx = expandedEvents.indexOf(event.Event.event.id);
                                                         if (idx > -1) {
-                                                            setExpandedEvents(prev => { return prev.filter(id => id !== event.Event.id); });
+                                                            setExpandedEvents(prev => { return prev.filter(id => id !== event.Event.event.id); });
                                                         } else {
-                                                            setExpandedEvents(prev => [...prev, event.Event.id]);
+                                                            setExpandedEvents(prev => [...prev, event.Event.event.id]);
                                                         }
                                                     }}>
                                                         <KeyboardArrowDownIcon />
@@ -150,7 +153,7 @@ export const AlertsView = () => {
                                             </Grid>
                                         </Grid>
                                         {
-                                            expandedEvents.indexOf(event.Event.id) >= 0 && (
+                                            expandedEvents.indexOf(event.Event.event.id) >= 0 && (
                                                 <Grid item xs={12} container alignItems="center" key={index}>
                                                     <SyntaxHighlighter wrapLongLines={true} language="json" style={theme.palette.mode === "light" ? materialLight : materialOceanic} customStyle={{ fontSize: 12, padding: 20, borderRadius: 10, width: "100%", height: "fit-content" }} wrapLines={true} lineProps={{ style: { color: theme.palette.text.primaryLight, wordBreak: "break-all", whiteSpace: "pre-wrap" } }}>
                                                         {JSON.stringify(event.Event, null, 4)}

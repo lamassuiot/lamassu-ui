@@ -13,15 +13,12 @@ import { BsCalendar3 } from "react-icons/bs";
 import ObjectByString from "components/utils/ObjectByString";
 import DateAdapter from "@mui/lab/AdapterMoment";
 import { DatePicker, LocalizationProvider } from "@mui/lab";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import ViewListIcon from "@mui/icons-material/ViewList";
 import Collapse from "@mui/material/Collapse";
 import { TransitionGroup } from "react-transition-group";
-import { numberToHumanReadableString } from "components/utils/NumberToHumanReadableString";
 
 export const Operands = {
     number: {
@@ -662,28 +659,6 @@ export const ListWithDataController: React.FC<ListWithDataControllerProps> = ({
                     </Grid>
                 </Grid>
             </Box>
-
-            {
-                config.pagination.enabled && (
-                    <Box sx={{ display: "flex", justifyContent: "flex-end", width: "100%" }}>
-                        <Grid container spacing={1} alignItems="center" sx={{ width: "fit-content", marginRight: "15px" }}>
-                            <Grid item xs="auto">
-                                <Box>{`${(config.pagination.selectedItemsPerPage! * config.pagination.selectedPage!) + 1}-${config.pagination.selectedItemsPerPage! * (config.pagination.selectedPage! + 1)} of ${numberToHumanReadableString(totalDataItems, ".")}`}</Box>
-                            </Grid>
-                            <Grid item xs="auto">
-                                <IconButton size="small" disabled={config.pagination.selectedPage! === 0} onClick={() => { onChange({ pagination: { ...config.pagination, selectedPage: config.pagination.selectedPage! - 1 } }); }}>
-                                    <ArrowBackIosIcon sx={{ fontSize: "15px" }} />
-                                </IconButton>
-                            </Grid>
-                            <Grid item xs="auto">
-                                <IconButton size="small" disabled={(config.pagination.selectedPage! + 1) * config.pagination.selectedItemsPerPage! >= totalDataItems} onClick={() => { onChange({ pagination: { ...config.pagination, selectedPage: config.pagination.selectedPage! + 1 } }); }}>
-                                    <ArrowForwardIosIcon sx={{ fontSize: "15px" }} />
-                                </IconButton>
-                            </Grid>
-                        </Grid>
-                    </Box>
-                )
-            }
 
             <Box sx={{ height: "100%", flexGrow: 1, overflowY: "auto", padding: "10px" }}>
                 {

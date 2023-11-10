@@ -4,13 +4,13 @@ import { Outlet, Route, Routes, useLocation, useNavigate, useParams } from "reac
 import { DeviceInspector } from "./DeviceInspector";
 import { DeviceList } from "./DevicesList";
 import { CreateDevice } from "./DeviceActions/DeviceForm";
-import * as devicesApiCall from "ducks/features/devices/apicalls";
+import { apicalls } from "ducks/apicalls";
 
 const RoutedDeviceInspector = () => {
     const params = useParams();
     const location = useLocation();
     return (
-        <DeviceInspector deviceID={params.deviceId!} slotID={params.slotId!} />
+        <DeviceInspector deviceID={params.deviceId!} />
     );
 };
 
@@ -22,7 +22,15 @@ export const DeviceView = () => {
             <Route path="/" element={<Outlet />}>
                 <Route path="create" element={
                     <CreateDevice onSubmit={async (device) => {
-                        await devicesApiCall.registerDevice(device.id, device.alias, device.description, device.tags, device.icon_name, device.icon_color, device.dms_name);
+                        await apicalls.devices.createDevice({
+                            id: device.id,
+                            alias: device.alias,
+                            tags: device.tag,
+                            metadata: {},
+                            dms_id: device.dms_name,
+                            icon: device.icon_name,
+                            icon_color: device.icon_color
+                        });
                         navigate("/devmanager");
                     }} />
                 } />

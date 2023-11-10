@@ -7,10 +7,11 @@ import { useNavigate } from "react-router-dom";
 import { GoLinkExternal } from "react-icons/go";
 import AddIcon from "@mui/icons-material/Add";
 import { useDispatch } from "react-redux";
-import { CertificateAuthority, updateMetadata } from "ducks/features/cav3/apicalls";
 import { pSBC } from "components/utils/colors";
 import Label from "components/LamassuComponents/dui/typographies/Label";
 import { Modal } from "components/LamassuComponents/dui/Modal";
+import { CertificateAuthority } from "ducks/features/cav3/models";
+import { apicalls } from "ducks/apicalls";
 
 interface Props {
     caData: CertificateAuthority
@@ -23,7 +24,6 @@ export const CloudProviders: React.FC<Props> = ({ caData }) => {
 
     const [isEnableConnectorOpen, setIsEnableConnectorOpen] = useState({ isOpen: false, connectorId: "" });
     const caMeta = caData.metadata;
-    console.log(caMeta);
 
     const cloudConnectors = window._env_.CLOUD_CONNECTORS;
 
@@ -36,8 +36,8 @@ export const CloudProviders: React.FC<Props> = ({ caData }) => {
 
     const cloudConnectorsRender = (cloudConnector: string) => {
         let enabled = false;
-        const enabledKey = `lamassu.io/iot-automation/${cloudConnector}`;
-        if (enabledKey in caMeta && caMeta[enabledKey] === true) {
+        const enabledKey = `lamassu.io/iot/${cloudConnector}`;
+        if (enabledKey in caMeta && caMeta[enabledKey].register === true) {
             enabled = true;
         }
 
@@ -50,7 +50,7 @@ export const CloudProviders: React.FC<Props> = ({ caData }) => {
         return {
             connectorId: <Typography style={{ fontWeight: "500", fontSize: 14, color: theme.palette.text.primary }}>{cloudConnector}</Typography>,
             connectorIcon: (
-                <img src={process.env.PUBLIC_URL + "/assets/" + logo} height={"50px"} />
+                <img src={process.env.PUBLIC_URL + "/assets/" + logo} height={"40px"} />
             ),
             syncStatus: (
                 <LamassuStatusChip label={enabled ? "Registered" : "Not Registered"} color={enabled ? "green" : "orange"} />
@@ -75,27 +75,26 @@ export const CloudProviders: React.FC<Props> = ({ caData }) => {
                 </>
             ),
             expandedRowElement: (
-                <Box sx={{ width: "calc(100% - 65px)", borderLeft: `4px solid ${theme.palette.primary.main}`, background: pSBC(theme.palette.mode === "dark" ? 0.01 : -0.03, theme.palette.background.paper), marginLeft: "20px", padding: "20px 20px 0 20px", marginBottom: "20px" }}>
-                    <Grid container flexDirection={"column"} spacing={1}>
-                        {
-                            [
-                                ["Certificate ID", "121564889"],
-                                ["Created At", "22/05/2021"]
-                            ].map((keyVal, idx) => {
-                                return (
-                                    <Grid item key={idx} container>
-                                        <Grid item xs={1}>
-                                            <Label>{keyVal[0]}</Label>
+                enabled && (
+                    <Box sx={{ width: "calc(100% - 65px)", borderLeft: `4px solid ${theme.palette.primary.main}`, background: pSBC(theme.palette.mode === "dark" ? 0.01 : -0.03, theme.palette.background.paper), marginLeft: "20px", padding: "20px 20px 0 20px", marginBottom: "20px" }}>
+                        <Grid container flexDirection={"column"} spacing={1}>
+                            {
+                                Object.keys(caMeta[enabledKey]).map((key, idx) => {
+                                    return (
+                                        <Grid item key={idx} container>
+                                            <Grid item xs={1}>
+                                                <Label>{key}</Label>
+                                            </Grid>
+                                            <Grid item xs>
+                                                <Label>{caMeta[enabledKey][key]}</Label>
+                                            </Grid>
                                         </Grid>
-                                        <Grid item xs>
-                                            <Typography>{keyVal[1]}</Typography>
-                                        </Grid>
-                                    </Grid>
-                                );
-                            })
-                        }
-                    </Grid>
-                </Box>
+                                    );
+                                })
+                            }
+                        </Grid>
+                    </Box>
+                )
             )
         };
     };
@@ -168,8 +167,10 @@ export const CloudProviders: React.FC<Props> = ({ caData }) => {
                                 <Grid item>
                                     <Button variant="contained" onClick={async () => {
                                         const newMeta = caMeta;
-                                        newMeta[`lamassu.io/iot-automation/${isEnableConnectorOpen.connectorId}`] = true;
-                                        await updateMetadata(caData.id, newMeta);
+                                        newMeta[`lamassu.io/iot/${isEnableConnectorOpen.connectorId}`] = {
+                                            register: true
+                                        };
+                                        await apicalls.cas.updateCAMetadata(caData.id, newMeta);
                                         setIsEnableConnectorOpen({ connectorId: "", isOpen: false });
                                     }
                                     }>Register</Button>

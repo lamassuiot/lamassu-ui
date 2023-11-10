@@ -1,7 +1,8 @@
 import React from "react";
 import { FetchViewer } from "./FetchViewer";
-import { CryptoEngine, getEngines } from "ducks/features/cav3/apicalls";
+import { getEngines } from "ducks/features/cav3/apicalls";
 import { Alert } from "@mui/material";
+import { CryptoEngine } from "ducks/features/cav3/models";
 import { CryptoEngineViewer, CryptoEngineViewerProps } from "./CryptoEngineViewer";
 
 interface Props extends Omit<CryptoEngineViewerProps, "engine"> {
@@ -30,5 +31,6 @@ export const CryptoEngineFetchViewer: React.FC<Props> = ({ engineID, defaultEngi
                 </Alert>
             );
         }} />
+
     );
 };

@@ -9,9 +9,9 @@ import { Grid, IconButton, InputBase, Paper, Slide, Skeleton } from "@mui/materi
 import { CertificateCard } from "views/CertificateAuthoritiesView/components/CertificateCard";
 import { AiOutlineSearch } from "react-icons/ai";
 import AddIcon from "@mui/icons-material/Add";
-import { CertificateAuthority, CryptoEngine, List } from "ducks/features/cav3/apicalls";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { FieldType, Filter, Filters } from "components/FilterInput";
+import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/models";
 
 interface Props {
     preSelectedCaName?: string
@@ -19,7 +19,7 @@ interface Props {
 }
 
 interface CAsEngines {
-    cas: List<CertificateAuthority>
+    cas: Array<CertificateAuthority>
     engines: CryptoEngine[]
 }
 
@@ -98,6 +98,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaName, engines }) => {
                             <Grid item xs={12} style={{ paddingTop: "10px" }} container alignItems={"center"}>
                                 <Filters fields={[
                                     { key: "id", label: "CA ID", type: FieldType.String },
+                                    { key: "type", label: "Type", type: FieldType.Enum, fieldOptions: ["MANAGED", "IMPORTED", "EXTERNAL"] },
                                     { key: "status", label: "Status", type: FieldType.Enum, fieldOptions: ["ACTIVE", "EXPIRED", "REVOKED"] },
                                     { key: "valid_to", label: "Expires At", type: FieldType.Date },
                                     { key: "valid_from", label: "Valid From", type: FieldType.Date }

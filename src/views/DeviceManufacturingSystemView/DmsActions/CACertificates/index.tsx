@@ -3,11 +3,11 @@ import { Skeleton, Alert } from "@mui/lab";
 
 import { Grid, useTheme } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import * as dmsApiCalls from "ducks/features/dms-enroller/apicalls";
 import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
 import { CodeCopier } from "components/LamassuComponents/dui/CodeCopier";
 import { parseCertificateBundle } from "components/utils/cryptoUtils/x509";
 import CertificateDecoder from "components/LamassuComponents/composed/Certificates/CertificateDecoder";
+import { apicalls } from "ducks/apicalls";
 
 interface Props {
     dmsName: string
@@ -24,8 +24,8 @@ export const DMSCACertificates: React.FC<Props> = ({ dmsName }) => {
 
     useEffect(() => {
         const run = async () => {
-            const respRaw = await dmsApiCalls.getESTCACerts(dmsName);
-            const respPem = await dmsApiCalls.getESTCACerts(dmsName, true);
+            const respRaw = await apicalls.est.getESTCACerts(dmsName);
+            const respPem = await apicalls.est.getESTCACerts(dmsName, true);
             setRawCACerts(respRaw);
             setPemCACerts(respPem);
             const decCABundle = parseCertificateBundle(respPem);

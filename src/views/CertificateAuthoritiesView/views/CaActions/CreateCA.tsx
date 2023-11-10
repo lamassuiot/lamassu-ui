@@ -6,15 +6,21 @@ import { FormSelect } from "components/LamassuComponents/dui/form/Select";
 import { FormTextField } from "components/LamassuComponents/dui/form/TextField";
 import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
 import { FormDateInput } from "components/LamassuComponents/dui/form/DateInput";
-import { CryptoEngine, createCA } from "ducks/features/cav3/apicalls";
+import { createCA } from "ducks/features/cav3/apicalls";
 import { errorToString } from "ducks/services/api";
 import { LoadingButton } from "@mui/lab";
 import CryptoEngineSelector from "components/LamassuComponents/lamassu/CryptoEngineSelector";
 import * as duration from "components/utils/duration";
 import { CATimeline } from "views/CertificateAuthoritiesView/components/CATimeline";
+import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/models";
+import { useDispatch } from "react-redux";
+import { actions } from "ducks/actions";
+import { useNavigate } from "react-router-dom";
+import CASelectorV2 from "components/LamassuComponents/lamassu/CASelectorV2";
 
 type FormData = {
     cryptoEngine: CryptoEngine
+    parentCA: CertificateAuthority | undefined
     id: string
     subject: {
         commonName: string;
@@ -47,11 +53,15 @@ interface CreateCAProps {
 export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
     const theme = useTheme();
 
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
     const [error, setError] = useState<string | undefined>();
     const [loading, setLoading] = useState(false);
 
     const { control, getValues, setValue, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
         defaultValues: {
+            parentCA: undefined,
             cryptoEngine: defaultEngine,
             id: window.crypto.randomUUID(),
             subject: {
@@ -90,6 +100,8 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
             setLoading(true);
             try {
                 await createCA({
+                    parent_id: formData.parentCA ? formData.parentCA.id : undefined,
+                    id: formData.id,
                     engine_id: formData.cryptoEngine.id,
                     subject: {
                         country: formData.subject.country,
@@ -115,6 +127,8 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                     },
                     ca_type: "MANAGED"
                 });
+                dispatch(actions.caActionsV3.createCA(formData.id));
+                navigate(`/cas/${formData.id}`);
             } catch (error) {
                 setError(errorToString(error));
             }
@@ -152,6 +166,14 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                         }} />
                     </Grid>
                     <Grid item xs={12}>
+                        <CASelectorV2 value={getValues("parentCA")} onSelect={(elems) => {
+                            if (!Array.isArray(elems)) {
+                                setValue("parentCA", elems);
+                            }
+                        }} multiple={false} label="Parent CA" selectLabel="Select Parent CA"
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
                         <FormTextField label="CA ID" control={control} name="id" helperText="ID" disabled />
                     </Grid>
                     <Grid item xs={12} xl={4}>
@@ -167,9 +189,9 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                     <Grid item xs={6} xl={4}>
                         <FormSelect control={control} name="privateKey.size" label="Key Size">
                             {
-                                 watchAll.cryptoEngine.supported_key_types.find(keyFam => keyFam.type === watchKeyType)!.sizes.map((keySize, idx) => (
-                                     <MenuItem key={idx} value={keySize}>{keySize}</MenuItem>
-                                 ))
+                                watchAll.cryptoEngine.supported_key_types.find(keyFam => keyFam.type === watchKeyType)!.sizes.map((keySize, idx) => (
+                                    <MenuItem key={idx} value={keySize}>{keySize}</MenuItem>
+                                ))
                             }
                         </FormSelect>
                     </Grid>

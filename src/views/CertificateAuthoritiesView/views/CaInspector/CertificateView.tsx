@@ -2,7 +2,7 @@ import React from "react";
 import { useTheme } from "@mui/system";
 import { Grid } from "@mui/material";
 import { CodeCopier } from "components/LamassuComponents/dui/CodeCopier";
-import { Certificate } from "ducks/features/cav3/apicalls";
+import { Certificate } from "ducks/features/cav3/models";
 
 interface Props {
     certificate: Certificate

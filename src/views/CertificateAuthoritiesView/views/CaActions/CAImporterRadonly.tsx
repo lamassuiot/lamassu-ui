@@ -4,12 +4,17 @@ import CertificateImporter from "../../../../components/LamassuComponents/compos
 import { LoadingButton, Alert } from "@mui/lab";
 import { importReadOnlyCA } from "ducks/features/cav3/apicalls";
 import { TextField } from "components/LamassuComponents/dui/TextField";
+import { actions } from "ducks/actions";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 interface CAReadonlyImporterProps {
 }
 
 export const CAReadonlyImporter: React.FC<CAReadonlyImporterProps> = () => {
     const theme = useTheme();
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     const [crt, setCrt] = useState<string | undefined>();
 
@@ -20,7 +25,9 @@ export const CAReadonlyImporter: React.FC<CAReadonlyImporterProps> = () => {
     const handleImport = async () => {
         setIsLoading(true);
         try {
-            await importReadOnlyCA(window.btoa(crt!));
+            await importReadOnlyCA(caID, window.btoa(crt!));
+            dispatch(actions.caActionsV3.importCAWithKey(caID));
+            navigate(`/cas/${caID}`);
         } catch (error) {
             console.log(error);
             setHasError(true);

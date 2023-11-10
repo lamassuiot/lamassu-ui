@@ -1,7 +1,7 @@
 import React from "react";
 import { Grid, Typography, useTheme } from "@mui/material";
-import { DMS } from "ducks/features/dms-enroller/models";
 import { IconInput } from "../dui/IconInput";
+import { DMS } from "ducks/features/ra/models";
 
 export interface DMSViewerProps {
     dms: DMS,
@@ -15,9 +15,9 @@ export const DMSViewer: React.FC<DMSViewerProps> = ({ dms, simple = false }) => 
         <Grid container spacing={2} alignItems={"center"}>
             <Grid item xs={"auto"}>
                 <IconInput label="" size={40} value={{
-                    bg: dms!.identity_profile.enrollment_settings.color.split("-")[0],
-                    fg: dms!.identity_profile.enrollment_settings.color.split("-")[1],
-                    name: dms!.identity_profile.enrollment_settings.icon
+                    bg: dms!.settings.enrollment_settings.device_provisioning_profile.icon_color.split("-")[0],
+                    fg: dms!.settings.enrollment_settings.device_provisioning_profile.icon_color.split("-")[1],
+                    name: dms!.settings.enrollment_settings.device_provisioning_profile.icon
                 }} />
             </Grid>
 
