@@ -22,7 +22,7 @@ export type Certificate = {
     revocation_timestamp: Moment
     revocation_reason: string
     metadata: any
-    ca_level: number
+    level: number
     issuer_metadata: {
         level: number
         id: string

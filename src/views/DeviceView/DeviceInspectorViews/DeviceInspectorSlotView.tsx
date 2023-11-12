@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Divider, Grid, IconButton, Paper, Typography, useTheme } from "@mui/material";
 import { Box } from "@mui/system";
 import moment from "moment";
@@ -15,11 +15,18 @@ import { TimelineOppositeContent } from "@mui/lab";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate } from "react-router-dom";
 import { getColor } from "components/utils/lamassuColors";
-import { Device } from "ducks/features/devices/models";
+import { Device, Slot, slotStatusToColor } from "ducks/features/devices/models";
+import { apicalls } from "ducks/apicalls";
+import { Certificate, CertificateStatus } from "ducks/features/cav3/models";
 
 interface Props {
-    slotID: string | undefined,
+    slotID?: string | undefined,
     device: Device,
+}
+
+type CertResponse = {
+    version: number,
+    cert: Certificate
 }
 
 export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => {
@@ -34,44 +41,98 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
         filteredSlot = device.slots[slotID];
     }
 
+    const [certificates, setCertificates] = useState<CertResponse[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+
     const [showCertificate, setShowCertificate] = useState(false);
     const [showRevokeCertificate, setShowRevokeCertificate] = useState(false);
 
-    // let slot: DeviceSlot | undefined;
-    const slot = filteredSlot;
-    // if (filteredSlot.length === 1) {
-    //     slot = filteredSlot[0];
-    // } else {
-    //     return (
-    //         <>
-    //             <Box padding="20px">
-    //                 <Typography sx={{ marginTop: "10px", fontStyle: "italic" }}>Device with ID {device.id} does not have slot {slotID}</Typography>
-    //             </Box>
-    //         </>
-    //     );
-    // }
+    const slot: Slot<string> = filteredSlot;
 
-    const decodedCertificateSubject = "";
+    useEffect(() => {
+        const run = async () => {
+            setIsLoading(true);
+            const promises = [];
+            for (let i = 0; i <= slot.active_version; i++) {
+                const sn: string = slot.versions[i];
+                promises.push(apicalls.cas.getCertificate(sn));
+            }
+
+            const responses = await Promise.all(promises);
+            console.log(responses);
+
+            const cerResponses: CertResponse[] = [];
+            for (let i = 0; i <= slot.active_version; i++) {
+                cerResponses.push({ version: i, cert: responses.find(crt => crt.serial_number === slot.versions[i])! });
+            }
+            setCertificates([...cerResponses]);
+            setIsLoading(false);
+        };
+
+        run();
+    }, [slot]);
 
     const certTableColumns = [
-        { key: "serialNumber", title: "Serial Number", align: "start", size: 3 },
+        { key: "version", title: "Version", align: "start", size: 1 },
+        { key: "serialNumber", title: "Serial Number", align: "start", size: 5 },
         { key: "caName", title: "CA Name", align: "center", size: 2 },
         { key: "certificateStatus", title: "Certificate Status", align: "center", size: 1 },
-        { key: "issuedDate", title: "Issued Date", align: "center", size: 1 },
-        { key: "revokeDate", title: "Revocation Date", align: "center", size: 1 }
+        { key: "issuedDate", title: "Issued Date", align: "center", size: 2 },
+        { key: "lifespan", title: "Lifespan", align: "center", size: 2 },
+        { key: "expiredDate", title: "Expiration Date", align: "center", size: 2 },
+        { key: "revokeDate", title: "Revocation Date", align: "center", size: 2 }
     ];
 
-    const certificatesRenderer = (certSN: string) => {
+    const certificatesRenderer = (cert: CertResponse) => {
+        console.log(cert);
+
         return {
-            serialNumber: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary }}>{certSN}</Typography>
-            // caName: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary }}>{cert.ca_name}</Typography>,
-            // certificateStatus: (
-            //     <LamassuChip label={cert.status} color={cert.status_color} />
-            // ),
-            // issuedDate: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary }}>{moment(cert.valid_from).format("DD-MM-YYYY HH:mm")}</Typography>,
-            // revokeDate: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary }}>
-            //     {cert.status === OSlotCertificateStatus.REVOKED ? moment(cert.revocation_timestamp).format("DD-MM-YYYY HH:mm") : "-"}
-            // </Typography>
+            version: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary }}>{cert.version}</Typography>,
+            serialNumber: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary }}>{cert.cert.serial_number}</Typography>,
+            caName: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary }}>{cert.cert.issuer_metadata.id}</Typography>,
+            certificateStatus: (
+                <LamassuChip label={cert.cert.status} color={
+                    cert.cert.status === CertificateStatus.Active ? "green" : "red"
+                } />
+            ),
+            issuedDate: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary }}>{moment(cert.cert.valid_from).format("DD-MM-YYYY HH:mm")}</Typography>,
+            expiredDate: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary }}>
+                <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <div>
+                        {moment(cert.cert.valid_to).format("DD-MM-YYYY HH:mm")}
+                    </div>
+                    <div>
+                        {moment.duration(moment(cert.cert.valid_to).diff(moment())).humanize(true)}
+                    </div>
+                </div>
+            </Typography>,
+            lifespan: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary }}>{
+                moment.duration(moment(cert.cert.valid_to).diff(moment(cert.cert.valid_from))).humanize(false)
+            }</Typography>,
+            revokeDate: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary }}>
+
+                {
+                    cert.cert.status === CertificateStatus.Revoked
+                        ? (
+                            <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                                <div>
+                                    {moment(cert.cert.revocation_timestamp).format("DD-MM-YYYY HH:mm")}
+                                </div>
+                                <div>
+                                    {moment.duration(moment(cert.cert.revocation_timestamp).diff(moment())).humanize(true)}
+                                </div>
+                                <div>
+                                    <LamassuChip compact label={cert.cert.revocation_reason} />
+                                </div>
+                            </div>
+                        )
+                        : (
+                            <>
+                                {"-"}
+                            </>
+                        )
+                }
+            </Typography>
         };
     };
 
@@ -88,10 +149,16 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
                         </IconButton>
                     </Grid>
                     <Grid item xs="auto">
-                        <Typography variant="h5" fontWeight="500" fontSize="15px" textAlign={"center"} sx={{ color: theme.palette.text.main, background: theme.palette.background.lightContrast, display: "inline", padding: "5px 10px", borderRadius: "5px" }}>Slot {slotID}</Typography>
+                        <Typography variant="h5" fontWeight="500" fontSize="15px" textAlign={"center"}
+                            sx={{ color: theme.palette.text.main, background: theme.palette.background.lightContrast, display: "inline", padding: "5px 10px", borderRadius: "5px" }}
+                        >
+                            Identity Slot
+                        </Typography>
                     </Grid>
                     <Grid item xs="auto">
-                        <LamassuChip label={slot.status} color={"gray"} />
+
+                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Slot Active Version: {slot.active_version}</Typography>
+                        <LamassuChip label={slot.status} color={slotStatusToColor(slot.status)} />
                     </Grid>
                     <Grid item xs container flexDirection="column">
                         <Grid item container columnSpacing={8} rowSpacing={0}>
@@ -167,19 +234,7 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
                                         renderFunc: certificatesRenderer,
                                         enableRowExpand: false
                                     }}
-                                    data={Object.values(slot.versions)} />
-                                </Box>
-                            </Box>
-                        </Grid>
-
-                        <Grid item xs="auto" >
-                            <Box component={Paper}>
-                                <Box sx={{ padding: "15px" }}>
-                                    <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 18 }}>Cloud Connectors</Typography>
-                                </Box>
-                                <Divider />
-                                <Box sx={{ height: "calc(100% - 40px)", padding: "20px" }}>
-                                    <>TBD</>
+                                    data={certificates.sort((a, b) => a.version > b.version ? -1 : 1)} />
                                 </Box>
                             </Box>
                         </Grid>

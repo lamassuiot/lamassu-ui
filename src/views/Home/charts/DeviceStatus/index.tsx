@@ -1,40 +1,45 @@
 import { Doughnut } from "components/Charts/Doughnut";
-import { useEffect } from "react";
+import React from "react";
 import { useDispatch } from "react-redux";
 import { useTheme } from "@mui/material";
-import moment from "moment";
+import { DeviceStats, DeviceStatus, deviceStatusToColor } from "ducks/features/devices/models";
+import { capitalizeFirstLetter } from "ducks/reducers_utils";
 
-export const DeviceStatusChart = ({ ...props }) => {
+interface Props {
+    deviceStats : DeviceStats
+    style?: React.CSSProperties
+}
+
+export const DeviceStatusChart : React.FC<Props> = ({ deviceStats, ...props }) => {
     const theme = useTheme();
     const dispatch = useDispatch();
 
-    // const deviceManagerStats = useAppSelector((state) => devicesSelector.getDevicesStats(state));
-    // const deviceManagerStats = useAppSelector((state) => devicesSelector.getDevicesStats(state));
-    const refreshAction = (forceRefresh: boolean) => {
-        // dispatch(devicesAction.getStatsAction.request({ force: forceRefresh }));
-    };
-
-    useEffect(() => {
-        refreshAction(false);
-    }, []);
-
-    const totalDevices = 0;
-    // deviceManagerStats.devices_stats.forEach((st) => {
-    //     totalDevices += st;
-    // });
+    const totalDevices = deviceStats.total;
 
     const enablePrimaryStat = totalDevices !== 0;
-    // const primaryStat = enablePrimaryStat ? Math.floor(deviceManagerStats.devices_stats.get(DeviceStatus.Active)! * 100 / totalDevices) : "-";
-    const primaryStat = "-";
+
+    const primaryStat = enablePrimaryStat ? Math.floor(deviceStats.status_distribution[DeviceStatus.Active] * 100 / totalDevices) : "-";
 
     const dataset: any = [];
-    // deviceManagerStats.devices_stats.forEach((value, key) => {
-    //     // dataset.push({
-    //     //     label: capitalizeFirstLetter(key),
-    //     //     value: value,
-    //     //     color: deviceStatusToColorWithTheme(key, theme)
-    //     // });
-    // });
+    [
+        DeviceStatus.NoIdentity,
+        DeviceStatus.Active,
+        DeviceStatus.ActiveSlotWithPreventive,
+        DeviceStatus.ActiveSlotWithCritical,
+        DeviceStatus.ActiveSlotWithExpiredRevoked,
+        DeviceStatus.Decommissioned
+    ].map((statusKey) => {
+        // @ts-ignore
+        const color = deviceStatusToColor(statusKey as typeof DeviceStatus);
+        dataset.push({
+            label: (
+                <>{capitalizeFirstLetter(statusKey)} - <span>[{deviceStats.status_distribution[statusKey]}]</span></>
+            ),
+            value: deviceStats.status_distribution[statusKey],
+            color: Array.isArray(color) ? color[1] : color
+        });
+        return statusKey;
+    });
 
     return (
 
@@ -42,9 +47,8 @@ export const DeviceStatusChart = ({ ...props }) => {
             small={false}
             dataset={dataset}
             title="Device Provisioning Status"
-            subtitle={`Last update: ${moment().format("DD/MM/YYYY HH:mm")}`}
+            subtitle={""}
             onRefresh={() => {
-                refreshAction(true);
             }}
             primaryStat={primaryStat}
             statLabel={"Provisioned Devices"}

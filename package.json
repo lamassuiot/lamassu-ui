@@ -4,8 +4,6 @@
   "private": true,
   "dependencies": {
     "@date-io/moment": "^2.13.1",
-    "@emotion/react": "11.7.0",
-    "@emotion/styled": "11.6.0",
     "@fidm/x509": "^1.2.1",
     "@loadable/component": "5.15.2",
     "@mui/icons-material": "5.2.0",
@@ -63,7 +61,7 @@
     "react-error-overlay": "6.0.9"
   },
   "scripts": {
-    "start": "set PORT=3000 && react-scripts --openssl-legacy-provider start",
+    "start": "set PORT=3000 && react-scripts  start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",

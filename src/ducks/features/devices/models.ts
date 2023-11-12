@@ -7,6 +7,32 @@ export enum DeviceStatus {
     Decommissioned = "DECOMMISSIONED",
 }
 
+export const deviceStatusToColor = (status: DeviceStatus): string | [string, string] => {
+    switch (status) {
+    case DeviceStatus.NoIdentity:
+        return ["#ffffff", "#08C2D4"];
+    case DeviceStatus.Active:
+        return "green";
+    case DeviceStatus.ActiveSlotWithPreventive:
+        return ["#000000", "#F1DB3D"];
+    case DeviceStatus.ActiveSlotWithCritical:
+        return "orange";
+    case DeviceStatus.ActiveSlotWithExpiredRevoked:
+        return "red";
+    case DeviceStatus.Decommissioned:
+        return ["#ffffff", "#8F56FE"];
+    default:
+        return "gray";
+    }
+};
+
+export type DeviceStats = {
+    total: number
+    status_distribution: {
+        [key: string]: number;
+    }
+}
+
 export type Device = {
     id: string;
     alias: string;
@@ -18,8 +44,8 @@ export type Device = {
     metadata: { [key: string]: any };
     dms_owner: string;
     logs: { [key: string]: LogMsg };
-    identity: Slot<SlotType>
-    slots: { [key: string]: Slot<SlotType> }
+    identity: Slot<string>
+    slots: { [key: string]: Slot<string> }
 }
 
 export enum CryptoSecretType {
@@ -29,8 +55,6 @@ export enum CryptoSecretType {
     Other = "OTHER"
 }
 
-type SlotType = {}
-
 export enum SlotStatus {
     Active = "ACTIVE",
     WarnExpiration = "WARN",
@@ -39,7 +63,24 @@ export enum SlotStatus {
     Revoke = "REVOKED",
 }
 
-export type Slot<T extends SlotType> = {
+export const slotStatusToColor = (status: SlotStatus): string | [string, string] => {
+    switch (status) {
+    case SlotStatus.Active:
+        return "green";
+    case SlotStatus.WarnExpiration:
+        return ["#000000", "#F1DB3D"];
+    case SlotStatus.CriticalExpiration:
+        return "orange";
+    case SlotStatus.Expired:
+        return "red";
+    case SlotStatus.Revoke:
+        return "red";
+    default:
+        return "gray";
+    }
+};
+
+export type Slot<T extends string> = {
     status: SlotStatus;
     active_version: number;
     type: CryptoSecretType;

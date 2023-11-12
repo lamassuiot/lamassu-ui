@@ -1,3 +1,7 @@
+export type DMSStats = {
+    total: number
+}
+
 export type DMS = {
     id: string,
     name: string,
@@ -70,4 +74,31 @@ export type CreateUpdateDMSPayload = {
     name: string,
     metadata: { [key: string]: any },
     settings: DMSSettings,
+}
+
+export enum AWSIoTDMSMetadataRegistrationMode {
+    None = "none",
+    JITP = "jitp",
+    Auto = "auto",
+}
+
+export type AWSIoTPolicy = {
+    policy_name: string,
+    policy_document: string
+}
+
+export type AWSIoTDMSMetadata = {
+    registration_mode: AWSIoTDMSMetadataRegistrationMode
+    groups: string[]
+    policies: AWSIoTPolicy[],
+    jitp_config: {
+        arn: string
+        aws_ca_id: string
+        provisioning_role_arn: string
+        enable_template: boolean
+    }
+    shadow_config: {
+        enable: boolean
+        shadow_name: string
+    }
 }

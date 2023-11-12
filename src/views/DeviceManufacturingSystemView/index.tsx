@@ -48,7 +48,7 @@ export const DMSView = () => {
                     tabs={[
                         {
                             element: <DMSForm onSubmit={async (dms) => {
-                                await apicalls.dms.updateDMS(dms.id, dms);
+                                await apicalls.dms.createDMS(dms);
                                 navigate("/dms");
                             }} />,
                             label: "default"

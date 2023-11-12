@@ -29,3 +29,20 @@ export const getDevices: Epic<RootAction, RootAction, RootState, {}> = (action$,
             )
         )
     );
+
+export const getDeviceByID: Epic<RootAction, RootAction, RootState, {}> = (action$, store$) =>
+    action$.pipe(
+        filter(isActionOf(actions.getDeviceByID.request)),
+        tap((item: any) => console.log("%c Epic ", "background:#399999; border-radius:5px;font-weight: bold;", "", item)),
+        exhaustMap((action: PayloadAction<string, string>) =>
+            from(
+                apicalls.getDeviceByID(
+                    action.payload
+                )
+            ).pipe(
+                map(actions.getDeviceByID.success),
+                tap((item: any) => console.log("%c Epic ", "background:#25eeee; border-radius:5px;font-weight: bold;", "", item)),
+                catchError((message) => of(actions.getDeviceByID.failure(message)))
+            )
+        )
+    );

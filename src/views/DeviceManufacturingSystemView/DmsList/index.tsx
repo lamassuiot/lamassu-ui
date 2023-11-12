@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { Box, Button, Collapse, Grid, IconButton, Paper, Tooltip, Typography, useTheme } from "@mui/material";
+import { Box, Button, Collapse, Grid, IconButton, Paper, Skeleton, Tooltip, Typography, useTheme } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
 import { GoLinkExternal } from "react-icons/go";
@@ -51,15 +51,23 @@ export const DmsList = () => {
 
     if (!requestStatus.isLoading && dmsList.length > 0) {
         content = (
-            <Grid container>
+            <Grid container spacing={2}>
                 {
                     dmsList.map((dms, idx) => (
-                        <Grid item xs={4} key={idx}>
+                        <Grid item xs={6} xl={4} key={idx}>
                             <DMSCardRenderer dms={dms} />
                         </Grid>
                     ))
                 }
             </Grid>
+        );
+    } else if (requestStatus.isLoading) {
+        content = (
+            <Box sx={{ width: "100%", marginBottom: "20px" }}>
+                <Skeleton variant="rectangular" width={"100%"} height={25} sx={{ borderRadius: "5px", marginBottom: "20px" }} />
+                <Skeleton variant="rectangular" width={"100%"} height={25} sx={{ borderRadius: "5px", marginBottom: "20px" }} />
+                <Skeleton variant="rectangular" width={"100%"} height={25} sx={{ borderRadius: "5px", marginBottom: "20px" }} />
+            </Box>
         );
     }
 

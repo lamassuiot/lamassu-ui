@@ -1,6 +1,13 @@
 import { ListResponse, QueryParameters } from "ducks/models";
 import { apiRequest, queryParametersToURL } from "ducks/services/api";
-import { CreateDevicePayload, Device, Slot } from "./models";
+import { CreateDevicePayload, Device, DeviceStats, Slot } from "./models";
+
+export const getStats = async (): Promise<DeviceStats> => {
+    return apiRequest({
+        method: "GET",
+        url: window._env_.LAMASSU_DEVMANAGER + "/v1/stats"
+    }) as Promise<DeviceStats>;
+};
 
 export const getDevices = async (params: QueryParameters): Promise<ListResponse<Device>> => {
     return apiRequest({
@@ -9,11 +16,11 @@ export const getDevices = async (params: QueryParameters): Promise<ListResponse<
     }) as Promise<ListResponse<Device>>;
 };
 
-export const getDeviceByID = async (id: string): Promise<ListResponse<Device>> => {
+export const getDeviceByID = async (id: string): Promise<Device> => {
     return apiRequest({
         method: "GET",
         url: `${window._env_.LAMASSU_DEVMANAGER}/v1/devices/${id}`
-    }) as Promise<ListResponse<Device>>;
+    }) as Promise<Device>;
 };
 
 export const createDevice = async (payload: CreateDevicePayload): Promise<ListResponse<Device>> => {

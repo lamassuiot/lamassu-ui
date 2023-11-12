@@ -6,7 +6,7 @@ import { DynamicIcon } from "components/IconDisplayer/DynamicIcon";
 import { LamassuChip } from "components/LamassuComponents/Chip";
 import { ListWithDataController, ListWithDataControllerConfigProps, OperandTypes } from "components/LamassuComponents/Table";
 import { GoLinkExternal } from "react-icons/go";
-import { Device } from "ducks/features/devices/models";
+import { Device, DeviceStatus, deviceStatusToColor, slotStatusToColor } from "ducks/features/devices/models";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "ducks/hooks";
 import { DeviceCard } from "./components/DeviceCard";
@@ -56,7 +56,7 @@ export const DeviceList = () => {
     );
 
     const refreshAction = () => dispatch(actions.devicesActions.getDevices.request({
-        bookmark: devicesNext,
+        bookmark: "",
         limit: tableConfig.pagination.selectedItemsPerPage!,
         sortField: tableConfig.sort.selectedField!,
         sortMode: tableConfig.sort.selectedMode!,
@@ -86,21 +86,32 @@ export const DeviceList = () => {
 
     const deviceRender = (device: Device) => {
         const dmsContent = device.dms_owner;
+        const iconSplit = device.icon_color.split("-");
         return {
             icon: (
-                <Box component={Paper} sx={{ padding: "5px", background: device.icon_color, borderRadius: 2, width: 20, height: 20, display: "flex", justifyContent: "center", alignItems: "center" }}>
-                    <DynamicIcon icon={device.icon} size={16} color={device.icon_color} />
+                <Box component={Paper} sx={{ padding: "5px", background: iconSplit[0], borderRadius: 2, width: 20, height: 20, display: "flex", justifyContent: "center", alignItems: "center" }}>
+                    <DynamicIcon icon={device.icon} size={16} color={iconSplit[1]} />
                 </Box>
             ),
             id: <Typography style={{ fontWeight: "700", fontSize: 14, color: theme.palette.text.primary }}>{device.id}</Typography>,
             alias: <Typography style={{ fontWeight: "500", fontSize: 14, color: theme.palette.text.primary, textAlign: "center" }}>{device.alias}</Typography>,
-            status: <LamassuChip label={capitalizeFirstLetter(device.status)} color={"grey"} />,
+            status: <LamassuChip label={capitalizeFirstLetter(device.status)} color={
+                deviceStatusToColor(device.status)
+            } />,
             creation_timestamp: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary, textAlign: "center" }}>{moment(device.creation_ts).format("DD/MM/YYYY HH:mm")}</Typography>,
             dms: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary, textAlign: "center" }}>{dmsContent}</Typography>,
             slots: (
                 <Grid item xs={12} container spacing={1} justifyContent="center">
                     <Grid item>
-                        <LamassuChip color={"grey"} label={`IdentitySlot: ${device.identity.status}`} compact={true} compactFontSize />
+                        {
+                            device.status === DeviceStatus.NoIdentity
+                                ? (
+                                    <LamassuChip label="No Identity" color={"gray"} />
+                                )
+                                : (
+                                    <LamassuChip color={slotStatusToColor(device.identity.status)} label={`IdentitySlot: ${device.identity.status}`} compact={true} compactFontSize />
+                                )
+                        }
                     </Grid>
                 </Grid>
             ),
@@ -122,7 +133,7 @@ export const DeviceList = () => {
                             <Grid item>
                                 <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
                                     <IconButton onClick={() => {
-                                        if (device.identity.active_version > 0) {
+                                        if (device.identity) {
                                             navigate(device.id);
                                         }
                                     }}>

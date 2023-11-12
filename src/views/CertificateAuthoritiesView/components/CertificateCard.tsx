@@ -10,20 +10,17 @@ interface Props {
     ca: CertificateAuthority
     engine: CryptoEngine
     selected: boolean,
+    elevation?: boolean,
     onClick?: any,
     style?: any
 }
 
-export const CertificateCard: React.FC<Props> = ({ ca, engine, selected = false, onClick = () => { }, style = {} }) => {
+export const CertificateCard: React.FC<Props> = ({ ca, engine, elevation = true, selected = false, onClick = () => { }, style = {} }) => {
     const theme = useTheme();
     const height = 120;
 
-    return (
-        <Box elevation={selected ? 4 : 1}
-            component={Paper}
-            onClick={onClick}
-            style={{ width: "auto", height: height, borderRadius: 10, background: theme.palette.background.default, cursor: "pointer", ...style }}
-        >
+    const card = (
+        <>
             <Box style={{ borderBottom: `1px solid ${theme.palette.divider}`, width: "100%", height: "60%" }}>
                 <Grid container style={{ height: "100%", padding: "0 10px 0 20px" }} justifyContent="center" alignItems="center" spacing={1}>
                     {
@@ -34,16 +31,16 @@ export const CertificateCard: React.FC<Props> = ({ ca, engine, selected = false,
                         )
                     }
                     <Grid item xs>
-                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>{`${ca.key_metadata.type} ${ca.key_metadata.bits}`}</Typography>
+                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>{`${ca.key_metadata.type} ${ca.key_metadata.bits} - ${ca.key_metadata.strength}`}</Typography>
                         <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 20, lineHeight: "24px" }}>{ca.subject.common_name}</Typography>
-                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>{ca.id}</Typography>
+                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 12 }}>{ca.id}</Typography>
                     </Grid>
                     <Grid item xs="auto" container direction="column" justifyContent="center" alignItems="center">
                         <Grid item>
-                            <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>Key Strength</Typography>
+                            <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>Hierarchy Level</Typography>
                         </Grid>
                         <Grid item>
-                            <LamassuChip rounded label={ca.key_metadata.strength} style={{ width: "55px", marginTop: "5px" }} bold compact />
+                            <LamassuChip rounded label={ca.level === 0 ? "ROOT" : `Level ${ca.level}`} style={{ width: "55px", marginTop: "5px" }} bold compact />
                         </Grid>
                     </Grid>
                 </Grid>
@@ -62,8 +59,25 @@ export const CertificateCard: React.FC<Props> = ({ ca, engine, selected = false,
                     </Grid>
                 </Grid>
             </Box>
+        </>
+    );
 
-            <Box style={{ width: 10, height: height * 0.6, borderTopRightRadius: 10, borderBottomRightRadius: 10, background: selected ? theme.palette.primary.main : "transparent", position: "relative", top: -height * 0.80 }} />
-        </Box >
+    if (!elevation) {
+        return card;
+    }
+
+    return (
+        <>
+            <Box elevation={selected ? 4 : 1}
+                component={Paper}
+                onClick={onClick}
+                style={{ width: "auto", height: height, borderRadius: 10, background: theme.palette.background.default, cursor: "pointer", ...style }}
+            >
+                {
+                    card
+                }
+                <Box style={{ width: 10, height: height * 0.6, borderTopRightRadius: 10, borderBottomRightRadius: 10, background: selected ? theme.palette.primary.main : "transparent", position: "relative", top: -height * 0.80 }} />
+            </Box >
+        </>
     );
 };

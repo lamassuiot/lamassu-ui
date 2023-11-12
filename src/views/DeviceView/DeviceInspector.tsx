@@ -12,6 +12,9 @@ import { RequestStatus, capitalizeFirstLetter } from "ducks/reducers_utils";
 import SplitButton, { Option } from "components/LamassuComponents/SplitButton";
 import { useAppSelector } from "ducks/hooks";
 import { selectors } from "ducks/reducers";
+import { DeviceStatus, deviceStatusToColor } from "ducks/features/devices/models";
+import { DeviceInspectorSlotView } from "./DeviceInspectorViews/DeviceInspectorSlotView";
+import { actions } from "ducks/actions";
 
 interface Props {
     deviceID: string,
@@ -30,13 +33,15 @@ export const DeviceInspector: React.FC<Props> = ({ deviceID }) => {
     }, []);
 
     const refreshAction = () => {
-
+        dispatch(actions.devicesActions.getDeviceByID.request(deviceID));
     };
 
-    const deviceActions: Option[] = [
-        // { disabled: device.status === DeviceStatus.NoIdentity, label: "Provision Device", onClick: () => { setShowProvisionDevice(true); } },
-        // { disabled: device.status === DeviceStatus.Decommissioned, label: "Decommission Device", onClick: () => { dispatch(devicesAction.decommissionDeviceAction.request({ deviceID: deviceID })); } }
-    ];
+    const deviceActions: Option[] = [];
+
+    if (device) {
+        deviceActions.push({ disabled: device.status === DeviceStatus.NoIdentity, label: "Provision Device", onClick: () => { } });
+        deviceActions.push({ disabled: device.status === DeviceStatus.Decommissioned, label: "Decommission Device", onClick: () => { } });
+    }
 
     if (!requestStatus.isLoading && requestStatus.status === RequestStatus.Failed) {
         return (
@@ -59,8 +64,8 @@ export const DeviceInspector: React.FC<Props> = ({ deviceID }) => {
                                     <Skeleton variant="rectangular" width={"40px"} height={"40px"} sx={{ borderRadius: "10px", marginBottom: "20px" }} />
                                 )
                                 : (
-                                    <Box component={Paper} sx={{ padding: "5px", background: device!.icon_color, borderRadius: 2, width: 40, height: 40, display: "flex", justifyContent: "center", alignItems: "center" }}>
-                                        <DynamicIcon icon={device!.icon} size={30} color={device!.icon_color} />
+                                    <Box component={Paper} sx={{ padding: "5px", background: device!.icon_color.split("-")[0], borderRadius: 2, width: 40, height: 40, display: "flex", justifyContent: "center", alignItems: "center" }}>
+                                        <DynamicIcon icon={device!.icon} size={30} color={device!.icon_color.split("-")[1]} />
                                     </Box>
                                 )
                         }
@@ -90,7 +95,7 @@ export const DeviceInspector: React.FC<Props> = ({ deviceID }) => {
                                                 <Skeleton variant="rectangular" width={"60px"} height={"20px"} sx={{ borderRadius: "10px", marginBottom: "20px" }} />
                                             )
                                             : (
-                                                <LamassuChip label={capitalizeFirstLetter(device!.status)} color={"gray"} />
+                                                <LamassuChip label={capitalizeFirstLetter(device!.status)} color={deviceStatusToColor(device!.status)} />
                                             )
                                     }
                                 </Grid>
@@ -156,23 +161,11 @@ export const DeviceInspector: React.FC<Props> = ({ deviceID }) => {
                     </Grid>
                 </Box>
             </Box>
-            {/* {
-                device !== undefined && (
-                    <>
-                        {
-                            slotID !== undefined
-                                ? (
-                                    <DeviceInspectorSlotView slotID={slotID} deviceID={deviceID} />
-                                )
-                                : (
-                                    <DeviceInspectorSlotList deviceID={deviceID} onSlotClick={(slotId: any) => {
-                                        navigate(slotId);
-                                    }} />
-                                )
-                        }
-                    </>
+            {
+                device !== undefined && device.status !== DeviceStatus.NoIdentity && (
+                    <DeviceInspectorSlotView device={device} />
                 )
-            } */}
+            }
         </Box>
     );
 };

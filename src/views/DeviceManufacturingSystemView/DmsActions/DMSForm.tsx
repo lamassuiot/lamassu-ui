@@ -1,3 +1,4 @@
+/* eslint-disable no-template-curly-in-string */
 import React, { useEffect, useState } from "react";
 
 import { Alert, Button, Divider, Grid, MenuItem, Skeleton, useTheme, styled, Chip } from "@mui/material";
@@ -8,7 +9,7 @@ import { FormSelect } from "components/LamassuComponents/dui/form/Select";
 import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
 import { FormIconInput } from "components/LamassuComponents/dui/form/IconInput";
 import { FormSwitch } from "components/LamassuComponents/dui/form/Switch";
-import { CreateUpdateDMSPayload, DMS, ESTAuthMode, EnrollmentProtocols, EnrollmentRegistrationMode } from "ducks/features/ra/models";
+import { AWSIoTDMSMetadata, AWSIoTDMSMetadataRegistrationMode, AWSIoTPolicy, CreateUpdateDMSPayload, DMS, ESTAuthMode, EnrollmentProtocols, EnrollmentRegistrationMode } from "ducks/features/ra/models";
 import { FormMultiTextInput } from "components/LamassuComponents/dui/form/MultiTextInput";
 import { getCAs } from "ducks/features/cav3/apicalls";
 import CASelectorV2 from "components/LamassuComponents/lamassu/CASelectorV2";
@@ -64,12 +65,15 @@ type FormData = {
     },
     awsIotIntegration: {
         id: string
+        accountID: string,
+        mode: AWSIoTDMSMetadataRegistrationMode
+        enableJITP: boolean;
         thingGroups: string[]
-        policies: { policyName: string, policyDocument: string }[]
+        policies: AWSIoTPolicy[]
         enableShadow: boolean;
-        enableCADistributionSync: boolean
         shadowType: "classic" | "named";
         namedShadowName: string
+        enableCADistributionSync: boolean
     }
 };
 
@@ -78,6 +82,9 @@ interface Props {
     onSubmit: (dms: CreateUpdateDMSPayload) => void,
     actionLabel?: string
 }
+
+const baseDefaultAWSPolicyName = "lms-remediation-access";
+const defaultLamassuPolicyName = (dmsid: string) => `${dmsid}.${baseDefaultAWSPolicyName}`;
 
 export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create" }) => {
     const editMode = dms !== undefined;
@@ -120,20 +127,24 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                 managedCAs: []
             },
             awsIotIntegration: {
+                id: "",
+                accountID: "",
+                mode: AWSIoTDMSMetadataRegistrationMode.Auto,
+                enableJITP: true,
                 enableShadow: true,
                 enableCADistributionSync: true,
                 shadowType: "classic",
-                id: "",
                 namedShadowName: "lamassu-identity",
-                thingGroups: [],
+                thingGroups: ["LAMASSU"],
                 policies: []
             }
         }
     });
 
     const watchDmsName = watch("dmsDefinition.name");
+    const watchDmsId = watch("dmsDefinition.id");
     const watchEnrollmentCA = watch("enrollProtocol.enrollmentCA");
-    const watchConnectorID = watch("awsIotIntegration.id");
+    const watchAwsIotIntegration = watch("awsIotIntegration");
 
     useEffect(() => {
         if (!editMode) {
@@ -142,24 +153,44 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
         }
     }, [watchDmsName]);
 
-    const registeredInAWSKey = `lamassu.io/iot/${watchConnectorID}`;
+    const registeredInAWSKey = `lamassu.io/iot/${watchAwsIotIntegration.id}`;
 
     const [awsSync, setAwsSync] = useState(AWSSync.RequiresSync);
     useEffect(() => {
-        if (watchEnrollmentCA !== undefined) {
+        if (watchEnrollmentCA !== undefined && watchAwsIotIntegration.id !== "") {
             const caMeta = watchEnrollmentCA.metadata;
             if (registeredInAWSKey in caMeta && caMeta[registeredInAWSKey].register === true) {
                 setAwsSync(AWSSync.SyncOK);
             }
         }
-    }, [watchEnrollmentCA, watchConnectorID]);
+    }, [watchEnrollmentCA, watchAwsIotIntegration.id]);
+
+    useEffect(() => {
+        if (watchAwsIotIntegration.id !== "" && watchAwsIotIntegration.accountID === "") {
+            let acc = watchAwsIotIntegration.id;
+            const accSplit = acc.split(".");
+            if (accSplit.length === 2) {
+                acc = accSplit[1];
+            }
+
+            setValue("awsIotIntegration.accountID", acc);
+        }
+    }, [watchAwsIotIntegration.id]);
+
+    // useEffect(() => {
+    //     const idx = watchAwsIotIntegration.policies.findIndex(p => p.policy_name === defaultLamassuPolicyName(watchDmsId));
+    //     if (idx !== -1) {
+    //         const newP = [...watchAwsIotIntegration.policies];
+    //         newP.splice(idx, 1);
+    //         setValue("awsIotIntegration.policies", [...newP]);
+    //     }
+    // }, [watchAwsIotIntegration.shadowType, watchAwsIotIntegration.namedShadowName]);
 
     useEffect(() => {
         const run = async () => {
             if (!editMode) {
                 setLoading(false);
             } else {
-                console.log(dms!.settings.ca_distribution_settings.managed_cas);
                 const casResp = await getCAs({ bookmark: "", filters: [], limit: 25, sortField: "", sortMode: "asc" });
                 const updateDMS: FormData = {
                     dmsDefinition: {
@@ -196,15 +227,40 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         managedCAs: dms!.settings.ca_distribution_settings.managed_cas.map(ca => casResp.list.find(caF => caF.id === ca)!)
                     },
                     awsIotIntegration: {
+                        id: "",
+                        accountID: "",
+                        mode: AWSIoTDMSMetadataRegistrationMode.Auto,
+                        enableJITP: true,
                         enableShadow: true,
                         enableCADistributionSync: true,
                         shadowType: "classic",
-                        id: "",
-                        namedShadowName: "",
-                        thingGroups: [],
+                        namedShadowName: "lamassu-identity",
+                        thingGroups: ["LAMASSU"],
                         policies: []
                     }
                 };
+
+                const dmsMeta = dms.metadata;
+
+                const firstConnectorKey = Object.keys(dmsMeta).find(key => key.includes("lamassu.io/iot/"));
+                if (firstConnectorKey && firstConnectorKey.startsWith("lamassu.io/iot/aws.")) {
+                    console.log(firstConnectorKey);
+                    const awsMetaConfig: AWSIoTDMSMetadata = dmsMeta[firstConnectorKey];
+                    const connectorID = firstConnectorKey.replace("lamassu.io/iot/", "");
+                    updateDMS.awsIotIntegration = {
+                        id: connectorID,
+                        accountID: "",
+                        mode: awsMetaConfig.registration_mode,
+                        enableJITP: awsMetaConfig.jitp_config.enable_template,
+                        enableShadow: awsMetaConfig.shadow_config.enable,
+                        enableCADistributionSync: true,
+                        shadowType: awsMetaConfig.shadow_config.shadow_name === "" ? "classic" : "named",
+                        namedShadowName: awsMetaConfig.shadow_config.shadow_name === "" ? "" : awsMetaConfig.shadow_config.shadow_name,
+                        thingGroups: awsMetaConfig.groups,
+                        policies: awsMetaConfig.policies
+                    };
+                }
+
                 console.log(updateDMS);
                 setLoading(false);
                 reset(updateDMS);
@@ -225,12 +281,62 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
 
     const submit = handleSubmit(data => {
         const run = async () => {
+            let awsMeta = {};
+            if (data.awsIotIntegration.id !== "") {
+                let shadowConfig = {
+                    enable: false,
+                    shadow_name: ""
+                };
+
+                if (data.awsIotIntegration.enableShadow) {
+                    shadowConfig = {
+                        enable: true,
+                        shadow_name: data.awsIotIntegration.shadowType === "classic"
+                            ? ""
+                            : (
+                                data.awsIotIntegration.namedShadowName === "lamassu-identity" ? "" : data.awsIotIntegration.namedShadowName
+                            )
+                    };
+                }
+
+                let jitpConfig: any = {
+                    enable_template: false,
+                    provisioning_role_arn: "",
+                    aws_ca_id: ""
+                };
+
+                if (data.awsIotIntegration.enableJITP) {
+                    jitpConfig = {
+                        enable_template: true,
+                        provisioning_role_arn: ""
+                    };
+
+                    const key = `lamassu.io/iot/${data.awsIotIntegration.id}`;
+                    const enrollmentCA = data.enrollProtocol.enrollmentCA;
+                    if (enrollmentCA && enrollmentCA.metadata[key] !== undefined) {
+                        const awsCertID = enrollmentCA.metadata[key].certificate_id;
+                        if (awsCertID !== undefined) {
+                            jitpConfig.aws_ca_id = awsCertID;
+                        }
+                    }
+                }
+
+                awsMeta = {
+                    [`lamassu.io/iot/${data.awsIotIntegration.id}`]: {
+                        registration_mode: data.awsIotIntegration.mode,
+                        jitp_config: jitpConfig,
+                        shadow_config: shadowConfig,
+                        policies: data.awsIotIntegration.policies,
+                        groups: data.awsIotIntegration.thingGroups
+                    }
+                };
+            }
+
             const actionPayload: CreateUpdateDMSPayload = {
                 name: data.dmsDefinition.name,
                 id: data.dmsDefinition.id,
-                metadata: {},
+                metadata: { ...awsMeta },
                 settings: {
-
                     enrollment_settings: {
                         enrollment_ca: data.enrollProtocol.enrollmentCA!.id,
                         protocol: data.enrollProtocol.protocol,
@@ -428,123 +534,203 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         </FormSelect>
                     </Grid>
 
-                    <Grid item xs={12}>
-                        <SubsectionTitle fontSize={"16px"}>Provisioning Template</SubsectionTitle>
-                    </Grid>
+                    {
+                        watchAwsIotIntegration.id !== "" && (
+                            <>
+                                <Grid item xs={12} container flexDirection={"column"}>
+                                    <FormSelect control={control} name="awsIotIntegration.mode" label="Thing Provisioning">
+                                        <MenuItem value={"auto"}>Automatic Registration on Enrollment</MenuItem>
+                                        <MenuItem value={"jitp"}>JITP Template</MenuItem>
+                                        <MenuItem value={"none"}>None</MenuItem>
+                                    </FormSelect>
+                                </Grid>
 
-                    {
-                        awsSync !== AWSSync.SyncOK && watchConnectorID !== "" && watchEnrollmentCA !== undefined && (
-                            <Grid item xs={12} container flexDirection={"column"}>
-                                <Alert severity="warning">
-                                    <Grid container flexDirection={"column"}>
-                                        {
-                                            awsSync === AWSSync.RequiresSync && (
-                                                <Grid item>
-                                                    <Grid item>
-                                                        The selected Enrollment CA is not registered in AWS. Make sure to synchronize it first.
-                                                    </Grid>
-                                                    <Button onClick={async () => {
-                                                        await apicalls.cas.updateCAMetadata(watchEnrollmentCA.id, {
-                                                            ...watchEnrollmentCA.metadata,
-                                                            [registeredInAWSKey]: {
-                                                                register: true
-                                                            }
-                                                        });
-                                                        setAwsSync(AWSSync.SyncInProgress);
-                                                    }}>Synchronize CA</Button>
-                                                </Grid>
-                                            )
-                                        }
-                                        {
-                                            awsSync === AWSSync.SyncInProgress && (
-                                                <Grid item>
-                                                    <Grid item>
-                                                        Registering process underway. CA should be registered soon, click on &apos;Reload & Check&apos; periodically.
-                                                    </Grid>
-                                                    <Button onClick={async () => {
-                                                        const ca = await apicalls.cas.getCA(watchEnrollmentCA.id);
-                                                        setValue("enrollProtocol.enrollmentCA", ca);
-                                                    }}>Reload & Check </Button>
-                                                </Grid>
-                                            )
-                                        }
-                                    </Grid>
-                                </Alert>
-                            </Grid>
-                        )
-                    }
-                    {
-                        awsSync === AWSSync.SyncOK && (
-                            <Grid item xs={12} container flexDirection={"column"}>
-                                <FullAlert severity="success">
-                                    <Grid container flexDirection={"column"} spacing={2} sx={{ width: "100%" }}>
-                                        <Grid item>
-                                            The selected Enrollment CA is correctly registered in AWS:
-                                        </Grid>
-                                        <Grid item container flexDirection={"column"} spacing={1} sx={{ width: "100%" }}>
+                                {
+                                    watchAwsIotIntegration.mode !== "none" && watchEnrollmentCA !== undefined && (
+                                        <>
                                             {
-                                                Object.keys(watchEnrollmentCA!.metadata[registeredInAWSKey]).map((key, idx) => {
-                                                    return (
-                                                        <Grid item key={idx} container>
-                                                            <Grid item xs={2}>
-                                                                <Label>{key}</Label>
+                                                awsSync !== AWSSync.SyncOK && watchEnrollmentCA !== undefined && (
+                                                    <Grid item xs={12} container flexDirection={"column"}>
+                                                        <Alert severity="warning">
+                                                            <Grid container flexDirection={"column"}>
+                                                                {
+                                                                    awsSync === AWSSync.RequiresSync && (
+                                                                        <Grid item>
+                                                                            <Grid item>
+                                                                                The selected Enrollment CA is not registered in AWS. Make sure to synchronize it first.
+                                                                            </Grid>
+                                                                            <Button onClick={async () => {
+                                                                                await apicalls.cas.updateCAMetadata(watchEnrollmentCA.id, {
+                                                                                    ...watchEnrollmentCA.metadata,
+                                                                                    [registeredInAWSKey]: {
+                                                                                        register: true
+                                                                                    }
+                                                                                });
+                                                                                setAwsSync(AWSSync.SyncInProgress);
+                                                                            }}>Synchronize CA</Button>
+                                                                        </Grid>
+                                                                    )
+                                                                }
+                                                                {
+                                                                    awsSync === AWSSync.SyncInProgress && (
+                                                                        <Grid item>
+                                                                            <Grid item>
+                                                                                Registering process underway. CA should be registered soon, click on &apos;Reload & Check&apos; periodically.
+                                                                            </Grid>
+                                                                            <Button onClick={async () => {
+                                                                                const ca = await apicalls.cas.getCA(watchEnrollmentCA.id);
+                                                                                setValue("enrollProtocol.enrollmentCA", ca);
+                                                                            }}>
+                                                                                Reload & Check
+                                                                            </Button>
+                                                                        </Grid>
+                                                                    )
+                                                                }
                                                             </Grid>
-                                                            <Grid item xs>
-                                                                <Label>{watchEnrollmentCA!.metadata[registeredInAWSKey][key]}</Label>
-                                                            </Grid>
-                                                        </Grid>
-                                                    );
-                                                })
+                                                        </Alert>
+                                                    </Grid>
+                                                )
                                             }
-                                        </Grid>
-                                    </Grid>
-                                </FullAlert>
-                            </Grid>
+                                            {
+                                                awsSync === AWSSync.SyncOK && (
+                                                    <Grid item xs={12} container flexDirection={"column"}>
+                                                        <FullAlert severity="success">
+                                                            <Grid container flexDirection={"column"} spacing={2} sx={{ width: "100%" }}>
+                                                                <Grid item>
+                                                                    The selected Enrollment CA is correctly registered in AWS:
+                                                                </Grid>
+                                                                <Grid item>
+                                                                    <Button onClick={async () => {
+                                                                        const ca = await apicalls.cas.getCA(watchEnrollmentCA!.id);
+                                                                        setValue("enrollProtocol.enrollmentCA", ca);
+                                                                    }}>
+                                                                        Reload & Check
+                                                                    </Button>
+                                                                </Grid>
 
+                                                                <Grid item container flexDirection={"column"} spacing={1} sx={{ width: "100%" }}>
+                                                                    {
+                                                                        Object.keys(watchEnrollmentCA!.metadata[registeredInAWSKey]).map((key, idx) => {
+                                                                            return (
+                                                                                <Grid item key={idx} container>
+                                                                                    <Grid item xs={2}>
+                                                                                        <Label>{key}</Label>
+                                                                                    </Grid>
+                                                                                    <Grid item xs>
+                                                                                        <Label>{watchEnrollmentCA!.metadata[registeredInAWSKey][key]}</Label>
+                                                                                    </Grid>
+                                                                                </Grid>
+                                                                            );
+                                                                        })
+                                                                    }
+                                                                </Grid>
+                                                            </Grid>
+                                                        </FullAlert>
+                                                    </Grid>
+
+                                                )
+                                            }
+
+                                            <Grid item xs={12} container flexDirection={"column"}>
+                                                <FormMultiTextInput control={control} name="awsIotIntegration.thingGroups" label="AWS Thing Groups" />
+                                            </Grid>
+
+                                            <Grid item xs={12} container flexDirection={"column"}>
+                                                <AWSPolicyBuilder value={getValues("awsIotIntegration.policies")} onChange={(policies) => setValue("awsIotIntegration.policies", policies)} />
+                                            </Grid>
+                                        </>
+                                    )
+                                }
+
+                                {
+                                    watchAwsIotIntegration.mode === "jitp" && (
+                                        <>
+                                            <Grid item xs={12}>
+                                                <SubsectionTitle fontSize={"16px"}>Provisioning Template</SubsectionTitle>
+                                            </Grid>
+
+                                            <Grid item xs={12} container flexDirection={"column"}>
+                                                <FormSwitch control={control} name="awsIotIntegration.enableJITP" label="Enable JITP template" />
+                                            </Grid>
+
+                                            {/*
+                                                <Grid item xs={12}>
+                                                    <SubsectionTitle fontSize={"16px"}>Lamassu &harr; AWS IoT Synchronization</SubsectionTitle>
+                                                </Grid>
+
+                                                <Grid item xs={12} container flexDirection={"column"}>
+                                                    <FormSelect control={control} name="iotIntegrations.shadowType" label="Revocation Origin">
+                                                        <MenuItem value={"classic"}>Only Lamassu</MenuItem>
+                                                        <MenuItem value={"named"}>Allow Revocations from AWS (requires infra)</MenuItem>
+                                                    </FormSelect>
+                                                </Grid>
+                                            */}
+                                        </>
+                                    )
+                                }
+
+                                <Grid item xs={12}>
+                                    <SubsectionTitle fontSize={"16px"}>Shadows & Device Automation</SubsectionTitle>
+                                </Grid>
+
+                                {/* <Grid item xs={12} container flexDirection={"column"}>
+                                    <FormSwitch control={control} name="awsIotIntegration.enableCADistributionSync" label="Enable CA Distribution using retained message" />
+                                </Grid> */}
+
+                                <Grid item xs={12} container flexDirection={"column"}>
+                                    <FormSwitch control={control} name="awsIotIntegration.enableShadow" label="Update Device - Thing Shadow on relevant events" />
+                                </Grid>
+
+                                {
+                                    watchAwsIotIntegration.enableShadow && (
+                                        <Grid item xs={12} container flexDirection={"column"}>
+                                            <FormSelect control={control} name="awsIotIntegration.shadowType" label="Shadow Type">
+                                                <MenuItem value={"classic"}>Classic</MenuItem>
+                                                <MenuItem value={"named"}>Named</MenuItem>
+                                            </FormSelect>
+                                        </Grid>
+                                    )
+                                }
+                                {
+                                    watchAwsIotIntegration.shadowType === "named" && (
+                                        <Grid item xs={12}>
+                                            <FormTextField label="Named shadow" control={control} name="awsIotIntegration.namedShadowName" />
+                                        </Grid>
+                                    )
+                                }
+                                {
+                                    watchAwsIotIntegration.enableShadow === true && watchAwsIotIntegration.policies.find(p => p.policy_name === defaultLamassuPolicyName(watchDmsId)) === undefined && (
+                                        <Grid item xs={12} container flexDirection={"column"}>
+                                            <Alert severity="warning">
+                                                <Grid container spacing={2} flexDirection={"column"}>
+                                                    <Grid item>
+                                                        Make sure to add a policy allowing access to shadow topics
+                                                    </Grid>
+                                                    <Grid item container spacing={1} flexDirection={"column"}>
+                                                        <Grid item>
+                                                            <FormTextField label="AWS Account ID" control={control} name="awsIotIntegration.accountID" />
+                                                        </Grid>
+                                                        <Grid item>
+                                                            <Button onClick={async () => {
+                                                                setValue("awsIotIntegration.policies", [...getValues("awsIotIntegration.policies"), {
+                                                                    policy_name: defaultLamassuPolicyName(watchDmsId),
+                                                                    policy_document: policyBuilder(
+                                                                        watchAwsIotIntegration.accountID,
+                                                                        watchAwsIotIntegration.shadowType === "classic" ? "" : watchAwsIotIntegration.namedShadowName
+                                                                    )
+                                                                }]);
+                                                            }}>{"Add 'lms-remediation-access' Policy"}
+                                                            </Button>
+                                                        </Grid>
+                                                    </Grid>
+                                                </Grid>
+                                            </Alert>
+                                        </Grid>
+                                    )
+                                }
+                            </>
                         )
                     }
-
-                    <Grid item xs={12} container flexDirection={"column"}>
-                        <FormMultiTextInput control={control} name="awsIotIntegration.thingGroups" label="AWS Thing Groups" />
-                    </Grid>
-
-                    <Grid item xs={12} container flexDirection={"column"}>
-                        <AWSPolicyBuilder />
-                    </Grid>
-
-                    <Grid item xs={12}>
-                        <SubsectionTitle fontSize={"16px"}>Device Automation</SubsectionTitle>
-                    </Grid>
-
-                    <Grid item xs={12} container flexDirection={"column"}>
-                        <FormSwitch control={control} name="awsIotIntegration.enableShadow" label="Update Device - Thing Shadow on relevant events. (Includes 'lms-remediation-access' Access Policy)" />
-                    </Grid>
-
-                    <Grid item xs={12} container flexDirection={"column"}>
-                        <FormSwitch control={control} name="awsIotIntegration.enableCADistributionSync" label="Enable CA Distribution using retained message" />
-                    </Grid>
-
-                    <Grid item xs={12} container flexDirection={"column"}>
-                        <FormSelect control={control} name="awsIotIntegration.shadowType" label="Shadow Type">
-                            <MenuItem value={"classic"}>Classic</MenuItem>
-                            <MenuItem value={"named"}>Named</MenuItem>
-                        </FormSelect>
-                    </Grid>
-
-                    <Grid item xs={12}>
-                        <FormTextField label="Named shadow" control={control} name="awsIotIntegration.namedShadowName" />
-                    </Grid>
-
-                    {/* <Grid item xs={12}>
-                        <SubsectionTitle fontSize={"16px"}>Lamassu &harr; AWS IoT Synchronization</SubsectionTitle>
-                    </Grid>
-
-                    <Grid item xs={12} container flexDirection={"column"}>
-                        <FormSelect control={control} name="iotIntegrations.shadowType" label="Revocation Origin">
-                            <MenuItem value={"classic"}>Only Lamassu</MenuItem>
-                            <MenuItem value={"named"}>Allow Revocations from AWS (requires infra)</MenuItem>
-                        </FormSelect>
-                    </Grid> */}
                 </Grid>
 
                 <Grid item sx={{ width: "100%" }}>
@@ -561,12 +747,16 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
     );
 };
 
-const AWSPolicyBuilder = () => {
-    const [policies, setPolicies] = useState<{ policyName: string, policyDocument: string }[]>([]);
+interface AWSPolicyBuilderProps {
+    value: AWSIoTPolicy[],
+    onChange: (policies: AWSIoTPolicy[]) => void,
+}
+
+const AWSPolicyBuilder: React.FC<AWSPolicyBuilderProps> = ({ value, onChange }) => {
     const [showModal, setShowModal] = useState(false);
 
     const [newPolicyName, setNewPolicyName] = useState("");
-    const [newPolicyDoc, setNewPolicyDoc] = useState("");
+    const [newPolicyDoc, setNewPolicyDoc] = useState("{}");
 
     const close = () => {
         setNewPolicyName("");
@@ -603,15 +793,16 @@ const AWSPolicyBuilder = () => {
                                     </Grid>
                                     <Grid item xs="auto">
                                         <Button variant="contained" onClick={() => {
-                                            const newP = [...policies];
-                                            const index = newP.findIndex(it => it.policyName === newPolicyName);
-                                            const item = { policyName: newPolicyName, policyDocument: newPolicyDoc };
+                                            const newP = [...value];
+                                            const index = newP.findIndex(it => it.policy_name === newPolicyName);
+                                            const item = { policy_name: newPolicyName, policy_document: JSON.stringify(JSON.parse(newPolicyDoc), null, 4) };
                                             if (index === -1) {
                                                 newP.push(item);
                                             } else {
                                                 newP[index] = item;
                                             }
-                                            setPolicies([...newP]);
+
+                                            onChange([...newP]);
 
                                             close();
                                         }}>Add</Button>
@@ -623,16 +814,16 @@ const AWSPolicyBuilder = () => {
                     </Grid>
                     <Grid item container spacing={1}>
                         {
-                            policies.map((p, idx) => (
+                            value.map((p, idx) => (
                                 <Grid item key={idx}>
-                                    <Chip label={p.policyName} onClick={() => {
-                                        setNewPolicyName(p.policyName);
-                                        setNewPolicyDoc(p.policyDocument);
+                                    <Chip label={p.policy_name} onClick={() => {
+                                        setNewPolicyName(p.policy_name);
+                                        setNewPolicyDoc(JSON.stringify(JSON.parse(p.policy_document), null, 4));
                                         setShowModal(true);
                                     }} onDelete={() => {
-                                        const newP = [...policies];
+                                        const newP = [...value];
                                         newP.splice(idx, 1);
-                                        setPolicies([...newP]);
+                                        onChange([...newP]);
                                     }} />
                                 </Grid>
                             ))
@@ -642,3 +833,59 @@ const AWSPolicyBuilder = () => {
             } />
     );
 };
+
+function policyBuilder (accountID: string, shadowName: string) {
+    let shadowReplacer = "";
+    if (shadowName !== "") {
+        shadowReplacer = `name/${shadowName}/`;
+    }
+
+    const str = {
+        Version: "2012-10-17",
+        Statement: [
+            {
+                Effect: "Allow",
+                Action: [
+                    "iot:Connect"
+                ],
+                Resource: [
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:client/${iot:Connection.Thing.ThingName}"
+                ]
+            },
+            {
+                Effect: "Allow",
+                Action: [
+                    "iot:Publish"
+                ],
+                Resource: [
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID*"
+                ]
+            },
+            {
+                Effect: "Allow",
+                Action: [
+                    "iot:Subscribe"
+                ],
+                Resource: [
+                    // "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/dt/lms/well-known/cacerts",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/${iot:Connection.Thing.ThingName}",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/${iot:Connection.Thing.ThingName}/shadow/SHADOWID*"
+                ]
+            },
+            {
+                Effect: "Allow",
+                Action: [
+                    "iot:Receive"
+                ],
+                Resource: [
+                    // "arn:aws:iot:eu-west-1:ACCOUNTID:topic/dt/lms/well-known/cacerts",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID*"
+                ]
+            }
+        ]
+    };
+
+    return JSON.stringify(str).replaceAll("ACCOUNTID", accountID).replaceAll("SHADOWID", shadowReplacer);
+}

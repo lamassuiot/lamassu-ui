@@ -5,13 +5,17 @@ import * as caSelector from "ducks/features/cav3/reducer";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "ducks/hooks";
 import { Outlet, useNavigate } from "react-router-dom";
-import { Grid, IconButton, InputBase, Paper, Slide, Skeleton } from "@mui/material";
+import { Grid, IconButton, InputBase, Paper, Slide, Skeleton, Breadcrumbs } from "@mui/material";
 import { CertificateCard } from "views/CertificateAuthoritiesView/components/CertificateCard";
-import { AiOutlineSearch } from "react-icons/ai";
+import { AiOutlineSearch, AiOutlineSafetyCertificate } from "react-icons/ai";
 import AddIcon from "@mui/icons-material/Add";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { FieldType, Filter, Filters } from "components/FilterInput";
 import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/models";
+import { emphasize, styled } from "@mui/material/styles";
+import Chip from "@mui/material/Chip";
+import { EnginesIcons } from "components/LamassuComponents/lamassu/CryptoEngineViewer";
+import CAViewer from "components/LamassuComponents/lamassu/CAViewer";
 
 interface Props {
     preSelectedCaName?: string
@@ -36,6 +40,8 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaName, engines }) => {
 
     const [filters, setFilters] = useState<Filter[]>([]);
     const containerRef = React.useRef(null);
+
+    const [rootChain, setRootChain] = useState<CertificateAuthority[]>([]);
 
     const refreshAction = () => {
         dispatch(caActions.getCAs.request({
@@ -68,8 +74,8 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaName, engines }) => {
     };
 
     return (
-        <Grid container style={{ height: "100%" }}>
-            <Grid item xs={12} xl={3} md={4} container direction="column" style={{ background: theme.palette.background.lightContrast, width: "100%" }}>
+        <Grid container columns={15} style={{ height: "100%" }}>
+            <Grid item xs={15} md={4} container direction="column" style={{ background: theme.palette.background.lightContrast, width: "100%" }}>
                 <Box style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                     <Box sx={{ padding: "20px" }}>
                         <Grid item xs={12} container flexDirection={"column"}>
@@ -106,31 +112,81 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaName, engines }) => {
                             </Grid>
                         </Grid>
                     </Box>
-                    <Box style={{ padding: "10px 20px 20px 20px", overflowY: "auto", height: 300, flexGrow: 1 }}>
+                    <Box style={{ overflowY: "auto", height: 300, flexGrow: 1 }}>
                         {
                             requestStatus.isLoading
                                 ? (
-                                    <Box padding={"30px"}>
+                                    <Box padding="10px 20px 20px 20px">
                                         <Skeleton variant="rectangular" width={"100%"} height={75} sx={{ borderRadius: "5px", marginBottom: "20px" }} />
                                     </Box>
                                 )
                                 : (
                                     <Grid container spacing={"20px"} flexDirection={"column"}>
                                         {
-                                            caList.map((caItem) => (
-                                                <Grid item key={caItem.id}>
-                                                    <CertificateCard
-                                                        onClick={() => {
-                                                            setIsMainModalOpen(true);
-                                                            navigate(caItem.id);
-                                                        }}
-                                                        ca={caItem}
-                                                        engine={engines.find(engine => caItem.engine_id === engine.id)!}
-                                                        selected={selectedCa !== undefined ? caItem.id === selectedCa : false}
-                                                    />
-                                                </Grid>
-                                            ))
+                                            rootChain.length > 0 && (
+                                                <>
+                                                    <Grid item>
+                                                        <Box component={Paper} sx={{ background: theme.palette.background.default, padding: "10px 5px", borderRadius: 0, borderRight: `1px solid ${theme.palette.background.lightContrast}` }}>
+                                                            {/* <CAViewer elevation={false} caData={selectedParentCA} engine={engines.find(engine => selectedParentCA.engine_id === engine.id)!}/> */}
+                                                            <Breadcrumbs aria-label="breadcrumb" maxItems={2}>
+                                                                <StyledBreadcrumb
+                                                                    icon={<AiOutlineSafetyCertificate size={"20px"}/>}
+                                                                    label="ROOT CAs"
+                                                                    onClick={() => setRootChain([])}
+                                                                />
+                                                                {
+                                                                    rootChain.map(ca => {
+                                                                        const caEngine = engines.find(engine => ca.engine_id === engine.id);
+                                                                        return (
+                                                                            <StyledBreadcrumb
+                                                                                key={ca.id}
+                                                                                component="a"
+                                                                                href="#"
+                                                                                onClick={() => {
+                                                                                    const newChain = rootChain;
+                                                                                    newChain.length = ca.level + 1;
+                                                                                    setRootChain([...newChain]);
+                                                                                }}
+                                                                                label={`${ca.level === 0 ? "Root: " : ""} Level ${ca.level}`}
+                                                                                icon={
+                                                                                    <Box sx={{ height: "20px", width: "20px", paddingLeft: "5px" }}>
+                                                                                        <img src={EnginesIcons.find(ei => ei.uniqueID === caEngine!.type)!.icon} height={"100%"} width={"100%"} />
+                                                                                    </Box>
+                                                                                }
+                                                                            />
+                                                                        );
+                                                                    })
+                                                                }
+                                                            </Breadcrumbs>
+                                                            <CAViewer elevation={false} caData={rootChain[rootChain.length - 1]} engine={engines.find(engine => rootChain[rootChain.length - 1].engine_id === engine.id)!} />
+                                                        </Box>
+                                                    </Grid>
+                                                </>
+                                            )
                                         }
+                                        <Grid container padding="30px 20px 20px 40px" spacing={"20px"} flexDirection={"column"}>
+                                            {
+                                                caList.filter(ca => {
+                                                    if (rootChain.length === 0) {
+                                                        return ca.level === 0;
+                                                    }
+                                                    return ca.level === rootChain.length && ca.issuer_metadata.id === rootChain[rootChain.length - 1].id;
+                                                }).map((caItem) => (
+                                                    <Grid item key={caItem.id}>
+                                                        <CertificateCard
+                                                            onClick={() => {
+                                                                setIsMainModalOpen(true);
+                                                                navigate(caItem.id);
+                                                                setRootChain([...rootChain, caItem]);
+                                                            }}
+                                                            ca={caItem}
+                                                            engine={engines.find(engine => caItem.engine_id === engine.id)!}
+                                                            selected={selectedCa !== undefined ? caItem.id === selectedCa : false}
+                                                        />
+                                                    </Grid>
+                                                ))
+                                            }
+                                        </Grid>
                                     </Grid>
                                 )
                         }
@@ -138,7 +194,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaName, engines }) => {
                 </Box >
             </Grid >
 
-            <Grid item xs={12} xl={9} md={8} style={{ height: "100%", overflow: "hidden", background: theme.palette.background.default }} ref={containerRef}>
+            <Grid item xs={15} md={11} style={{ height: "100%", overflow: "hidden", background: theme.palette.background.default }} ref={containerRef}>
                 <Slide direction="left" in={isMainModalOpen} container={containerRef.current} style={{ height: "100%" }}>
                     <Box>
                         <Outlet />
@@ -149,3 +205,24 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaName, engines }) => {
         </Grid >
     );
 };
+
+const StyledBreadcrumb = styled(Chip)(({ theme }) => {
+    const backgroundColor =
+        theme.palette.mode === "light"
+            ? theme.palette.grey[100]
+            : theme.palette.grey[800];
+    return {
+        backgroundColor,
+        height: "30px",
+        color: theme.palette.text.primary,
+        cursor: "pointer",
+        fontWeight: theme.typography.fontWeightRegular,
+        "&:hover, &:focus": {
+            backgroundColor: emphasize(backgroundColor, 0.06)
+        },
+        "&:active": {
+            boxShadow: theme.shadows[1],
+            backgroundColor: emphasize(backgroundColor, 0.12)
+        }
+    };
+}) as typeof Chip; // TypeScript only: need a type cast here because https://github.com/Microsoft/TypeScript/issues/26591

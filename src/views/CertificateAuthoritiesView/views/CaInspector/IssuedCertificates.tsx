@@ -115,7 +115,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
             serialNumber: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary }}>{cert.serial_number}</Typography>,
             commonName: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary, overflowWrap: "break-word", width: "100%", textAlign: "center" }}>{cert.subject.common_name}</Typography>,
             key: (
-                <LamassuChip label={`${cert.key_metadata.type}-${cert.key_metadata.bits} ${cert.key_metadata.strength}`} />
+                <LamassuChip style={{ textAlign: "center" }} label={`${cert.key_metadata.type} ${cert.key_metadata.bits} - ${cert.key_metadata.strength}`} />
             ),
             certificateStatus: (
                 <LamassuChip label={cert.status} color={cert.status === CertificateStatus.Active ? "green" : "red"} />

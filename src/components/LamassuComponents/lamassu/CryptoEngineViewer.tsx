@@ -10,7 +10,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import CheckIcon from "@mui/icons-material/Check";
 import { LamassuChip } from "../Chip";
 
-const engines = [
+export const EnginesIcons = [
     {
         uniqueID: "AWS_SECRETS_MANAGER",
         icon: process.env.PUBLIC_URL + "/assets/AWS-SM.png"
@@ -65,7 +65,7 @@ export const CryptoEngineViewer: React.FC<CryptoEngineViewerProps> = ({ engine, 
         <Grid container spacing={2} alignItems={"center"} sx={{ ...style }}>
             <Grid item xs={"auto"}>
                 <Box component={Paper} sx={{ height: "40px", width: "40px" }}>
-                    <img src={engines.find(eng => eng.uniqueID === engine.type)?.icon} height={"100%"} width={"100%"} />
+                    <img src={EnginesIcons.find(eng => eng.uniqueID === engine.type)?.icon} height={"100%"} width={"100%"} />
                 </Box>
             </Grid>
             {

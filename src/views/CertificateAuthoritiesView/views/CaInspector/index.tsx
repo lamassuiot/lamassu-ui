@@ -86,7 +86,7 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                     <Grid item container spacing={2} justifyContent="flex-start">
                         <Grid item xs container spacing={"10px"}>
                             <Grid item xs="auto">
-                                <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 26, lineHeight: "24px", marginRight: "10px" }}>{caData.metadata["lamassu.io/name"]}</Typography>
+                                <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 26, lineHeight: "24px", marginRight: "10px" }}>{caData.subject.common_name}</Typography>
                                 <Label sx={{ marginTop: "5px", color: theme.palette.text.secondary }}>{caData.id}</Label>
                             </Grid>
                             {
