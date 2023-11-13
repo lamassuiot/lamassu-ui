@@ -4,7 +4,7 @@ import { Box } from "@mui/system";
 import Label from "components/LamassuComponents/dui/typographies/Label";
 import * as duration from "components/utils/duration";
 import moment, { Moment } from "moment";
-import assert from "assert";
+import * as assert from "assert";
 
 interface Props {
     issuanceDuration: string | Moment
@@ -29,8 +29,8 @@ export const CATimeline: React.FC<Props> = ({ issuanceDuration, caExpiration }) 
 
         if (typeof caExpiration === "string" && duration.validDurationRegex(caExpiration)) {
             const expDurSplit = caExpiration.match(duration.durationValueUnitSplitRegex);
-            assert(expDurSplit !== null);
-            assert(expDurSplit!.length === 2);
+            assert.ok(expDurSplit !== null);
+            assert.ok(expDurSplit!.length === 2);
             // @ts-ignore
             expDate.add(parseInt(expDurSplit![0]) * duration.unitConverterToSeconds[expDurSplit[1]], "seconds");
         } else if (moment.isMoment(caExpiration)) {
@@ -41,8 +41,8 @@ export const CATimeline: React.FC<Props> = ({ issuanceDuration, caExpiration }) 
 
         if (typeof issuanceDuration === "string" && duration.validDurationRegex(issuanceDuration)) {
             const expDurSplit = issuanceDuration.match(duration.durationValueUnitSplitRegex);
-            assert(expDurSplit !== null);
-            assert(expDurSplit!.length === 2);
+            assert.ok(expDurSplit !== null);
+            assert.ok(expDurSplit!.length === 2);
             // @ts-ignore
             inactiveDate = expDate.clone().subtract(parseInt(expDurSplit![0]) * duration.unitConverterToSeconds[expDurSplit[1]], "seconds");
         } else if (moment.isMoment(issuanceDuration)) {
