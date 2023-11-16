@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { Box, Button, Collapse, Grid, IconButton, Paper, Skeleton, Tooltip, Typography, useTheme } from "@mui/material";
+import { Alert, Box, Button, Collapse, Grid, IconButton, Paper, Skeleton, Tooltip, Typography, useTheme } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
 import { GoLinkExternal } from "react-icons/go";
@@ -26,6 +26,12 @@ import { RootState, selectors } from "ducks/reducers";
 import { DMS } from "ducks/features/ra/models";
 import { actions } from "ducks/actions";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import CASelectorV2 from "components/LamassuComponents/lamassu/CASelectorV2";
+import { Certificate, CertificateAuthority } from "ducks/features/cav3/models";
+import { createCSR, createPrivateKey, keyPairToPEM } from "components/utils/cryptoUtils/csr";
+import { errorToString } from "ducks/services/api";
+import { apicalls } from "ducks/apicalls";
+import { LamassuSwitch } from "components/LamassuComponents/Switch";
 
 export const DmsList = () => {
     const dispatch = useDispatch();
@@ -115,7 +121,7 @@ const EmptyDMSListHint: React.FC = () => {
                     variant="contained"
                     sx={{ marginTop: "10px", color: theme.palette.primary.main, background: theme.palette.primary.light }}
                     onClick={() => {
-                        window.open("https://www.lamassu.io/docs/usage/#register-a-new-device-manufacturing-system", "_blank");
+                        window.open("https://www.lamassu.io/docs/usage/#register-a-new-manufacturing-system", "_blank");
                     }}
                 >
                     Go to DMS enrollment instructions
@@ -145,8 +151,14 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    const [enrollDMSCmds, setEnrollDMSCmds] = useState<{ open: boolean, dmsName: string }>({ open: false, dmsName: "" });
-    const [enrollDeviceID, setEnrollDeviceID] = useState("");
+    const [enrollDMSCmds, setEnrollDMSCmds] = useState<{
+        open: boolean,
+        dmsName: string,
+        deviceID: string,
+        bootstrapCA: CertificateAuthority | undefined,
+        commonNameBootstrap: string,
+        insecure: boolean,
+    }>({ open: false, dmsName: "", bootstrapCA: undefined, deviceID: "", insecure: false, commonNameBootstrap: "" });
 
     const [expanded, setExpanded] = useState(false);
 
@@ -189,7 +201,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                     <Grid item xs="auto">
                                         <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
                                             <Tooltip title="cURL enrollment commands">
-                                                <IconButton onClick={(ev) => { setEnrollDMSCmds({ open: true, dmsName: dms.id }); }}>
+                                                <IconButton onClick={(ev) => { setEnrollDMSCmds({ open: true, dmsName: dms.id, insecure: false, bootstrapCA: undefined, commonNameBootstrap: `bootstrap-for-dms-${dms.id}`, deviceID: "" }); }}>
                                                     <TerminalIcon fontSize={"small"} />
                                                 </IconButton>
                                             </Tooltip>
@@ -405,14 +417,15 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                 enrollDMSCmds.open && (
                     <StepModal
                         open={enrollDMSCmds.open}
-                        onClose={() => setEnrollDMSCmds({ open: false, dmsName: "" })}
+                        onClose={() => setEnrollDMSCmds({ ...enrollDMSCmds, open: false })}
                         title="EST Enroll"
+                        size="lg"
                         steps={[
                             {
                                 title: "Define Device to Enroll",
                                 subtitle: "this first step generates de crypto material (a private key and CSR) that will be enrolled in the next step",
                                 content: (
-                                    <TextField label="Device ID" onChange={(ev) => setEnrollDeviceID(ev.target.value)} />
+                                    <TextField label="Device ID" onChange={(ev) => setEnrollDMSCmds({ ...enrollDMSCmds, deviceID: ev.target.value })} />
                                 )
                             },
                             {
@@ -420,8 +433,33 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                 subtitle: "",
                                 content: (
                                     <CodeCopier code={
-                                        `openssl req -new -newkey rsa:2048 -nodes -keyout device-${enrollDeviceID}.key -out device-${enrollDeviceID}.csr -subj "/CN=${enrollDeviceID}"`
+                                        `openssl req -new -newkey rsa:2048 -nodes -keyout ${enrollDMSCmds.deviceID}.key -out ${enrollDMSCmds.deviceID}.csr -subj "/CN=${enrollDMSCmds.deviceID}"\ncat ${enrollDMSCmds.deviceID}.csr | sed '/-----BEGIN CERTIFICATE REQUEST-----/d'  | sed '/-----END CERTIFICATE REQUEST-----/d' > ${enrollDMSCmds.deviceID}.stripped.csr`
                                     } />
+                                )
+                            },
+                            {
+                                title: "Define Bootstrap Certificate Props",
+                                subtitle: "",
+                                content: (
+                                    <Grid container flexDirection={"column"} spacing={2}>
+                                        <Grid item xs>
+                                            <TextField label="Bootstrap Certificate Common Name" value={enrollDMSCmds.commonNameBootstrap} onChange={(ev) => setEnrollDMSCmds({ ...enrollDMSCmds, commonNameBootstrap: ev.target.value })} />
+                                        </Grid>
+                                        <Grid item xs>
+                                            <CASelectorV2 limitSelection={dms.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.validation_cas} multiple={false} selectLabel="Select CA to sign Bootstrap Certificate" label="Bootstrap Signer" value={enrollDMSCmds.bootstrapCA} onSelect={(ca) => {
+                                                if (!Array.isArray(ca)) {
+                                                    setEnrollDMSCmds({ ...enrollDMSCmds, bootstrapCA: ca });
+                                                }
+                                            }}/>
+                                        </Grid>
+                                    </Grid>
+                                )
+                            },
+                            {
+                                title: "Bootstrap Certificate & Key",
+                                subtitle: "",
+                                content: (
+                                    <BootstrapGenerator ca={enrollDMSCmds.bootstrapCA!} cn={enrollDMSCmds.commonNameBootstrap}/>
                                 )
                             },
                             {
@@ -431,28 +469,41 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                     <Grid container flexDirection={"column"} spacing={2}>
                                         <Grid item xs>
                                             <Typography>
-                                                Define the Device Manager EST server and the credentials to be used during the enrollment process:
+                                                In order to enroll, the client must decide wether to validate the server or skip the TLS verification:
                                             </Typography>
-                                            <CodeCopier code={
-                                                `export LAMASSU_SERVER=${window.location.host} \nexport VALIDATION_CRT=your_dms.crt \nexport VALIDATION_KEY=your_dms.key`
+                                            <KeyValueLabel label="Validate Server (OFF) / Insecure (ON)" value={
+                                                <LamassuSwitch value={enrollDMSCmds.insecure} onChange={() => setEnrollDMSCmds({ ...enrollDMSCmds, insecure: !enrollDMSCmds.insecure })} />
                                             } />
                                         </Grid>
 
                                         <Grid item xs>
                                             <Typography>
-                                                Obtain the Root certificate used by the server:
+                                                Define the Device Manager EST server and the credentials to be used during the enrollment process:
                                             </Typography>
                                             <CodeCopier code={
-                                                "openssl s_client -connect $LAMASSU_SERVER 2>/dev/null </dev/null |  sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > root-ca.pem"
+                                                `export LAMASSU_SERVER=${window.location.host} \nexport VALIDATION_CRT=${enrollDMSCmds.commonNameBootstrap}.crt \nexport VALIDATION_KEY=${enrollDMSCmds.commonNameBootstrap}.key`
                                             } />
                                         </Grid>
+
+                                        {
+                                            !enrollDMSCmds.insecure && (
+                                                <Grid item xs>
+                                                    <Typography>
+                                                        Obtain the Root certificate used by the server:
+                                                    </Typography>
+                                                    <CodeCopier code={
+                                                        "openssl s_client -showcerts -servername $LAMASSU_SERVER  -connect $LAMASSU_SERVER:443 2>/dev/null </dev/null |  sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > root-ca.pem"
+                                                    } />
+                                                </Grid>
+                                            )
+                                        }
 
                                         <Grid item xs>
                                             <Typography>
                                                 Request a certificate from the EST server:
                                             </Typography>
                                             <CodeCopier code={
-                                                `curl https://$LAMASSU_SERVER/api/dmsmanager/.well-known/est/${enrollDMSCmds.dmsName}/simpleenroll --cert $VALIDATION_CRT --key $VALIDATION_KEY -s -o device-${enrollDeviceID}.p7 --cacert root-ca.pem  --data-binary @device-${enrollDeviceID}.csr -H "Content-Type: application/pkcs10" \nopenssl base64 -d -in device-${enrollDeviceID}.p7 | openssl pkcs7 -inform DER -outform PEM -print_certs -out device-${enrollDeviceID}.crt \nopenssl x509 -text -in device-${enrollDeviceID}.crt`
+                                                `curl https://$LAMASSU_SERVER/api/dmsmanager/.well-known/est/${enrollDMSCmds.dmsName}/simpleenroll --cert $VALIDATION_CRT --key $VALIDATION_KEY -s -o ${enrollDMSCmds.deviceID}.p7 ${enrollDMSCmds.insecure ? "-k" : "--cacert root-ca.pem"}  --data-binary @${enrollDMSCmds.deviceID}.stripped.csr -H "Content-Type: application/pkcs10" \nopenssl base64 -d -in ${enrollDMSCmds.deviceID}.p7 | openssl pkcs7 -inform DER -outform PEM -print_certs -out ${enrollDMSCmds.deviceID}.crt \nopenssl x509 -text -in ${enrollDMSCmds.deviceID}.crt`
                                             } />
                                         </Grid>
                                     </Grid>
@@ -463,5 +514,77 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                 )
             }
         </>
+    );
+};
+
+interface BootstrapGeneratorProps {
+    cn: string
+    ca: CertificateAuthority
+}
+
+const BootstrapGenerator: React.FC<BootstrapGeneratorProps> = ({ cn, ca }) => {
+    const [result, setResult] = useState<{
+        loading: boolean
+        errMsg: string
+        crt: Certificate | undefined
+        privateKey :string
+    }>({ loading: true, crt: undefined, privateKey: "", errMsg: "" });
+    useEffect(() => {
+        const run = async () => {
+            try {
+                const keyPair = await createPrivateKey("RSA", 2048, "SHA-256");
+                const csr = await createCSR(keyPair, "SHA-256", { cn: cn }, { dnss: undefined });
+                const { privateKey } = await keyPairToPEM(keyPair, "RSA");
+
+                const cert = await apicalls.cas.signCertificateRequest(ca.id, window.window.btoa(csr));
+
+                setResult({ loading: false, crt: cert, errMsg: "", privateKey: privateKey });
+            } catch (err: any) {
+                setResult({ loading: false, crt: undefined, errMsg: errorToString(err), privateKey: "" });
+            }
+        };
+
+        run();
+    }, []);
+
+    if (result.loading) {
+        <Box sx={{ width: "100%", marginBottom: "20px" }}>
+            <Skeleton variant="rectangular" width={"100%"} height={25} sx={{ borderRadius: "5px", marginBottom: "20px" }} />
+            <Skeleton variant="rectangular" width={"100%"} height={25} sx={{ borderRadius: "5px", marginBottom: "20px" }} />
+            <Skeleton variant="rectangular" width={"100%"} height={25} sx={{ borderRadius: "5px", marginBottom: "20px" }} />
+        </Box>;
+    }
+
+    if (result.crt === undefined) {
+        return (
+            <Alert severity="error">
+                Got unexpected error: {result.errMsg}
+            </Alert>
+        );
+    }
+
+    return (
+        <Grid container spacing={2}>
+            <Grid item xs>
+                <KeyValueLabel label="Bootstrap Private Key" value={
+                    <CodeCopier code={result.privateKey} enableDownload downloadFileName={result.crt.subject.common_name + ".key"}/>
+                }/>
+            </Grid>
+            <Grid item xs>
+                <KeyValueLabel label="Bootstrap Certificate" value={
+                    <CodeCopier code={window.window.atob(result.crt.certificate)} enableDownload downloadFileName={result.crt.subject.common_name + ".crt"}/>
+                }/>
+            </Grid>
+            <Grid item xs={12} container flexDirection={"column"} spacing={1}>
+                <Grid item>
+                    <Alert severity="info">
+                        Make sure to copy the command below!
+                    </Alert>
+                </Grid>
+                <Grid item>
+                    <CodeCopier code={`echo "${result.crt.certificate}" |  base64 -d > ${result.crt.subject.common_name}.crt\n echo "${window.window.btoa(result.privateKey)}" |  base64 -d > ${result.crt.subject.common_name}.key` }/>
+                </Grid>
+            </Grid>
+        </Grid>
     );
 };

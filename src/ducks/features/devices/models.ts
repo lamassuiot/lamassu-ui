@@ -16,7 +16,7 @@ export const deviceStatusToColor = (status: DeviceStatus): string | [string, str
     case DeviceStatus.ActiveSlotWithPreventive:
         return ["#000000", "#F1DB3D"];
     case DeviceStatus.ActiveSlotWithCritical:
-        return "orange";
+        return ["#444444", "#F88B56"];
     case DeviceStatus.ActiveSlotWithExpiredRevoked:
         return "red";
     case DeviceStatus.Decommissioned:
@@ -70,7 +70,7 @@ export const slotStatusToColor = (status: SlotStatus): string | [string, string]
     case SlotStatus.WarnExpiration:
         return ["#000000", "#F1DB3D"];
     case SlotStatus.CriticalExpiration:
-        return "orange";
+        return ["#444444", "#F88B56"];
     case SlotStatus.Expired:
         return "red";
     case SlotStatus.Revoke:

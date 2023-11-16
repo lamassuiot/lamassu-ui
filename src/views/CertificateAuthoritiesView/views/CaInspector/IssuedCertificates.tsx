@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, Button, Grid, IconButton, MenuItem, Paper, Tooltip, Typography } from "@mui/material";
 import { LamassuChip } from "components/LamassuComponents/Chip";
-import { ListWithDataController, ListWithDataControllerConfigProps, OperandTypes } from "components/LamassuComponents/Table";
+import { ListWithDataController, ListWithDataControllerConfigProps } from "components/LamassuComponents/Table";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
 import moment from "moment";
@@ -10,7 +10,7 @@ import { useTheme } from "@mui/system";
 import deepEqual from "fast-deep-equal/es6";
 import { IssueCert } from "../CaActions/IssueCertificate";
 import { CodeCopier } from "components/LamassuComponents/dui/CodeCopier";
-import { CertificateAuthority, Certificate, CertificateStatus } from "ducks/features/cav3/models";
+import { CertificateAuthority, Certificate, CertificateStatus, certificateFilters, RevocationReason, getRevocationReasonDescription } from "ducks/features/cav3/models";
 import { Select } from "components/LamassuComponents/dui/Select";
 import { TextField } from "components/LamassuComponents/dui/TextField";
 import CAViewer from "components/LamassuComponents/lamassu/CAViewer";
@@ -21,20 +21,6 @@ import { MonoChromaticButton } from "components/LamassuComponents/dui/MonoChroma
 import UnarchiveOutlinedIcon from "@mui/icons-material/UnarchiveOutlined";
 import { MultiKeyValueInput } from "components/LamassuComponents/dui/MultiKeyValueInput";
 import { apicalls } from "ducks/apicalls";
-
-const revokeCodes = [
-    ["AACompromise", "It is known, or suspected, that aspects of the Attribute Authority (AA) validated in the attribute certificate have been compromised."],
-    ["AffiliationChanged", "The subject's name, or other validated information in the certificate, has changed without anything being compromised."],
-    ["CACompromise", "The private key, or another validated portion of a Certificate Authority (CA) certificate, is suspected to have been compromised."],
-    ["CertificateHold", "The certificate is temporarily suspended, and may either return to service or become permanently revoked in the future."],
-    ["CessationOfOperation", "The certificate is no longer needed, but nothing is suspected to be compromised."],
-    ["KeyCompromise", "The private key, or another validated portion of an end-entity certificate, is suspected to have been compromised."],
-    ["PrivilegeWithdrawn", "A privilege contained within the certificate has been withdrawn."],
-    ["RemoveFromCrl", "The certificate was revoked with CertificateHold on a base Certificate Revocation List (CRL) and is being returned to service on a delta CRL."],
-    ["Superseded", "The certificate has been superseded, but without anything being compromised."],
-    ["Unspecified", "Revocation occurred for a reason that has no more specific value."],
-    ["WeakAlgorithmOrKey", "The certificate key uses a weak cryptographic algorithm, or the key is too short, or the key was generated in an unsafe manner."]
-];
 
 interface Props {
     caData: CertificateAuthority
@@ -49,9 +35,9 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
     const [displayIssueCert, setDisplayIssueCert] = useState(false);
     const [tableConfig, setTableConfig] = useState<ListWithDataControllerConfigProps>(
         {
-            filter: {
-                enabled: false,
-                filters: []
+            filters: {
+                activeFilters: [],
+                options: certificateFilters
             },
             sort: {
                 enabled: true,
@@ -99,14 +85,14 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
     const [revokeReason, setRevokeReason] = useState("Unspecified");
 
     const certTableColumns = [
-        { key: "serialNumber", dataKey: "serial_number", query: true, title: "Serial Number", type: OperandTypes.string, align: "start", size: 4 },
-        { key: "commonName", dataKey: "subject.common_name", query: true, title: "Common Name", type: OperandTypes.string, align: "center", size: 3 },
-        { key: "key", dataKey: "", title: "Key", type: OperandTypes.string, align: "center", size: 2 },
-        { key: "certificateStatus", dataKey: "status", title: "Certificate Status", type: OperandTypes.enum, align: "center", size: 1 },
-        { key: "certificateIssuance", dataKey: "valid_to", title: "Issued At", type: OperandTypes.date, align: "center", size: 2 },
-        { key: "certificateExpiration", dataKey: "valid_to", title: "Expires At", type: OperandTypes.date, align: "center", size: 2 },
-        { key: "certificateRevocation", dataKey: "revocation_timestamp", title: "Revoked At", type: OperandTypes.date, align: "center", size: 3 },
-        { key: "revocationReason", dataKey: "revocation_reason", title: "Revocation Reason", type: OperandTypes.enum, align: "center", size: 1 },
+        { key: "serialNumber", query: "serial_number", title: "Serial Number", align: "start", size: 4 },
+        { key: "commonName", title: "Common Name", align: "center", size: 3 },
+        { key: "key", title: "Key", align: "center", size: 2 },
+        { key: "certificateStatus", title: "Certificate Status", align: "center", size: 1 },
+        { key: "certificateIssuance", title: "Issued At", align: "center", size: 2 },
+        { key: "certificateExpiration", title: "Expires At", align: "center", size: 2 },
+        { key: "certificateRevocation", title: "Revoked At", align: "center", size: 3 },
+        { key: "revocationReason", title: "Revocation Reason", align: "center", size: 1 },
         { key: "actions", title: "", align: "end", size: 2 }
     ];
 
@@ -318,14 +304,14 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
                             <Grid item>
                                 <Select label="Select Revocation Reason" value={revokeReason} onChange={(ev: any) => setRevokeReason(ev.target.value!)}>
                                     {
-                                        revokeCodes.map((rCode, idx) => (
-                                            <MenuItem key={idx} value={rCode[0]} >
+                                        Object.values(RevocationReason).map((rCode, idx) => (
+                                            <MenuItem key={idx} value={rCode} >
                                                 <Grid container spacing={2}>
                                                     <Grid item xs={2}>
-                                                        <Typography>{rCode[0]}</Typography>
+                                                        <Typography>{rCode}</Typography>
                                                     </Grid>
                                                     <Grid item xs="auto">
-                                                        <Typography fontSize={"12px"}>{rCode[1]}</Typography>
+                                                        <Typography fontSize={"12px"}>{getRevocationReasonDescription(rCode)}</Typography>
                                                     </Grid>
                                                 </Grid>
                                             </MenuItem>

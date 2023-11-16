@@ -1,4 +1,4 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Step, StepIconProps, StepLabel, Stepper, Typography, useTheme } from "@mui/material";
+import { Box, Breakpoint, Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Step, StepIconProps, StepLabel, Stepper, Typography, useTheme } from "@mui/material";
 import React, { useState } from "react";
 import { MonoChromaticButton } from "./MonoChromaticButton";
 import CheckIcon from "@mui/icons-material/Check";
@@ -8,6 +8,7 @@ interface StepModalProps {
     open: boolean,
     onClose: () => void,
     steps: StepProps[]
+    size?: Breakpoint
 }
 
 interface StepProps {
@@ -41,11 +42,11 @@ const DuiStepIcon = (props: StepIconProps) => {
     );
     ;
 };
-const StepModal: React.FC<StepModalProps> = ({ title, open, onClose, steps }) => {
+const StepModal: React.FC<StepModalProps> = ({ title, open, onClose, steps, size = "md" }) => {
     const [activeStep, setActiveStep] = useState(0);
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth={"md"}>
+        <Dialog open={open} onClose={onClose} maxWidth={size}>
             <DialogTitle>
                 <Grid container spacing={"40px"}>
                     <Grid item xs="auto">

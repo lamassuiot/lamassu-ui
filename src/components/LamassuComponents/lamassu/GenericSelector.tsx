@@ -159,6 +159,7 @@ export const GenericSelector = <T extends object>(props: GenericSelectorProps<T>
                                     </Grid>
                                     <Grid item>
                                         <Filters
+                                            filters={filters}
                                             modal={false}
                                             onChange={(f) => { setFilters(f); }}
                                             fields={props.filtrableProps}

@@ -4,7 +4,7 @@ import FormatAlignJustifyIcon from "@mui/icons-material/FormatAlignJustify";
 import { Link, useNavigate } from "react-router-dom";
 import { DynamicIcon } from "components/IconDisplayer/DynamicIcon";
 import { LamassuChip } from "components/LamassuComponents/Chip";
-import { ListWithDataController, ListWithDataControllerConfigProps, OperandTypes } from "components/LamassuComponents/Table";
+import { ListWithDataController, ListWithDataControllerConfigProps } from "components/LamassuComponents/Table";
 import { GoLinkExternal } from "react-icons/go";
 import { Device, DeviceStatus, deviceStatusToColor, slotStatusToColor } from "ducks/features/devices/models";
 import { useDispatch } from "react-redux";
@@ -37,9 +37,9 @@ export const DeviceList = () => {
 
     const [tableConfig, setTableConfig] = useState<ListWithDataControllerConfigProps>(
         {
-            filter: {
-                enabled: true,
-                filters: []
+            filters: {
+                activeFilters: [],
+                options: []
             },
             sort: {
                 enabled: true,
@@ -75,12 +75,12 @@ export const DeviceList = () => {
 
     const devicesTableColumns = [
         { key: "icon", title: "", align: "start", size: 1 },
-        { key: "id", dataKey: "id", title: "Device ID", query: true, type: OperandTypes.string, align: "start", size: 4 },
-        { key: "alias", dataKey: "alias", title: "Alias", query: true, type: OperandTypes.string, align: "center", size: 3 },
-        { key: "status", dataKey: "status", title: "Status", type: OperandTypes.enum, align: "center", size: 2 },
-        { key: "creation_timestamp", dataKey: "creation_timestamp", title: "Creation Date", type: OperandTypes.date, align: "center", size: 2 },
-        { key: "slots", dataKey: "slots", title: "Slots", align: "center", size: 3 },
-        { key: "tags", dataKey: "tags", title: "Tags", type: OperandTypes.enum, align: "center", size: 2 },
+        { key: "id", title: "Device ID", query: "id", align: "start", size: 4 },
+        { key: "alias", title: "Alias", align: "center", size: 3 },
+        { key: "status", title: "Status", align: "center", size: 2 },
+        { key: "creation_timestamp", title: "Creation Date", align: "center", size: 2 },
+        { key: "slots", title: "Slots", align: "center", size: 3 },
+        { key: "tags", title: "Tags", align: "center", size: 2 },
         { key: "actions", title: "", align: "end", size: 2 }
     ];
 
@@ -375,6 +375,7 @@ export const DeviceList = () => {
                     </Dialog>
                 )
             }
+            <div style={{ flexGrow: 1, height: "1px" }}></div>
         </Box>
     );
 };

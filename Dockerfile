@@ -9,8 +9,9 @@ COPY ./package-lock.json package-lock.json
 RUN npm install
 
 COPY . .
-# ENV NODE_OPTIONS="--max-old-space-size=16384"
+ENV NODE_OPTIONS="--max-old-space-size=16384"
 ENV NODE_OPTIONS="--openssl-legacy-provider"
+ENV GENERATE_SOURCEMAP=false
 
 RUN npm run build
 

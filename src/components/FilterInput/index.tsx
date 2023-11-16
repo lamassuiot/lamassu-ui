@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { Box, Button, Grid, IconButton, Menu, MenuItem, Typography } from "@mui/material";
+import React, { useState } from "react";
+import { Box, Button, Grid, IconButton, Menu, MenuItem, Theme, Typography, useTheme } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import DateAdapter from "@mui/lab/AdapterMoment";
-import { DatePicker, LocalizationProvider } from "@mui/lab";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
+import "moment/locale/es";
+
 import { TextField } from "components/LamassuComponents/dui/TextField";
 import { Select } from "components/LamassuComponents/dui/Select";
 import { AiOutlineNumber } from "react-icons/ai";
-import { useTheme } from "@mui/system";
 import ShortTextRoundedIcon from "@mui/icons-material/ShortTextRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import { BsCalendar3 } from "react-icons/bs";
@@ -67,9 +68,11 @@ export type Field = {
 }
 
 type Props = {
+    filters: Filter[]
     fields: Field[]
     onChange: (filters: Filter[]) => void
     modal?: boolean
+    externalRender?: boolean
 }
 
 const emptyFilter = {
@@ -78,13 +81,65 @@ const emptyFilter = {
     propertyValue: ""
 };
 
+const renderFilterTypeIcon = (type: string, theme: Theme) => {
+    switch (type) {
+    case "string":
+        return <ShortTextRoundedIcon sx={{ marginRight: "10px", color: theme.palette.text.primaryLight }} />;
+
+    case "enum":
+        return <AiOutlineNumber style={{ marginRight: "10px", color: theme.palette.text.primaryLight }} />;
+
+    case "number":
+        return <AiOutlineNumber style={{ marginRight: "10px", color: theme.palette.text.primaryLight }} />;
+
+    case "date":
+        return <BsCalendar3 style={{ marginRight: "10px", color: theme.palette.text.primaryLight }} />;
+
+    default:
+        return <></>;
+    }
+};
+
+type FilterRendererProps ={
+    filters: Filter[]
+    onChange: (filters: Filter[]) => void
+}
+
+export const FilterRenderer: React.FC<FilterRendererProps> = ({ filters, onChange }) => {
+    const theme = useTheme();
+    return (
+        <Grid item xs={12} container spacing={1}>
+            {
+                    filters!.map((filter, idx) => {
+                        if (filter.propertyField.key !== "") {
+                            return (
+                                <Grid item xs="auto" key={idx} sx={{ borderRadius: "10px", border: `1px solid ${theme.palette.divider}`, padding: "5px 10px", cursor: "pointer", display: "flex", alignItems: "center" }}>
+                                    {renderFilterTypeIcon(filter.propertyField.type, theme)}
+                                    <Typography fontWeight={500} sx={{ marginRight: "10px", color: theme.palette.text.primaryLight, fontSize: "14px" }}>{filter.propertyField.label}</Typography>
+                                    <Typography fontWeight={400} sx={{ marginRight: "10px", fontSize: "12px", lineHeight: "10px" }}>{`(${filter.propertyOperator.toLowerCase()}) ${filter.propertyValue}`}</Typography>
+                                    <IconButton size="small" onClick={() => {
+                                        const newF = filters;
+                                        newF.splice(idx, 1); console.log(newF);
+                                        onChange([...newF]);
+                                    }}>
+                                        <CloseRoundedIcon sx={{ fontSize: "16px" }} />
+                                    </IconButton>
+                                </Grid>
+                            );
+                        }
+                        return <></>;
+                    })
+            }
+        </Grid>
+    );
+};
+
 export type Filter = {
     propertyField: Field,
     propertyOperator: string,
     propertyValue: string
 }
-export const Filters: React.FC<Props> = ({ fields, onChange, modal = true }) => {
-    const [filters, setFilters] = useState<Filter[]>([]);
+export const Filters: React.FC<Props> = ({ externalRender = false, fields, filters, onChange, modal = true }) => {
     const [newFilter, setNewFiler] = useState<Filter>(
         emptyFilter
     );
@@ -112,22 +167,15 @@ export const Filters: React.FC<Props> = ({ fields, onChange, modal = true }) => 
     };
 
     const addNewFilterItem = (ev: any, newFilter: Filter) => {
-        setFilters([...filters, newFilter]);
+        onChange([...filters, newFilter]);
         handleAddFilterClose(ev);
     };
 
     const removeFilter = (idx: number) => {
         const newFilters = filters;
         newFilters.splice(idx, 1);
-        setFilters([...newFilters]);
+        onChange([...newFilters]);
     };
-
-    useEffect(() => {
-        console.log(filters);
-
-        onChange(filters);
-        setShowFilterBar(false);
-    }, [filters]);
 
     const loadInputForPropertyKey = (field: Field) => {
         switch (field.type) {
@@ -164,39 +212,17 @@ export const Filters: React.FC<Props> = ({ fields, onChange, modal = true }) => 
             return <TextField label="" value={newFilter.propertyValue} onChange={(ev) => setNewFiler((prev) => ({ ...prev, propertyValue: ev.target.value, propertyOperatorType: field.type }))} type="number" />;
 
         case FieldType.Date:
-            return <LocalizationProvider dateAdapter={DateAdapter}>
+            return <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale="es">
                 <DatePicker
                     label=""
-                    inputFormat="yyyy/MM/dd"
-                    value={newFilter.propertyValue}
+                    value={moment(newFilter.propertyValue)}
                     onChange={(newValue: any) => {
                         console.log(newValue);
                         console.log(moment(newValue).toISOString());
-
                         setNewFiler((prev) => ({ ...prev, propertyValue: moment(newValue).toISOString(), propertyOperatorType: field.type }));
                     }}
-                    renderInput={(params: any) => <TextField variant="standard" {...params} />}
                 />
             </LocalizationProvider>;
-        default:
-            return <></>;
-        }
-    };
-
-    const renderFilterTypeIcon = (type: string) => {
-        switch (type) {
-        case "string":
-            return <ShortTextRoundedIcon sx={{ marginRight: "10px", color: theme.palette.text.primaryLight }} />;
-
-        case "enum":
-            return <AiOutlineNumber style={{ marginRight: "10px", color: theme.palette.text.primaryLight }} />;
-
-        case "number":
-            return <AiOutlineNumber style={{ marginRight: "10px", color: theme.palette.text.primaryLight }} />;
-
-        case "date":
-            return <BsCalendar3 style={{ marginRight: "10px", color: theme.palette.text.primaryLight }} />;
-
         default:
             return <></>;
         }
@@ -269,25 +295,11 @@ export const Filters: React.FC<Props> = ({ fields, onChange, modal = true }) => 
                         </>
                     )
             }
-            <Grid item xs={12} container spacing={1}>
-                {
-                    filters!.map((filter, idx) => {
-                        if (filter.propertyField.key !== "") {
-                            return (
-                                <Grid item xs="auto" key={idx} sx={{ borderRadius: "10px", border: `1px solid ${theme.palette.divider}`, padding: "5px 10px", cursor: "pointer", display: "flex", alignItems: "center" }}>
-                                    {renderFilterTypeIcon(filter.propertyField.type)}
-                                    <Typography fontWeight={500} sx={{ marginRight: "10px", color: theme.palette.text.primaryLight, fontSize: "14px" }}>{filter.propertyField.label}</Typography>
-                                    <Typography fontWeight={400} sx={{ marginRight: "10px", fontSize: "12px", lineHeight: "10px" }}>{`(${filter.propertyOperator.toLowerCase()}) ${filter.propertyValue}`}</Typography>
-                                    <IconButton size="small" onClick={() => { removeFilter(idx); }}>
-                                        <CloseRoundedIcon sx={{ fontSize: "16px" }} />
-                                    </IconButton>
-                                </Grid>
-                            );
-                        }
-                        return <></>;
-                    })
-                }
-            </Grid>
+            {
+                !externalRender && (
+                    <FilterRenderer filters={filters} onChange={(newFilers) => onChange([...newFilers])}/>
+                )
+            }
         </Grid>
     );
 };

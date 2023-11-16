@@ -28,6 +28,7 @@ import { AlertsView } from "./AlertsView";
 import { useAuth } from "react-oidc-context";
 import { LoggedOutView } from "./LoggedOutView";
 import { TbCertificate } from "react-icons/tb";
+import { CertificateListView } from "./CertificatesView/CertificatesList";
 export const DashboardLayout = () => {
     const auth = useAuth();
     const cookies = new Cookies();
@@ -89,7 +90,7 @@ export const DashboardLayout = () => {
                     path: "/certificates/*",
                     link: "/certificates",
                     icon: <TbCertificate key="/1c" />,
-                    content: <CAView />
+                    content: <CertificateListView />
                 }
 
             ]

@@ -15,7 +15,7 @@ import { CATimeline } from "views/CertificateAuthoritiesView/components/CATimeli
 import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/models";
 import { useDispatch } from "react-redux";
 import { actions } from "ducks/actions";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import CASelectorV2 from "components/LamassuComponents/lamassu/CASelectorV2";
 
 type FormData = {
@@ -55,13 +55,14 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const [preselectedCAParent] = useOutletContext<[CertificateAuthority | undefined]>();
 
     const [error, setError] = useState<string | undefined>();
     const [loading, setLoading] = useState(false);
 
     const { control, getValues, setValue, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
         defaultValues: {
-            parentCA: undefined,
+            parentCA: preselectedCAParent,
             cryptoEngine: defaultEngine,
             id: window.crypto.randomUUID(),
             subject: {
@@ -118,12 +119,12 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                     ca_expiration: {
                         type: formData.caExpiration.type === "duration" ? "Duration" : "Time",
                         duration: formData.caExpiration.duration,
-                        time: formData.caExpiration.type === "date-infinity" ? "99991231T235959Z" : formData.caExpiration.date.format()
+                        time: formData.caExpiration.type === "date-infinity" ? moment("99991231T225959Z").format() : formData.caExpiration.date.format()
                     },
                     issuance_expiration: {
                         type: formData.issuerExpiration.type === "duration" ? "Duration" : "Time",
                         duration: formData.issuerExpiration.duration,
-                        time: formData.issuerExpiration.type === "date-infinity" ? "99991231T235959Z" : formData.issuerExpiration.date.format()
+                        time: formData.issuerExpiration.type === "date-infinity" ? moment("99991231T225959Z").format() : formData.caExpiration.date.format()
                     },
                     ca_type: "MANAGED"
                 });

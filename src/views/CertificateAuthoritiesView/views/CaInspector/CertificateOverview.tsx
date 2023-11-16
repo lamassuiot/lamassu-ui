@@ -8,6 +8,7 @@ import { X509Certificate, parseCRT } from "components/utils/cryptoUtils/crt";
 import { CryptoEngineViewer } from "components/LamassuComponents/lamassu/CryptoEngineViewer";
 import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/models";
 import CAFetchViewer from "components/LamassuComponents/lamassu/CAFetchViewer";
+import { Doughnut } from "components/Charts/Doughnut";
 
 interface Props {
     caData: CertificateAuthority
@@ -72,6 +73,42 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
 
     return (
         <Grid container columns={12} spacing={2}>
+            <Grid item xs={12} container flexDirection={"column"}>
+                <Doughnut
+                    small={false}
+                    dataset={[
+                        {
+                            label: (
+                                <>Active</>
+                            ),
+                            value: 13,
+                            color: "green"
+                        }, {
+                            label: (
+                                <>Expired</>
+                            ),
+                            value: 13,
+                            color: "red"
+                        }, {
+                            label: (
+                                <>Revoked</>
+                            ),
+                            value: 13,
+                            color: "orange"
+                        }
+                    ]}
+                    title="Device Provisioning Status"
+                    subtitle={""}
+                    onRefresh={() => {
+                    }}
+                    primaryStat={"-"}
+                    statLabel={"Provisioned Devices"}
+                    percentage={false}
+                    cardColor={theme.palette.homeCharts.deviceStatusCard.primary}
+                    primaryTextColor={theme.palette.homeCharts.deviceStatusCard.text}
+                    secondaryTextColor={theme.palette.homeCharts.deviceStatusCard.textSecondary}
+                />
+            </Grid>
             {
                 caData.issuer_metadata.id !== caData.id && (
                     <Grid item xs={12} container flexDirection={"column"}>

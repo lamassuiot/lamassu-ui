@@ -48,7 +48,20 @@ export const CertificateCard: React.FC<Props> = ({ ca, engine, elevation = true,
             <Box style={{ height: "40%" }}>
                 <Grid container style={{ height: "100%", padding: "0 10px 0 20px" }} justifyContent="space-between" alignItems="center">
                     <Grid item xs={8}>
-                        <Typography style={{ fontWeight: "400", fontSize: "13px", ...ca.status !== CertificateStatus.Active && { color: "red" } }} >{`${ca.status} · ${moment(ca.valid_to).format("DD/MM/YYYY")} ·  ${moment.duration(moment(ca.valid_to).diff(moment())).humanize(true)}`}</Typography>
+                        {
+                            ca.status !== CertificateStatus.Active
+                                ? (
+                                    <LamassuChip
+                                        color={"red"}
+                                        label={
+                                            `${ca.status} · ${moment(ca.valid_to).format("DD/MM/YYYY")} ·  ${moment.duration(moment().diff(moment(ca.valid_to))).humanize(true)}`
+                                        }
+                                    />
+                                )
+                                : (
+                                    <Typography style={{ fontWeight: "400", fontSize: "13px" }} >{`${ca.status} · ${moment(ca.valid_to).format("DD/MM/YYYY")} ·  ${moment.duration(moment().diff(moment(ca.valid_to))).humanize(true)}`}</Typography>
+                                )
+                        }
                     </Grid>
                     <Grid item xs="auto">
                         {

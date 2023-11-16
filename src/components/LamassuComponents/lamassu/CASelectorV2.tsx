@@ -7,6 +7,7 @@ import { FieldType } from "components/FilterInput";
 import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/models";
 
 type Props = {
+    limitSelection?:string[] // CA IDs
     onSelect: (ca: CertificateAuthority | CertificateAuthority[]) => void
     value?: CertificateAuthority | CertificateAuthority[]
     label: string
@@ -36,8 +37,14 @@ const CASelectorV2: React.FC<Props> = (props: Props) => {
                             sortField: "",
                             sortMode: "asc"
                         });
+
+                        let cas = casResp.list;
+                        if (props.limitSelection !== undefined) {
+                            cas = cas.filter(ca => props.limitSelection?.includes(ca.id));
+                        }
+
                         return new Promise<CertificateAuthority[]>(resolve => {
-                            resolve(casResp.list);
+                            resolve(cas);
                         });
                     }}
                     label={props.label}

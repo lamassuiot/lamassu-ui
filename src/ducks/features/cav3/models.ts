@@ -1,4 +1,49 @@
+import { Field, FieldType } from "components/FilterInput";
 import { Moment } from "moment";
+
+export enum RevocationReason {
+    AACompromise = "AACompromise",
+    AffiliationChanged = "AffiliationChanged",
+    CACompromise = "CACompromise",
+    CertificateHold = "CertificateHold",
+    CessationOfOperation = "CessationOfOperation",
+    KeyCompromise = "KeyCompromise",
+    PrivilegeWithdrawn = "PrivilegeWithdrawn",
+    RemoveFromCrl = "RemoveFromCrl",
+    Superseded = "Superseded",
+    Unspecified = "Unspecified",
+    WeakAlgorithmOrKey = "WeakAlgorithmOrKey",
+}
+
+export const getRevocationReasonDescription = (reason :RevocationReason):string => {
+    switch (reason) {
+    case RevocationReason.AACompromise:
+        return "It is known, or suspected, that aspects of the Attribute Authority (AA) validated in the attribute certificate have been compromised.";
+    case RevocationReason.AffiliationChanged:
+        return "The subject's name, or other validated information in the certificate, has changed without anything being compromised.";
+    case RevocationReason.CACompromise:
+        return "The private key, or another validated portion of a Certificate Authority (CA) certificate, is suspected to have been compromised.";
+    case RevocationReason.CertificateHold:
+        return "The certificate is temporarily suspended, and may either return to service or become permanently revoked in the future.";
+    case RevocationReason.CessationOfOperation:
+        return "The certificate is no longer needed, but nothing is suspected to be compromised.";
+    case RevocationReason.KeyCompromise:
+        return "The private key, or another validated portion of an end-entity certificate, is suspected to have been compromised.";
+    case RevocationReason.PrivilegeWithdrawn:
+        return "A privilege contained within the certificate has been withdrawn.";
+    case RevocationReason.RemoveFromCrl:
+        return "The certificate was revoked with CertificateHold on a base Certificate Revocation List (CRL) and is being returned to service on a delta CRL.";
+    case RevocationReason.Superseded:
+        return "The certificate has been superseded, but without anything being compromised.";
+    case RevocationReason.Unspecified:
+        return "Revocation occurred for a reason that has no more specific value.";
+    case RevocationReason.WeakAlgorithmOrKey:
+        return "The certificate key uses a weak cryptographic algorithm, or the key is too short, or the key was generated in an unsafe manner.";
+
+    default:
+        return "";
+    }
+};
 
 export type Certificate = {
     status: CertificateStatus
@@ -120,3 +165,27 @@ export type ExpirationFormat = {
     duration?: string
     time?: string
 }
+
+export const casFilters: Field[] = [
+    { key: "id", label: "CA ID", type: FieldType.String },
+    { key: "level", label: "Level", type: FieldType.Number },
+    { key: "type", label: "Type", type: FieldType.Enum, fieldOptions: ["MANAGED", "IMPORTED", "EXTERNAL"] },
+    { key: "serial_number", label: "Serial Number", type: FieldType.String },
+    { key: "engine_id", label: "Engine ID", type: FieldType.String },
+    { key: "status", label: "Status", type: FieldType.Enum, fieldOptions: ["ACTIVE", "EXPIRED", "REVOKED"] },
+    { key: "valid_to", label: "Expires At", type: FieldType.Date },
+    { key: "valid_from", label: "Valid From", type: FieldType.Date },
+    { key: "revocation_timestamp", label: "Revocation Timestamp", type: FieldType.Date },
+    { key: "revocation_reason", label: "Revocation Reason", type: FieldType.Enum, fieldOptions: Object.values(RevocationReason) }
+];
+
+export const certificateFilters: Field[] = [
+    { key: "serial_number", label: "Serial Number", type: FieldType.String },
+    { key: "level", label: "Level", type: FieldType.Number },
+    { key: "type", label: "Type", type: FieldType.Enum, fieldOptions: ["MANAGED", "IMPORTED", "EXTERNAL"] },
+    { key: "status", label: "Status", type: FieldType.Enum, fieldOptions: ["ACTIVE", "EXPIRED", "REVOKED"] },
+    { key: "valid_to", label: "Expires At", type: FieldType.Date },
+    { key: "valid_from", label: "Valid From", type: FieldType.Date },
+    { key: "revocation_timestamp", label: "Revocation Timestamp", type: FieldType.Date },
+    { key: "revocation_reason", label: "Revocation Reason", type: FieldType.Enum, fieldOptions: Object.values(RevocationReason) }
+];

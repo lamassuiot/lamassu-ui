@@ -218,8 +218,8 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         allowedRenewalDelta: dms!.settings.reenrollment_settings.reenrollment_delta,
                         allowExpired: dms!.settings.reenrollment_settings.enable_expired_renewal,
                         additionalValidationCAs: dms!.settings.reenrollment_settings.additional_validation_cas.map(ca => casResp.list.find(caF => caF.id === ca)!),
-                        preventiveDelta: "31d",
-                        criticalDelta: "7d"
+                        preventiveDelta: dms.settings.reenrollment_settings.preventive_delta,
+                        criticalDelta: dms.settings.reenrollment_settings.critical_delta
                     },
                     caDistribution: {
                         includeAuthorized: dms!.settings.ca_distribution_settings.include_enrollment_ca,

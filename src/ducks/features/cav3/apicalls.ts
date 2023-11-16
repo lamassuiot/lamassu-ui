@@ -44,6 +44,13 @@ export const getCertificate = async (sn: string): Promise<models.Certificate> =>
     }) as Promise<models.Certificate>;
 };
 
+export const getCertificates = async (params: QueryParameters): Promise<ListResponse<models.Certificate>> => {
+    return apiRequest({
+        method: "GET",
+        url: `${window._env_.LAMASSU_CA_API}/v1/certificates${queryParametersToURL(params)}`
+    }) as Promise<ListResponse<models.Certificate>>;
+};
+
 export const createCA = async (payload: models.CreateCAPayload): Promise<models.CertificateAuthority> => {
     return apiRequest({
         method: "POST",

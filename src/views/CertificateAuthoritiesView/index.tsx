@@ -32,7 +32,7 @@ const RoutedCAList = ({ engines }: { engines: CryptoEngine[] }) => {
     const params = useParams();
     const location = useLocation();
     return (
-        <CAListView preSelectedCaName={params.caName} engines={engines} />
+        <CAListView preSelectedCaID={params.caName} engines={engines} />
     );
 };
 

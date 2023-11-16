@@ -10,8 +10,8 @@ import { CertificateCard } from "views/CertificateAuthoritiesView/components/Cer
 import { AiOutlineSearch, AiOutlineSafetyCertificate } from "react-icons/ai";
 import AddIcon from "@mui/icons-material/Add";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import { FieldType, Filter, Filters } from "components/FilterInput";
-import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/models";
+import { Filter, Filters } from "components/FilterInput";
+import { CertificateAuthority, CryptoEngine, casFilters } from "ducks/features/cav3/models";
 import { emphasize, styled } from "@mui/material/styles";
 import Chip from "@mui/material/Chip";
 import { EnginesIcons } from "components/LamassuComponents/lamassu/CryptoEngineViewer";
@@ -19,6 +19,7 @@ import CAViewer from "components/LamassuComponents/lamassu/CAViewer";
 import ViewListIcon from "@mui/icons-material/ViewList";
 import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined";
 import { Tree, TreeNode } from "react-organizational-chart";
+import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 
 interface Props {
     preSelectedCaID?: string
@@ -78,23 +79,26 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
         refreshAction();
     };
 
-    const renderCAHierarchy = (parentCA: CertificateAuthority) => {
+    const renderCAHierarchy = (parentChain: CertificateAuthority[], ca: CertificateAuthority) => {
         return (
             <TreeNode label={
-                <div style={{ marginTop: "8px" }}>
+                <div style={{ marginTop: "8px", display: "flex", justifyContent: "center" }}>
                     <CertificateCard
                         onClick={() => {
+                            setSelectedCa(ca.id);
+                            navigate(ca.id);
+                            setRootChain(parentChain);
                             setViewMode("list");
-                            // setSelectedCa(parentCA)
                         }}
-                        ca={parentCA}
-                        engine={engines.find(engine => parentCA.engine_id === engine.id)!}
+                        ca={ca}
+                        style={{ minWidth: "400px", maxWidth: "500px", width: "100%" }}
+                        engine={engines.find(engine => ca.engine_id === engine.id)!}
                         selected={false}
                     />
                 </div>
             }>
                 {
-                    caList.filter(ca => ca.issuer_metadata.id === parentCA.id && ca.level === parentCA.level + 1).map(ca => renderCAHierarchy(ca))
+                    caList.filter(caItem => caItem.issuer_metadata.id === ca.id && caItem.level === ca.level + 1).map(caItem => renderCAHierarchy([...parentChain, ca], caItem))
                 }
             </TreeNode>
         );
@@ -102,7 +106,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
 
     return (
         <Grid container style={{ height: "100%" }}>
-            <Grid item xs={viewMode === "list" ? 3 : 12} container direction="column" style={{ background: theme.palette.background.lightContrast, width: "100%" }}>
+            <Grid item xs={viewMode === "list" ? 4 : 12} xl={viewMode === "list" ? 3 : 12} container direction="column" style={{ background: theme.palette.background.lightContrast, width: "100%" }}>
                 <Box style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                     <Box sx={{ padding: "20px" }}>
                         <Grid item xs={12} container flexDirection={"column"}>
@@ -150,13 +154,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                                 </Grid>
                             </Grid>
                             <Grid item xs={12} style={{ paddingTop: "10px" }} container alignItems={"center"}>
-                                <Filters fields={[
-                                    { key: "id", label: "CA ID", type: FieldType.String },
-                                    { key: "type", label: "Type", type: FieldType.Enum, fieldOptions: ["MANAGED", "IMPORTED", "EXTERNAL"] },
-                                    { key: "status", label: "Status", type: FieldType.Enum, fieldOptions: ["ACTIVE", "EXPIRED", "REVOKED"] },
-                                    { key: "valid_to", label: "Expires At", type: FieldType.Date },
-                                    { key: "valid_from", label: "Valid From", type: FieldType.Date }
-                                ]} onChange={(filters) => setFilters([...filters])} />
+                                <Filters fields={casFilters} filters={filters} onChange={(filters) => setFilters([...filters])} />
                             </Grid>
                         </Grid>
                     </Box>
@@ -240,21 +238,41 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                                             </Grid>
                                         )
                                         : (
-                                            <Tree
-                                                lineWidth={"4px"}
-                                                lineColor={theme.palette.primary.main}
-                                                lineBorderRadius={"5px"}
-                                                label={
-                                                    <Grid container justifyContent={"center"}>
-                                                        <Grid item>
-                                                            <img src={process.env.PUBLIC_URL + theme.palette.mode === "light" ? "/assets/LAMASSU_B.svg" : "/assets/LAMASSU.svg"} height={"60px"} />
-                                                        </Grid>
-                                                    </Grid>
-                                                }>
-                                                {
-                                                    caList.filter(ca => ca.level === 0).map(ca => renderCAHierarchy(ca))
-                                                }
-                                            </Tree>
+                                            <TransformWrapper
+                                                initialScale={1}
+                                                initialPositionX={200}
+                                                initialPositionY={100}
+                                            >
+                                                {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
+                                                    <React.Fragment>
+                                                        <div className="tools">
+                                                            <button onClick={() => zoomIn()}>+</button>
+                                                            <button onClick={() => zoomOut()}>-</button>
+                                                            <button onClick={() => resetTransform()}>x</button>
+                                                        </div>
+                                                        <TransformComponent>
+                                                            <div style={{ maxWidth: "100%" }}>
+                                                                <Tree
+                                                                    lineWidth={"4px"}
+                                                                    lineColor={theme.palette.primary.main}
+                                                                    lineBorderRadius={"5px"}
+                                                                    label={
+                                                                        <Grid container justifyContent={"center"}>
+                                                                            <Grid item>
+                                                                                <img src={process.env.PUBLIC_URL + theme.palette.mode === "light" ? "/assets/LAMASSU_B.svg" : "/assets/LAMASSU.svg"} height={"60px"} />
+                                                                            </Grid>
+                                                                        </Grid>
+                                                                    }>
+                                                                    {
+                                                                        caList.filter(ca => ca.level === 0).map(ca => renderCAHierarchy([], ca))
+                                                                    }
+                                                                </Tree>
+                                                            </div>
+                                                        </TransformComponent>
+                                                    </React.Fragment>
+                                                )}
+                                            </TransformWrapper>
+
                                         )
                                 )
                         }
@@ -264,10 +282,10 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
 
             {
                 viewMode === "list" && (
-                    <Grid item xs style={{ height: "100%", overflow: "hidden", background: theme.palette.background.default }} ref={containerRef}>
+                    <Grid item xs xl style={{ height: "100%", overflow: "hidden", background: theme.palette.background.default }} ref={containerRef}>
                         <Slide direction="left" in={isMainModalOpen} container={containerRef.current} style={{ height: "100%" }}>
                             <Box>
-                                <Outlet />
+                                <Outlet context={[rootChain.length > 0 ? rootChain[rootChain.length - 1] : undefined]} />
                             </Box>
                         </Slide>
                     </Grid>
