@@ -83,7 +83,7 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
 
             <Box style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                 <Box style={{ padding: "40px 40px 0 40px" }}>
-                    <Grid item container spacing={2} justifyContent="flex-start">
+                    <Grid container spacing={2} justifyContent="flex-start">
                         <Grid item xs container spacing={"10px"}>
                             <Grid item xs="auto">
                                 <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 26, lineHeight: "24px", marginRight: "10px" }}>{caData.subject.common_name}</Typography>
@@ -130,53 +130,65 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                 </Box>
                 <TabsListWithRouter
                     headerStyle={{ margin: "0 25px" }}
-                    contentStyle={{ margin: "0 35px" }}
+                    contentStyle={{}}
                     useParamsKey="*"
                     tabs={[
                         {
                             label: "Overview",
                             path: "",
                             goto: "",
-                            element: <CertificateOverview caData={caData} engines={engines} />
+                            element: <div style={{ margin: "0 35px" }}>
+                                <CertificateOverview caData={caData} engines={engines} />
+                            </div>
                         },
                         {
                             label: "Metadata",
                             path: "metadata",
                             goto: "metadata",
-                            element: <CAMetadata caData={caData} />
+                            element: <div style={{ margin: "0 35px" }}>
+                                <CAMetadata caData={caData} />
+                            </div>
                         },
                         {
                             label: "CA Certificate",
                             path: "root",
                             goto: "root",
                             element: (
-                                <Grid container padding={"20px 0px"}>
-                                    <Grid item xs={6}>
-                                        <CertificateView certificate={caData} />
+                                <div style={{ margin: "0 35px" }}>
+                                    <Grid container padding={"20px 0px"}>
+                                        <Grid item xs={6}>
+                                            <CertificateView certificate={caData} />
+                                        </Grid>
+                                        <Grid item xs={6}>
+                                            <CertificateDecoder crtPem={window.window.atob(caData.certificate)} />
+                                        </Grid>
                                     </Grid>
-                                    <Grid item xs={6}>
-                                        <CertificateDecoder crtPem={window.window.atob(caData.certificate)} />
-                                    </Grid>
-                                </Grid>
+                                </div>
                             )
                         },
                         {
                             label: "Issued Certificate",
                             path: "certificates",
                             goto: "certificates",
-                            element: <IssuedCertificates caData={caData} />
+                            element: <div style={{ margin: "0 35px" }}>
+                                <IssuedCertificates caData={caData} />
+                            </div>
                         },
                         {
                             label: "Sign & Verify",
                             path: "signature",
                             goto: "signature",
-                            element: <SignVerifyView caData={caData} />
+                            element: <div style={{ margin: "0 35px" }}>
+                                <SignVerifyView caData={caData} />
+                            </div>
                         },
                         {
                             label: "Cloud Providers",
                             path: "cloud/*",
                             goto: "cloud",
-                            element: <CloudProviders caData={caData} />
+                            element: <div style={{ margin: "0 35px" }}>
+                                <CloudProviders caData={caData} />
+                            </div>
                         }
                     ]}
                 />
@@ -233,7 +245,8 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                         <Box>
                             <Button onClick={() => { setIsRevokeDialogOpen(false); }}>Close</Button>
                             <MonoChromaticButton onClick={async () => {
-                                caApiCalls.updateCAStatus(caData.id, CertificateStatus.Revoked, revokeReason);
+                                await caApiCalls.updateCAStatus(caData.id, CertificateStatus.Revoked, revokeReason);
+                                dispatch(actions.caActionsV3.revokeCA(caData.id));
                                 setIsRevokeDialogOpen(false);
                             }}>Revoke CA Certificate</MonoChromaticButton>
                         </Box>

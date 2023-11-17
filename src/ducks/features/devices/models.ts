@@ -43,7 +43,7 @@ export type Device = {
     creation_ts: string;
     metadata: { [key: string]: any };
     dms_owner: string;
-    logs: { [key: string]: LogMsg };
+    events: { [key: string]: DeviceEvent };
     identity: Slot<string>
     slots: { [key: string]: Slot<string> }
 }
@@ -85,18 +85,12 @@ export type Slot<T extends string> = {
     active_version: number;
     type: CryptoSecretType;
     versions: { [key: number]: T };
-    logs: { [key: string]: LogMsg };
+    events: { [key: string]: DeviceEvent };
 }
 
-export enum LogCriticality {
-    Info = "INFO",
-    Warn = "WARN",
-    Error = "ERROR"
-}
-
-export type LogMsg = {
-    message: string;
-    Criticality: LogCriticality;
+export type DeviceEvent = {
+    type: string;
+    description: string;
 }
 
 export type CreateDevicePayload = {

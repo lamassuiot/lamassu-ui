@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Divider, Grid, IconButton, Paper, Typography, useTheme } from "@mui/material";
+import { Divider, IconButton, Paper, Typography, useTheme } from "@mui/material";
 import { Box } from "@mui/system";
 import moment from "moment";
 import { LamassuChip } from "components/LamassuComponents/Chip";
@@ -14,10 +14,10 @@ import TimelineDot from "@mui/lab/TimelineDot";
 import { TimelineOppositeContent } from "@mui/lab";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate } from "react-router-dom";
-import { getColor } from "components/utils/lamassuColors";
-import { Device, Slot, slotStatusToColor } from "ducks/features/devices/models";
+import { Device, DeviceEvent, Slot, slotStatusToColor } from "ducks/features/devices/models";
 import { apicalls } from "ducks/apicalls";
 import { Certificate, CertificateStatus } from "ducks/features/cav3/models";
+import Grid from "@mui/material/Unstable_Grid2";
 
 interface Props {
     slotID?: string | undefined,
@@ -27,6 +27,11 @@ interface Props {
 type CertResponse = {
     version: number,
     cert: Certificate
+}
+
+type DeviceLog = {
+    event: DeviceEvent,
+    ts: moment.Moment
 }
 
 export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => {
@@ -41,6 +46,8 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
         filteredSlot = device.slots[slotID];
     }
 
+    const [devEvents, setDevEvents] = useState<DeviceLog[]>([]);
+
     const [certificates, setCertificates] = useState<CertResponse[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -48,6 +55,24 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
     const [showRevokeCertificate, setShowRevokeCertificate] = useState(false);
 
     const slot: Slot<string> = filteredSlot;
+
+    useEffect(() => {
+        const mainEvents = Object.keys(device.events).map((eventTS):DeviceLog => {
+            return {
+                event: device.events[eventTS],
+                ts: moment(eventTS)
+            };
+        });
+
+        const idSlotEvents = Object.keys(device.identity.events).map((eventTS):DeviceLog => {
+            return {
+                event: device.events[eventTS],
+                ts: moment(eventTS)
+            };
+        });
+
+        setDevEvents([...mainEvents, ...idSlotEvents].sort((a, b) => a.ts.isBefore(b.ts) ? 1 : -1));
+    }, [device]);
 
     useEffect(() => {
         const run = async () => {
@@ -140,7 +165,7 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
         <>
             <Box sx={{ padding: "10px 20px", display: "flex", alignItems: "center", zIndex: 2 }} component={Paper} borderRadius={0}>
                 <Grid container spacing={6} alignItems="center">
-                    <Grid item xs="auto">
+                    <Grid xs="auto">
                         <IconButton style={{ backgroundColor: theme.palette.primary.light }} onClick={() => {
                             const url = location.pathname;
                             navigate(url.substring(0, url.lastIndexOf("/")));
@@ -148,41 +173,41 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
                             <ArrowBackIcon style={{ color: theme.palette.primary.main }} />
                         </IconButton>
                     </Grid>
-                    <Grid item xs="auto">
+                    <Grid xs="auto">
                         <Typography variant="h5" fontWeight="500" fontSize="15px" textAlign={"center"}
                             sx={{ color: theme.palette.text.main, background: theme.palette.background.lightContrast, display: "inline", padding: "5px 10px", borderRadius: "5px" }}
                         >
                             Identity Slot
                         </Typography>
                     </Grid>
-                    <Grid item xs="auto">
+                    <Grid xs="auto">
 
                         <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Slot Active Version: {slot.active_version}</Typography>
                         <LamassuChip label={slot.status} color={slotStatusToColor(slot.status)} />
                     </Grid>
-                    <Grid item xs container flexDirection="column">
-                        <Grid item container columnSpacing={8} rowSpacing={0}>
-                            {/* <Grid item xs="auto">
+                    <Grid xs container flexDirection="column">
+                        <Grid container columnSpacing={8} rowSpacing={0}>
+                            {/* <Grid xs="auto">
                                 <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Expiration Date</Typography>
                                 <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>{moment(slot!.active_certificate.valid_to).format("DD-MM-YYYY HH:mm")}</Typography>
                             </Grid>
-                            <Grid item xs="auto">
+                            <Grid xs="auto">
                                 <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>CA Name</Typography>
                                 <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>{slot!.active_certificate.ca_name}</Typography>
                             </Grid> */}
-                            <Grid item xs="auto">
+                            <Grid xs="auto">
                                 <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Serial Number</Typography>
                                 <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>{slot.versions[slot.active_version]}</Typography>
                             </Grid>
-                            {/* <Grid item xs="auto">
+                            {/* <Grid xs="auto">
                                 <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Key Properties</Typography>
                                 <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>{`${slot!.active_certificate!.key_metadata.type.toUpperCase()} ${slot!.active_certificate!.key_metadata.bits}`}</Typography>
                             </Grid>
-                            <Grid item xs="auto">
+                            <Grid xs="auto">
                                 <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Key Strength</Typography>
                                 <LamassuChip label={slot!.active_certificate!.key_metadata.strength} color={slot!.active_certificate!.key_metadata.strength_color} compact />
                             </Grid>
-                            <Grid item xs="auto">
+                            <Grid xs="auto">
                                 <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Subject</Typography>
                                 <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>
                                     {decodedCertificateSubject}
@@ -190,10 +215,10 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
                             </Grid> */}
                         </Grid>
                     </Grid>
-                    <Grid item xs="auto">
+                    <Grid xs="auto">
                         {/* {
                             slot.status && (
-                                <Grid item xs container alignItems={"center"} justifyContent={"flex-end"}>
+                                <Grid xs container alignItems={"center"} justifyContent={"flex-end"}>
                                     <Button variant="outlined" size="small" onClick={() => { setShowCertificate(true); }}>View Certificate</Button>
                                     <Modal
                                         title=""
@@ -220,9 +245,9 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
 
             </Box>
             <Grid container sx={{ flexGrow: 1, overflowY: "hidden", height: "300px" }} columns={13}>
-                <Grid item xs={10} sx={{ padding: "30px", overflowY: "scroll", height: "100%" }} container>
-                    <Grid item container flexDirection="column" gap={2}>
-                        <Grid item xs="auto" >
+                <Grid xs={10} sx={{ padding: "30px", overflowY: "scroll", height: "100%" }} container>
+                    <Grid container flexDirection="column" gap={2}>
+                        <Grid xs="auto" >
                             <Box component={Paper}>
                                 <Box sx={{ padding: "15px" }}>
                                     <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 18 }}>Certificates</Typography>
@@ -241,11 +266,11 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
                     </Grid>
                 </Grid>
 
-                <Grid item xs={3} container flexDirection={"column"} component={Paper} borderRadius={0} sx={{ padding: "20px" }}>
-                    <Grid item sx={{ flexGrow: 1, overflowY: "auto", overflowX: "hidden", height: "0px" }}>
+                <Grid xs={3} container flexDirection={"column"} component={Paper} borderRadius={0} sx={{ padding: "20px" }}>
+                    <Grid sx={{ flexGrow: 1, overflowY: "auto", overflowX: "hidden", height: "0px" }}>
                         <Timeline position="left" sx={{ width: "100%", marginLeft: "-20px" }}>
                             {
-                                Object.keys(device.logs).map((logTS, idx) => (
+                                devEvents.map((ev, idx) => (
                                     <TimelineItem key={idx}>
                                         <TimelineOppositeContent style={{ maxWidth: "1px", paddingLeft: "0px", paddingRight: "0px" }} />
                                         <TimelineSeparator>
@@ -253,14 +278,13 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
                                             <TimelineConnector />
                                         </TimelineSeparator>
                                         <TimelineContent sx={{ marginTop: "-11.5px", marginBottom: "25px" }}>
-                                            <Typography fontWeight="500">{device.logs[logTS].Criticality}</Typography>
+                                            <Typography fontWeight="500">{ev.event.type}</Typography>
                                             <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                                                <Typography sx={{ color: theme.palette.text.secondary, marginRight: "5px" }} fontSize="13px">{moment(logTS).format("DD-MM-YYYY HH:mm")}</Typography>
-                                                <Typography sx={{ color: getColor(theme, "gray")[0] }} fontSize="13px" fontWeight="500">{device.logs[logTS].Criticality}</Typography>
+                                                <Typography sx={{ color: theme.palette.text.secondary, marginRight: "5px" }} fontSize="13px">{ev.ts.format("DD-MM-YYYY HH:mm")}</Typography>
                                             </Box>
                                             <Box sx={{ marginTop: "10px" }}>
                                                 <Typography fontSize="12px">
-                                                    {device.logs[logTS].message}
+                                                    {ev.event.description}
                                                 </Typography>
                                             </Box>
                                         </TimelineContent>

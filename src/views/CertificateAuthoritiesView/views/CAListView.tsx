@@ -19,7 +19,7 @@ import CAViewer from "components/LamassuComponents/lamassu/CAViewer";
 import ViewListIcon from "@mui/icons-material/ViewList";
 import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined";
 import { Tree, TreeNode } from "react-organizational-chart";
-import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+import { MapInteractionCSS } from "react-map-interaction";
 
 interface Props {
     preSelectedCaID?: string
@@ -52,7 +52,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
     const refreshAction = () => {
         dispatch(caActions.getCAs.request({
             filters: filters.map(filter => { return `${filter.propertyField.key}[${filter.propertyOperator}]${filter.propertyValue}`; }),
-            limit: 25,
+            limit: 150,
             sortField: "id",
             sortMode: "asc",
             bookmark: ""
@@ -105,9 +105,9 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
     };
 
     return (
-        <Grid container style={{ height: "100%" }}>
+        <Grid item xs container style={{ height: "100%" }}>
             <Grid item xs={viewMode === "list" ? 4 : 12} xl={viewMode === "list" ? 3 : 12} container direction="column" style={{ background: theme.palette.background.lightContrast, width: "100%" }}>
-                <Box style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                <Box style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
                     <Box sx={{ padding: "20px" }}>
                         <Grid item xs={12} container flexDirection={"column"}>
                             <Grid item container>
@@ -238,41 +238,25 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                                             </Grid>
                                         )
                                         : (
-                                            <TransformWrapper
-                                                initialScale={1}
-                                                initialPositionX={200}
-                                                initialPositionY={100}
-                                            >
-                                                {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
-                                                    <React.Fragment>
-                                                        <div className="tools">
-                                                            <button onClick={() => zoomIn()}>+</button>
-                                                            <button onClick={() => zoomOut()}>-</button>
-                                                            <button onClick={() => resetTransform()}>x</button>
-                                                        </div>
-                                                        <TransformComponent>
-                                                            <div style={{ maxWidth: "100%" }}>
-                                                                <Tree
-                                                                    lineWidth={"4px"}
-                                                                    lineColor={theme.palette.primary.main}
-                                                                    lineBorderRadius={"5px"}
-                                                                    label={
-                                                                        <Grid container justifyContent={"center"}>
-                                                                            <Grid item>
-                                                                                <img src={process.env.PUBLIC_URL + theme.palette.mode === "light" ? "/assets/LAMASSU_B.svg" : "/assets/LAMASSU.svg"} height={"60px"} />
-                                                                            </Grid>
-                                                                        </Grid>
-                                                                    }>
-                                                                    {
-                                                                        caList.filter(ca => ca.level === 0).map(ca => renderCAHierarchy([], ca))
-                                                                    }
-                                                                </Tree>
-                                                            </div>
-                                                        </TransformComponent>
-                                                    </React.Fragment>
-                                                )}
-                                            </TransformWrapper>
-
+                                            <MapInteractionCSS>
+                                                <div style={{ maxWidth: "100%" }}>
+                                                    <Tree
+                                                        lineWidth={"4px"}
+                                                        lineColor={theme.palette.primary.main}
+                                                        lineBorderRadius={"5px"}
+                                                        label={
+                                                            <Grid container justifyContent={"center"}>
+                                                                <Grid item>
+                                                                    <img src={process.env.PUBLIC_URL + theme.palette.mode === "light" ? "/assets/LAMASSU_B.svg" : "/assets/LAMASSU.svg"} height={"60px"} />
+                                                                </Grid>
+                                                            </Grid>
+                                                        }>
+                                                        {
+                                                            caList.filter(ca => ca.level === 0).map(ca => renderCAHierarchy([], ca))
+                                                        }
+                                                    </Tree>
+                                                </div>
+                                            </MapInteractionCSS>
                                         )
                                 )
                         }

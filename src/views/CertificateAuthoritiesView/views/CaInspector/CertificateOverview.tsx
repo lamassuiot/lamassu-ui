@@ -78,31 +78,25 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
                     small={false}
                     dataset={[
                         {
-                            label: (
-                                <>Active</>
-                            ),
+                            label: "Active",
                             value: 13,
                             color: "green"
                         }, {
-                            label: (
-                                <>Expired</>
-                            ),
-                            value: 13,
-                            color: "red"
-                        }, {
-                            label: (
-                                <>Revoked</>
-                            ),
+                            label: "Expired",
                             value: 13,
                             color: "orange"
+                        }, {
+                            label: "Revoked",
+                            value: 13,
+                            color: "red"
                         }
                     ]}
-                    title="Device Provisioning Status"
+                    title="Certificates Status"
                     subtitle={""}
                     onRefresh={() => {
                     }}
                     primaryStat={"-"}
-                    statLabel={"Provisioned Devices"}
+                    statLabel={"Active Certificates"}
                     percentage={false}
                     cardColor={theme.palette.homeCharts.deviceStatusCard.primary}
                     primaryTextColor={theme.palette.homeCharts.deviceStatusCard.text}

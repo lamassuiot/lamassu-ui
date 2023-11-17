@@ -33,7 +33,7 @@ export const DeviceStatusChart : React.FC<Props> = ({ deviceStats, ...props }) =
         const color = deviceStatusToColor(statusKey as typeof DeviceStatus);
         dataset.push({
             label: (
-                <>{capitalizeFirstLetter(statusKey)} - <span>[{deviceStats.status_distribution[statusKey]}]</span></>
+                capitalizeFirstLetter(statusKey)
             ),
             value: deviceStats.status_distribution[statusKey],
             color: Array.isArray(color) ? color[1] : color

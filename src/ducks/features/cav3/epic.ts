@@ -50,7 +50,8 @@ export const triggerGetCAs: Epic<RootAction, RootAction, RootState, {}> = (actio
         filter((rootAction, value) => isActionOf([
             actions.createCA,
             actions.importCAReadonly,
-            actions.importCAWithKey
+            actions.importCAWithKey,
+            actions.revokeCA
         ], rootAction)),
         tap((item: any) => console.log("%c Epic ", "background:#ff5555; border-radius:5px;font-weight: bold;", "", item)),
         map((val: any) => {
