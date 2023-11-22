@@ -858,8 +858,8 @@ function policyBuilder (accountID: string, shadowName: string) {
                     "iot:Publish"
                 ],
                 Resource: [
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID*"
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/get",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/update"
                 ]
             },
             {
@@ -869,8 +869,11 @@ function policyBuilder (accountID: string, shadowName: string) {
                 ],
                 Resource: [
                     // "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/dt/lms/well-known/cacerts",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/${iot:Connection.Thing.ThingName}",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/${iot:Connection.Thing.ThingName}/shadow/SHADOWID*"
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/get/accepted",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/get/rejected",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/update/accepted",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/update/rejected",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/update"
                 ]
             },
             {
@@ -880,8 +883,11 @@ function policyBuilder (accountID: string, shadowName: string) {
                 ],
                 Resource: [
                     // "arn:aws:iot:eu-west-1:ACCOUNTID:topic/dt/lms/well-known/cacerts",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID*"
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/get/accepted",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/get/rejected",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/update/accepted",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/update/rejected",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/update"
                 ]
             }
         ]
