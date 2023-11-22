@@ -17,7 +17,6 @@ type FormData = {
         icon: Icon
         color: string
         tags: string[]
-        alias: string
         dms: DMS | undefined
     },
 };
@@ -37,7 +36,6 @@ export const CreateDevice: React.FC<Props> = ({ onSubmit }) => {
         defaultValues: {
             deviceReg: {
                 id: window.crypto.randomUUID(),
-                alias: "",
                 dms: undefined,
                 icon: {
                     bg: "#25eee2",
@@ -55,7 +53,6 @@ export const CreateDevice: React.FC<Props> = ({ onSubmit }) => {
         const run = async () => {
             const actionPayload = {
                 id: data.deviceReg.id,
-                alias: data.deviceReg.alias,
                 dms_name: data.deviceReg.dms?.name,
                 tags: data.deviceReg.dms?.settings.enrollment_settings.device_provisioning_profile.tags,
                 description: "",
@@ -80,9 +77,6 @@ export const CreateDevice: React.FC<Props> = ({ onSubmit }) => {
                             <Grid item container spacing={2}>
                                 <Grid item xs={12}>
                                     <FormTextField label="Device ID" control={control} name="deviceReg.id" disabled={editMode} />
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <FormTextField label="Alias" control={control} name="deviceReg.alias" disabled={editMode} />
                                 </Grid>
                                 <Grid item xs={12}>
                                     <DMSSelector selectLabel="Select DMS Owner" onSelect={(dms) => {

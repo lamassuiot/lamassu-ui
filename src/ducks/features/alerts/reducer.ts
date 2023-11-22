@@ -35,11 +35,11 @@ export const alertsReducer = createReducer<AlertsState, RootAction>(initialState
     })
 
     .handleAction(actions.alertsActions.getEvents.failure, (state, action) => {
-        return { ...state, status: { ...state.eventsStatus, isLoading: false, status: RequestStatus.Failed } };
+        return { ...state, eventsStatus: { ...state.eventsStatus, isLoading: false, status: RequestStatus.Failed } };
     })
 
     .handleAction(actions.alertsActions.getEvents.success, (state, action) => {
-        return { ...state, status: { ...state.eventsStatus, isLoading: false, status: RequestStatus.Success }, eventList: action.payload };
+        return { ...state, eventsStatus: { ...state.eventsStatus, isLoading: false, status: RequestStatus.Success }, eventList: action.payload };
     })
 
     .handleAction(actions.alertsActions.getSubscriptions.request, (state, action) => {

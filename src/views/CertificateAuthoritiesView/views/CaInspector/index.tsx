@@ -23,12 +23,13 @@ import { FetchViewer } from "components/LamassuComponents/lamassu/FetchViewer";
 import CAViewer from "components/LamassuComponents/lamassu/CAViewer";
 import * as caApiCalls from "ducks/features/cav3/apicalls";
 import { Select } from "components/LamassuComponents/dui/Select";
-import { CertificateStatus, CryptoEngine } from "ducks/features/cav3/models";
+import { CAStatsByCA, CertificateStatus, CryptoEngine } from "ducks/features/cav3/models";
 import { useDispatch } from "react-redux";
 import { actions } from "ducks/actions";
 import { useAppSelector } from "ducks/hooks";
 import { selectors } from "ducks/reducers";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import { apicalls } from "ducks/apicalls";
 
 const revokeCodes = [
     ["AACompromise", "It is known, or suspected, that aspects of the Attribute Authority (AA) validated in the attribute certificate have been compromised."],
@@ -57,11 +58,17 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
 
     const caData = useAppSelector(state => selectors.cas.getCA(state, caName));
     const requestState = useAppSelector(state => selectors.cas.getCAItemRequestStatus(state));
+    const [caStats, setCAStats] = useState<CAStatsByCA>({});
 
     const [revokeReason, setRevokeReason] = useState("Unspecified");
 
     const refreshAction = async () => {
-        dispatch(actions.caActionsV3.getCAByID.request(caName));
+        const run = async () => {
+            dispatch(actions.caActionsV3.getCAByID.request(caName));
+            const stats = await apicalls.cas.getStatsByCA(caName);
+            setCAStats(stats);
+        };
+        run();
     };
 
     useEffect(() => {
@@ -128,70 +135,72 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                         </Grid>
                     </Grid>
                 </Box>
-                <TabsListWithRouter
-                    headerStyle={{ margin: "0 25px" }}
-                    contentStyle={{}}
-                    useParamsKey="*"
-                    tabs={[
-                        {
-                            label: "Overview",
-                            path: "",
-                            goto: "",
-                            element: <div style={{ margin: "0 35px" }}>
-                                <CertificateOverview caData={caData} engines={engines} />
-                            </div>
-                        },
-                        {
-                            label: "Metadata",
-                            path: "metadata",
-                            goto: "metadata",
-                            element: <div style={{ margin: "0 35px" }}>
-                                <CAMetadata caData={caData} />
-                            </div>
-                        },
-                        {
-                            label: "CA Certificate",
-                            path: "root",
-                            goto: "root",
-                            element: (
-                                <div style={{ margin: "0 35px" }}>
-                                    <Grid container padding={"20px 0px"}>
-                                        <Grid item xs={6}>
-                                            <CertificateView certificate={caData} />
-                                        </Grid>
-                                        <Grid item xs={6}>
-                                            <CertificateDecoder crtPem={window.window.atob(caData.certificate)} />
-                                        </Grid>
-                                    </Grid>
+                <div style={{ height: "1px", flex: 1 }}>
+                    <TabsListWithRouter
+                        headerStyle={{ margin: "0 25px" }}
+                        contentStyle={{}}
+                        useParamsKey="*"
+                        tabs={[
+                            {
+                                label: "Overview",
+                                path: "",
+                                goto: "",
+                                element: <div style={{ margin: "0 35px" }}>
+                                    <CertificateOverview caData={caData} engines={engines} stats={caStats} />
                                 </div>
-                            )
-                        },
-                        {
-                            label: "Issued Certificate",
-                            path: "certificates",
-                            goto: "certificates",
-                            element: <div style={{ margin: "0 35px" }}>
-                                <IssuedCertificates caData={caData} />
-                            </div>
-                        },
-                        {
-                            label: "Sign & Verify",
-                            path: "signature",
-                            goto: "signature",
-                            element: <div style={{ margin: "0 35px" }}>
-                                <SignVerifyView caData={caData} />
-                            </div>
-                        },
-                        {
-                            label: "Cloud Providers",
-                            path: "cloud/*",
-                            goto: "cloud",
-                            element: <div style={{ margin: "0 35px" }}>
-                                <CloudProviders caData={caData} />
-                            </div>
-                        }
-                    ]}
-                />
+                            },
+                            {
+                                label: "Metadata",
+                                path: "metadata",
+                                goto: "metadata",
+                                element: <div style={{ margin: "0 35px" }}>
+                                    <CAMetadata caData={caData} />
+                                </div>
+                            },
+                            {
+                                label: "CA Certificate",
+                                path: "root",
+                                goto: "root",
+                                element: (
+                                    <div style={{ margin: "0 35px" }}>
+                                        <Grid container padding={"20px 0px"}>
+                                            <Grid item xs={6}>
+                                                <CertificateView certificate={caData} />
+                                            </Grid>
+                                            <Grid item xs={6}>
+                                                <CertificateDecoder crtPem={window.window.atob(caData.certificate)} />
+                                            </Grid>
+                                        </Grid>
+                                    </div>
+                                )
+                            },
+                            {
+                                label: "Issued Certificate",
+                                path: "certificates",
+                                goto: "certificates",
+                                element: <div style={{ margin: "0 35px" }}>
+                                    <IssuedCertificates caData={caData} />
+                                </div>
+                            },
+                            {
+                                label: "Sign & Verify",
+                                path: "signature",
+                                goto: "signature",
+                                element: <div style={{ margin: "0 35px" }}>
+                                    <SignVerifyView caData={caData} />
+                                </div>
+                            },
+                            {
+                                label: "Cloud Providers",
+                                path: "cloud/*",
+                                goto: "cloud",
+                                element: <div style={{ margin: "0 35px" }}>
+                                    <CloudProviders caData={caData} />
+                                </div>
+                            }
+                        ]}
+                    />
+                </div>
                 <Modal
                     title={"Revoke CA Certificate"}
                     subtitle={""}

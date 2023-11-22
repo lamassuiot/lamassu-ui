@@ -15,7 +15,7 @@ export enum RevocationReason {
     WeakAlgorithmOrKey = "WeakAlgorithmOrKey",
 }
 
-export const getRevocationReasonDescription = (reason :RevocationReason):string => {
+export const getRevocationReasonDescription = (reason: RevocationReason): string => {
     switch (reason) {
     case RevocationReason.AACompromise:
         return "It is known, or suspected, that aspects of the Attribute Authority (AA) validated in the attribute certificate have been compromised.";
@@ -96,6 +96,10 @@ export interface CAStats {
     }
 }
 
+export interface CAStatsByCA {
+    [key: string]: number
+};
+
 export enum CertificateStatus {
     Active = "ACTIVE",
     Revoked = "REVOKED",
@@ -128,12 +132,11 @@ export interface CertificateAuthority extends Certificate {
 }
 
 export type SignPayloadResponse = {
-    signature: string
-    signing_algorithm: string
+    signed_data: string
 }
 
 export type VerifyPayloadResponse = {
-    verification: boolean
+    valid: boolean
 }
 
 export type CreateCAPayload = {

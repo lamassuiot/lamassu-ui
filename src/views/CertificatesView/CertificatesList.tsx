@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Grid, Paper, Typography, useTheme } from "@mui/material";
+import { Box, Button, Grid, IconButton, MenuItem, Paper, Tooltip, Typography, useTheme } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { ListWithDataController, ListWithDataControllerConfigProps } from "components/LamassuComponents/Table";
 import { useDispatch } from "react-redux";
@@ -7,9 +7,19 @@ import { useAppSelector } from "ducks/hooks";
 import deepEqual from "fast-deep-equal/es6";
 import { selectors } from "ducks/reducers";
 import { actions } from "ducks/actions";
-import { Certificate, CertificateStatus, certificateFilters } from "ducks/features/cav3/models";
+import { Certificate, CertificateStatus, RevocationReason, certificateFilters, getRevocationReasonDescription } from "ducks/features/cav3/models";
 import { LamassuChip } from "components/LamassuComponents/Chip";
 import moment from "moment";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import DeleteIcon from "@mui/icons-material/Delete";
+import UnarchiveOutlinedIcon from "@mui/icons-material/UnarchiveOutlined";
+import { Modal } from "components/LamassuComponents/dui/Modal";
+import { apicalls } from "ducks/apicalls";
+import { CodeCopier } from "components/LamassuComponents/dui/CodeCopier";
+import { MultiKeyValueInput } from "components/LamassuComponents/dui/MultiKeyValueInput";
+import { MonoChromaticButton } from "components/LamassuComponents/dui/MonoChromaticButton";
+import { TextField } from "components/LamassuComponents/dui/TextField";
+import { Select } from "components/LamassuComponents/dui/Select";
 
 export const CertificateListView = () => {
     const theme = useTheme();
@@ -21,6 +31,10 @@ export const CertificateListView = () => {
     const requestStatus = useAppSelector((state) => selectors.certs.getStatus(state));
     const certList = useAppSelector((state) => selectors.certs.getCerts(state));
     const totalCertificates = -1;
+
+    const [showCertificate, setShowCertificate] = useState<string | undefined>(undefined);
+    const [isRevokeDialogOpen, setIsRevokeDialogOpen] = useState({ isOpen: false, serialNumber: "" });
+    const [revokeReason, setRevokeReason] = useState("Unspecified");
 
     const [tableConfig, setTableConfig] = useState<ListWithDataControllerConfigProps>(
         {
@@ -140,7 +154,75 @@ export const CertificateListView = () => {
                 </Typography>
             ),
             actions: (
-                <></>
+                <Box>
+                    <Grid container spacing={1}>
+                        <Grid item>
+                            <Tooltip title="Show Certificate">
+                                <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
+                                    <IconButton onClick={() => { setShowCertificate(cert.serial_number); }}>
+                                        <VisibilityIcon fontSize={"small"} />
+                                    </IconButton>
+                                </Box>
+                            </Tooltip>
+                            <Modal
+                                title={`Certificate ${cert.serial_number}`}
+                                subtitle=""
+                                isOpen={showCertificate === cert.serial_number}
+                                maxWidth={false}
+                                onClose={() => { setShowCertificate(undefined); }}
+                                actions={
+                                    <Box>
+                                        <Button onClick={() => { setShowCertificate(undefined); }}>Close</Button>
+                                    </Box>
+                                }
+                                content={
+                                    <Grid container spacing={4} width={"100%"}>
+                                        <Grid item xs="auto">
+                                            <CodeCopier code={window.window.atob(cert.certificate)} enableDownload downloadFileName={cert.issuer_metadata.id + "_" + cert.serial_number + ".crt"} />
+                                        </Grid>
+                                        <Grid item xs container flexDirection={"column"}>
+                                            <MultiKeyValueInput label="Metadata" value={cert.metadata} onChange={(meta) => {
+                                                if (!deepEqual(cert.metadata, meta)) {
+                                                    apicalls.cas.updateCertificateMetadata(cert.serial_number, meta);
+                                                }
+                                            }} />
+                                        </Grid>
+                                    </Grid>
+                                }
+                            />
+                        </Grid>
+                        {
+                            cert.status !== CertificateStatus.Revoked && (
+                                <Grid item>
+                                    <Tooltip title="Revoke Certificate">
+                                        <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
+                                            <IconButton>
+                                                <DeleteIcon fontSize={"small"} onClick={() => { setIsRevokeDialogOpen({ isOpen: true, serialNumber: cert.serial_number }); }} />
+                                            </IconButton>
+                                        </Box>
+                                    </Tooltip>
+                                </Grid>
+                            )
+                        }
+                        {
+                            cert.status === CertificateStatus.Revoked && (
+                                cert.revocation_reason === "CertificateHold" && (
+                                    <Grid item>
+                                        <Tooltip title="ReActivate certificate">
+                                            <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
+                                                <IconButton>
+                                                    <UnarchiveOutlinedIcon fontSize={"small"} onClick={() => {
+                                                        apicalls.cas.updateCertificateStatus(cert.serial_number, CertificateStatus.Active);
+                                                    }} />
+                                                </IconButton>
+                                            </Box>
+                                        </Tooltip>
+                                    </Grid>
+                                )
+                            )
+                        }
+                    </Grid>
+                </Box >
             )
         };
     };
@@ -163,9 +245,7 @@ export const CertificateListView = () => {
                 }
                 config={tableConfig}
                 onChange={(ev) => {
-                    console.log(ev);
                     if (!deepEqual(ev, tableConfig)) {
-                        console.log(ev);
                         setTableConfig(ev);
                     }
                 }}
@@ -177,6 +257,50 @@ export const CertificateListView = () => {
                         width: "calc(100% - 60px)"
                     }
                 }}
+            />
+            <Modal
+                title={"Revoke Certificate"}
+                subtitle={""}
+                isOpen={isRevokeDialogOpen.isOpen}
+                onClose={function (): void {
+                    setIsRevokeDialogOpen({ isOpen: false, serialNumber: "" });
+                }}
+                content={(
+                    <Grid container flexDirection={"column"} spacing={4} width={"1500px"}>
+                        <Grid item>
+                            <TextField label="Certificate Serial Number" value={isRevokeDialogOpen.serialNumber} disabled />
+                        </Grid>
+                        <Grid item container flexDirection={"column"} spacing={2}>
+                            <Grid item>
+                                <Select label="Select Revocation Reason" value={revokeReason} onChange={(ev: any) => setRevokeReason(ev.target.value!)}>
+                                    {
+                                        Object.values(RevocationReason).map((rCode, idx) => (
+                                            <MenuItem key={idx} value={rCode} >
+                                                <Grid container spacing={2}>
+                                                    <Grid item xs={2}>
+                                                        <Typography>{rCode}</Typography>
+                                                    </Grid>
+                                                    <Grid item xs="auto">
+                                                        <Typography fontSize={"12px"}>{getRevocationReasonDescription(rCode)}</Typography>
+                                                    </Grid>
+                                                </Grid>
+                                            </MenuItem>
+                                        ))
+                                    }
+                                </Select>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                )}
+                actions={
+                    <Box>
+                        <Button onClick={() => { setIsRevokeDialogOpen({ isOpen: false, serialNumber: "" }); }}>Close</Button>
+                        <MonoChromaticButton onClick={async () => {
+                            apicalls.cas.updateCertificateStatus(isRevokeDialogOpen.serialNumber, CertificateStatus.Revoked, revokeReason);
+                            setIsRevokeDialogOpen({ isOpen: false, serialNumber: "" });
+                        }}>Revoke Certificate</MonoChromaticButton>
+                    </Box>
+                }
             />
         </Box>
     );

@@ -15,6 +15,7 @@ import { TransitionGroup } from "react-transition-group";
 import Grid from "@mui/material/Unstable_Grid2";
 import { Field, Filter, FilterRenderer, Filters } from "components/FilterInput";
 import { MonoChromaticButton } from "./dui/MonoChromaticButton";
+import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
 
 interface LamassuTableRowProps {
     maxCols: number
@@ -107,7 +108,7 @@ export const LamassuTable: React.FC<LamassuTableProps> = ({ data, listRender, on
                 <Grid xs={maxCols} columns={maxCols} container alignItems="center" style={{ padding: "0 10px 0 10px" }}>
                     {
                         listRender.columnConf.map((item: ColumnConfItem, idx: number) => (
-                            <Grid xs={item.size} container justifyContent={item.align ? item.align : "center"} style={{ marginBottom: 15, cursor: sort.enabled && item.sortFieldKey ? "pointer" : "initial" }} key={idx + "-col"} alignItems="initial" onClick={() => {
+                            <Grid xs={item.size} container justifyContent={"center"} style={{ marginBottom: 15, cursor: sort.enabled && item.sortFieldKey ? "pointer" : "initial" }} key={idx + "-col"} alignItems="initial" onClick={() => {
                                 if (sort.enabled && item.sortFieldKey) {
                                     if (item.sortFieldKey === sort.prop) {
                                         if (sort.mode === "asc") {
@@ -122,13 +123,19 @@ export const LamassuTable: React.FC<LamassuTableProps> = ({ data, listRender, on
                             }}>
                                 <Typography style={{ color: (sort.enabled && item.sortFieldKey === sort.prop) ? theme.palette.background.default : theme.palette.text.secondary, fontWeight: "400", fontSize: 12, textAlign: "center", padding: "2px 6px", borderRadius: "5px", background: (sort.enabled && item.sortFieldKey === sort.prop) ? theme.palette.primary.main : "transparent" }}>{item.title}</Typography>
                                 {
-                                    sort.enabled && item.sortFieldKey === sort.prop && (
-                                        sort.mode === "asc"
+                                    sort.enabled && item.sortFieldKey && (
+                                        item.sortFieldKey === sort.prop
                                             ? (
-                                                <ArrowUpwardIcon sx={{ marginLeft: "5px", fontSize: "15px", color: theme.palette.text.secondary }} />
+                                                sort.mode === "asc"
+                                                    ? (
+                                                        <ArrowUpwardIcon sx={{ marginLeft: "5px", fontSize: "15px", color: theme.palette.text.secondary }} />
+                                                    )
+                                                    : (
+                                                        <ArrowDownwardIcon sx={{ marginLeft: "5px", fontSize: "15px", color: theme.palette.text.secondary }} />
+                                                    )
                                             )
                                             : (
-                                                <ArrowDownwardIcon sx={{ marginLeft: "5px", fontSize: "15px", color: theme.palette.text.secondary }} />
+                                                <UnfoldMoreIcon fontSize="small"/>
                                             )
                                     )
                                 }
@@ -298,23 +305,24 @@ export const ListWithDataController: React.FC<ListWithDataControllerProps> = ({
     }
 
     const [query, setQuery] = useState("");
+    const [filters, setFilters] = useState<Filter[]>([]);
+
     useEffect(() => {
         const queryFieldId = listConf.find(c => c.query);
         if (queryFieldId) {
             if (query !== "") {
                 const queryField = config.filters.options.find(f => f.key === queryFieldId.query);
                 if (queryField) {
-                    onChange({
-                        ...config,
-                        filters: {
-                            ...config.filters,
-                            activeFilters: [...config.filters.activeFilters, {
-                                propertyField: queryField,
-                                propertyOperator: "contains",
-                                propertyValue: query
-                            }]
-                        }
-                    });
+                    const newFilters = [...config.filters.activeFilters];
+                    const idx = newFilters.findIndex(f => f.propertyField.key === queryField.key);
+                    if (idx >= 0) {
+                        newFilters.splice(idx, 1);
+                    }
+                    setFilters([...newFilters, {
+                        propertyField: queryField,
+                        propertyOperator: "contains",
+                        propertyValue: query
+                    }]);
                 }
             } else {
                 // check if there is any filter with 'query'. If so, remove it
@@ -322,7 +330,7 @@ export const ListWithDataController: React.FC<ListWithDataControllerProps> = ({
                 if (idx >= 0) {
                     const newFilters = [...config.filters.activeFilters];
                     newFilters.splice(idx, 1);
-                    onChange({ ...config, filters: { ...config.filters, activeFilters: [...newFilters] } });
+                    setFilters([...newFilters]);
                 }
             }
         }
@@ -340,8 +348,6 @@ export const ListWithDataController: React.FC<ListWithDataControllerProps> = ({
     const handleItemsPerPageElClose = (event: any) => {
         setItemsPerPageEl(null);
     };
-
-    const [filters, setFilters] = useState<Filter[]>([]);
 
     useEffect(() => {
         onChange({ ...config, filters: { ...config.filters, activeFilters: [...filters] } });

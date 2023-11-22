@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Stepper, Step, StepLabel, FormControl, Grid, InputLabel, MenuItem, Select, Stack, TextField, Typography, useTheme } from "@mui/material";
+import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Stepper, Step, StepLabel, FormControl, Grid, MenuItem, Stack, Typography, useTheme, Alert } from "@mui/material";
 import { CloudEvent } from "cloudevents";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import WebhookOutlinedIcon from "@mui/icons-material/WebhookOutlined";
@@ -7,11 +7,12 @@ import { useDispatch } from "react-redux";
 import { createSchema } from "genson-js";
 import { materialLight, materialOceanic } from "react-syntax-highlighter/dist/esm/styles/prism";
 import SyntaxHighlighter from "react-syntax-highlighter";
-import { getColor } from "components/utils/lamassuColors";
 import jsonschema from "jsonschema";
 import { JSONPath } from "jsonpath-plus";
 import { ColoredButton } from "components/LamassuComponents/ColoredButton";
 import { useAuth } from "react-oidc-context";
+import { Select } from "components/LamassuComponents/dui/Select";
+import { TextField } from "components/LamassuComponents/dui/TextField";
 
 interface Props {
     event: CloudEvent | undefined,
@@ -173,11 +174,12 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                         <>
                                             <Grid item xs={12} container spacing={2}>
                                                 <Grid item xs={12}>
-                                                    <FormControl variant="standard" fullWidth>
-                                                        <InputLabel>Channel Type</InputLabel>
+                                                    <FormControl fullWidth>
                                                         <Select
+                                                            label="Channel Type"
                                                             value={selectedChannelType}
-                                                            onChange={(select) => setSelectedChannelType(select.target.value)}
+                                                            // @ts-ignore
+                                                            onChange={(ev) => setSelectedChannelType(ev.target.value!)}
                                                         >
                                                             <MenuItem value="email">
                                                                 <Grid container spacing={2}>
@@ -215,7 +217,7 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                                 {
                                                     selectedChannelType === "email" && (
                                                         <Grid item xs={12}>
-                                                            <TextField label="Email Address" disabled variant="standard" fullWidth value={email} />
+                                                            <TextField label="Email Address" fullWidth value={email} />
                                                         </Grid>
                                                     )
                                                 }
@@ -223,10 +225,10 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                                     selectedChannelType === "msteams" && (
                                                         <>
                                                             <Grid item xs={12}>
-                                                                <TextField label="Name" variant="standard" fullWidth value={selectedSubscriptionName} onChange={(ev) => setSelectedSubscriptionName(ev.target.value.trim())} />
+                                                                <TextField label="Name" fullWidth value={selectedSubscriptionName} onChange={(ev) => setSelectedSubscriptionName(ev.target.value.trim())} />
                                                             </Grid>
                                                             <Grid item xs={12}>
-                                                                <TextField label="Incoming Microsoft Teams Webhook URL" variant="standard" fullWidth value={selectedSubscriptionConfig.webhook_url} onChange={(ev) => setSelectedSubscriptionConfig((prev: any) => { return { ...prev, webhook_url: ev.target.value.trim() }; })} />
+                                                                <TextField label="Incoming Microsoft Teams Webhook URL" fullWidth value={selectedSubscriptionConfig.webhook_url} onChange={(ev) => setSelectedSubscriptionConfig((prev: any) => { return { ...prev, webhook_url: ev.target.value.trim() }; })} />
                                                             </Grid>
                                                         </>
                                                     )
@@ -235,12 +237,12 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                                     selectedChannelType === "webhook" && (
                                                         <>
                                                             <Grid item xs={12}>
-                                                                <TextField label="Name" variant="standard" fullWidth value={selectedSubscriptionName} onChange={(ev) => setSelectedSubscriptionName(ev.target.value.trim())} />
+                                                                <TextField label="Name" fullWidth value={selectedSubscriptionName} onChange={(ev) => setSelectedSubscriptionName(ev.target.value.trim())} />
                                                             </Grid>
                                                             <Grid item xs={12}>
-                                                                <FormControl variant="standard" fullWidth>
-                                                                    <InputLabel>Method</InputLabel>
+                                                                <FormControl fullWidth>
                                                                     <Select
+                                                                        label="Method"
                                                                         value={selectedSubscriptionConfig.webhook_method}
                                                                         onChange={(ev) => setSelectedSubscriptionConfig((prev: any) => { return { ...prev, webhook_method: ev.target.value }; })}
                                                                     >
@@ -250,7 +252,7 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                                                 </FormControl>
                                                             </Grid>
                                                             <Grid item xs={12}>
-                                                                <TextField label="Webhook URL" variant="standard" fullWidth value={selectedSubscriptionConfig.webhook_url} onChange={(ev) => setSelectedSubscriptionConfig((prev: any) => { return { ...prev, webhook_url: ev.target.value.trim() }; })} />
+                                                                <TextField label="Webhook URL" fullWidth value={selectedSubscriptionConfig.webhook_url} onChange={(ev) => setSelectedSubscriptionConfig((prev: any) => { return { ...prev, webhook_url: ev.target.value.trim() }; })} />
                                                             </Grid>
                                                         </>
                                                     )
@@ -285,10 +287,11 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                     currentStep === 1 && (
                                         <Grid item xs={12} container spacing={2}>
                                             <Grid item xs={12}>
-                                                <FormControl variant="standard" fullWidth>
-                                                    <InputLabel>Filter or Condition Format</InputLabel>
+                                                <FormControl fullWidth>
                                                     <Select
+                                                        label="Filter or Condition Format"
                                                         value={selectedConditionType}
+                                                        // @ts-ignore
                                                         onChange={(select) => setSelectedConditionType(select.target.value)}
                                                     >
                                                         <MenuItem value="json_schema">JSON Schema</MenuItem>
@@ -305,7 +308,6 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                                                     label="JSON Schema"
                                                                     multiline
                                                                     fullWidth
-                                                                    variant="outlined"
                                                                     value={jsonFilter}
                                                                     inputProps={{
                                                                         spellCheck: false,
@@ -323,7 +325,7 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                                     )
                                                     : (
                                                         <Grid item xs={12}>
-                                                            <TextField label="JSON Path Expression" variant="standard" fullWidth value={jsonFilter} onChange={(ev) => setJsonFilter(ev.target.value.trim())} />
+                                                            <TextField label="JSON Path Expression" fullWidth value={jsonFilter} onChange={(ev) => setJsonFilter(ev.target.value.trim())} />
                                                         </Grid>
                                                     )
                                             }
@@ -344,19 +346,19 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                                     <Grid item xs="auto">
                                                         <Typography fontWeight={500}>Evaluation Result</Typography>
                                                     </Grid>
-                                                    <Grid item xs container width={"350px"}>
+                                                    <Grid item xs container>
                                                         <Grid item xs>
                                                             {
                                                                 isJsonFilterValid
                                                                     ? (
-                                                                        <Box sx={{ background: getColor(theme, "green")[1], padding: "10px", borderRadius: "5px" }}>
-                                                                            <Typography sx={{ color: getColor(theme, "green")[0] }}>The filter matches this Cloud Event</Typography>
-                                                                        </Box>
+                                                                        <Alert severity="success">
+                                                                            The filter matches this Cloud Event
+                                                                        </Alert>
                                                                     )
                                                                     : (
-                                                                        <Box sx={{ background: getColor(theme, "red")[1], padding: "10px", borderRadius: "5px" }}>
-                                                                            <Typography sx={{ color: getColor(theme, "red")[0] }}>The filter does not match this Cloud Event</Typography>
-                                                                        </Box>
+                                                                        <Alert severity="error">
+                                                                            The filter does not match this Cloud Event
+                                                                        </Alert>
                                                                     )
                                                             }
                                                         </Grid>
@@ -437,7 +439,7 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                                         onClick={() => {
                                                             setCurrentStep(currentStep + 1);
                                                         }}>
-                                                            Next
+                                                        Next
                                                     </ColoredButton>
                                                 )
                                                 : (

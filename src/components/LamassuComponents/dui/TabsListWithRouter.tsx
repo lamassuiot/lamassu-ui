@@ -51,7 +51,7 @@ const TabsListWithRouter: React.FC<TabsListWithRouterProps> = ({ tabs, headerSty
                     }
                 </Tabs>
             </Grid>
-            <Grid item flex={1} sx={{ ...contentStyle, height: "1px", overflowY: "scroll" }}>
+            <Grid item flex={1} sx={{ ...contentStyle, height: "1px", overflowY: "auto" }}>
                 <Routes>
                     <Route path="/" element={<Outlet />}>
                         {

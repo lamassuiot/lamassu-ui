@@ -20,12 +20,12 @@ type SignVerifyFormData = {
     sign: {
         message: string,
         messageTypeEncoding: "Base64" | "PlainText",
-        messageType: "HASH" | "RAW"
+        messageType: "hash" | "raw"
         algorithm: "RSASSA_PSS_SHA_256" | "RSASSA_PSS_SHA_384" | "RSASSA_PSS_SHA_512" | "RSASSA_PKCS1_V1_5_SHA_256" | "RSASSA_PKCS1_V1_5_SHA_384" | "RSASSA_PKCS1_V1_5_SHA_512" | "ECDSA_SHA_256" | "ECDSA_SHA_384" | "ECDSA_SHA_512"
     },
     verify: {
         message: string,
-        messageType: "HASH" | "RAW"
+        messageType: "hash" | "raw"
         messageTypeEncoding: "Base64" | "PlainText",
         algorithm: "RSASSA_PSS_SHA_256" | "RSASSA_PSS_SHA_384" | "RSASSA_PSS_SHA_512" | "RSASSA_PKCS1_V1_5_SHA_256" | "RSASSA_PKCS1_V1_5_SHA_384" | "RSASSA_PKCS1_V1_5_SHA_512" | "ECDSA_SHA_256" | "ECDSA_SHA_384" | "ECDSA_SHA_512"
         signature: string,
@@ -50,13 +50,13 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
     const { control, setValue, reset, getValues, handleSubmit, formState: { errors }, watch } = useForm<SignVerifyFormData>({
         defaultValues: {
             sign: {
-                messageType: "HASH",
+                messageType: "raw",
                 messageTypeEncoding: "PlainText",
                 algorithm: "RSASSA_PSS_SHA_256",
                 message: ""
             },
             verify: {
-                messageType: "HASH",
+                messageType: "raw",
                 messageTypeEncoding: "PlainText",
                 algorithm: "RSASSA_PSS_SHA_256",
                 message: "",
@@ -69,7 +69,7 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
     const watchVerify = watch("verify");
 
     useEffect(() => {
-        if (watchSign.messageType === "HASH") {
+        if (watchSign.messageType === "hash") {
             let msg = watchSign.message;
             if (watchSign.messageTypeEncoding === "Base64") {
                 try {
@@ -100,7 +100,7 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
     }, [watchSign.algorithm, watchSign.message, watchSign.messageTypeEncoding, watchSign.messageType]);
 
     useEffect(() => {
-        if (watchVerify.messageType === "HASH") {
+        if (watchVerify.messageType === "hash") {
             let msg = watchVerify.message;
             if (watchVerify.messageTypeEncoding === "Base64") {
                 try {
@@ -141,7 +141,7 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
                     msg = window.btoa(msg);
                 }
                 const resp = await caApiCalls.signPayload(caData.id, msg, data.sign.messageType, data.sign.algorithm);
-                setSignResult(resp.signature);
+                setSignResult(resp.signed_data);
             } catch (error) {
                 if (typeof error === "string") {
                     setSignError(error);
@@ -168,7 +168,7 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
                     msg = window.btoa(msg);
                 }
                 const resp = await caApiCalls.verifyPayload(caData.id, data.verify.signature, msg, data.verify.messageType, data.verify.algorithm);
-                setVerifyResult(resp.verification);
+                setVerifyResult(resp.valid);
             } catch (error) {
                 if (typeof error === "string") {
                     setVerifyError(error);
@@ -207,8 +207,8 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
                         </Grid>
                         <Grid item xs>
                             <FormSelect control={control} name="sign.messageType" label="Message Type">
-                                <MenuItem value={"HASH"}>Hash</MenuItem>
-                                <MenuItem value={"RAW"}>Raw</MenuItem>
+                                <MenuItem value={"hash"}>Hash</MenuItem>
+                                <MenuItem value={"raw"}>Raw</MenuItem>
                             </FormSelect>
                         </Grid>
                         <Grid item xs>
@@ -280,8 +280,8 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
                         </Grid>
                         <Grid item xs>
                             <FormSelect control={control} name="verify.messageType" label="Message Type">
-                                <MenuItem value={"HASH"}>Hash</MenuItem>
-                                <MenuItem value={"RAW"}>Raw</MenuItem>
+                                <MenuItem value={"hash"}>Hash</MenuItem>
+                                <MenuItem value={"raw"}>Raw</MenuItem>
                             </FormSelect>
                         </Grid>
                         <Grid item xs>

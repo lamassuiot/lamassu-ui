@@ -9,6 +9,13 @@ export const getStats = async (): Promise<models.CAStats> => {
     }) as Promise<models.CAStats>;
 };
 
+export const getStatsByCA = async (id: string): Promise<models.CAStatsByCA> => {
+    return apiRequest({
+        method: "GET",
+        url: window._env_.LAMASSU_CA_API + "/v1/stats/" + id
+    }) as Promise<models.CAStatsByCA>;
+};
+
 export const getEngines = async (): Promise<models.CryptoEngine[]> => {
     return apiRequest({
         method: "GET",
@@ -30,10 +37,10 @@ export const getCA = async (caID: string): Promise<models.CertificateAuthority> 
     }) as Promise<models.CertificateAuthority>;
 };
 
-export const getIssuedCertificatesByCA = async (caID: string): Promise<ListResponse<models.Certificate>> => {
+export const getIssuedCertificatesByCA = async (caID: string, params: QueryParameters): Promise<ListResponse<models.Certificate>> => {
     return apiRequest({
         method: "GET",
-        url: `${window._env_.LAMASSU_CA_API}/v1/cas/${caID}/certificates`
+        url: `${window._env_.LAMASSU_CA_API}/v1/cas/${caID}/certificates${queryParametersToURL(params)}`
     }) as Promise<ListResponse<models.Certificate>>;
 };
 
@@ -108,27 +115,27 @@ export const updateCertificateMetadata = async (certSN: string, metadata: any): 
     });
 };
 
-export const signPayload = async (caName: string, message: string, messageType: string, algorithm: string): Promise<models.SignPayloadResponse> => {
+export const signPayload = async (caName: string, message: string, messageType: "raw" | "hash", algorithm: string): Promise<models.SignPayloadResponse> => {
     return apiRequest({
         method: "POST",
         url: window._env_.LAMASSU_CA_API + "/v1/cas/" + caName + "/signature/sign",
         data: {
             message: message,
             message_type: messageType,
-            signing_algorithm: algorithm
+            signature_algorithm: algorithm
         }
     });
 };
 
-export const verifyPayload = async (caName: string, signature: string, message: string, messageType: string, algorithm: string): Promise<models.VerifyPayloadResponse> => {
+export const verifyPayload = async (caName: string, signature: string, message: string, messageType: "raw" | "hash", algorithm: string): Promise<models.VerifyPayloadResponse> => {
     return apiRequest({
         method: "POST",
-        url: window._env_.LAMASSU_CA_API + "/v1/ca/" + caName + "/signature/verify",
+        url: window._env_.LAMASSU_CA_API + "/v1/cas/" + caName + "/signature/verify",
         data: {
             signature: signature,
             message: message,
             message_type: messageType,
-            signing_algorithm: algorithm
+            signature_algorithm: algorithm
         }
     });
 };

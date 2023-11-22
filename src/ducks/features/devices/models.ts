@@ -1,3 +1,5 @@
+import { Field, FieldType } from "components/FilterInput";
+
 export enum DeviceStatus {
     NoIdentity = "NO_IDENTITY",
     Active = "ACTIVE",
@@ -35,12 +37,11 @@ export type DeviceStats = {
 
 export type Device = {
     id: string;
-    alias: string;
     tags: string[];
     status: DeviceStatus;
     icon: string;
     icon_color: string;
-    creation_ts: string;
+    creation_timestamp: string;
     metadata: { [key: string]: any };
     dms_owner: string;
     events: { [key: string]: DeviceEvent };
@@ -88,17 +89,33 @@ export type Slot<T extends string> = {
     events: { [key: string]: DeviceEvent };
 }
 
+export enum DeviceEventType{
+    Created = "CREATED",
+    Provisioned = "PROVISIONED",
+    ReProvisioned = "RE-PROVISIONED",
+    Renewed = "RENEWED",
+    ShadowUpdated = "SHADOW-UPDATED",
+    StatusUpdated = "STATUS-UPDATED",
+    Decommissioned = "DECOMMISSIONED",
+}
+
 export type DeviceEvent = {
-    type: string;
+    type: DeviceEventType;
     description: string;
 }
 
 export type CreateDevicePayload = {
     id: string,
-    alias: string,
     tags: string[],
     metadata: { [key: string]: any },
     dms_id: string,
     icon: string,
     icon_color: string,
 }
+
+export const deviceFields: Field[] = [
+    { key: "id", label: "ID", type: FieldType.String },
+    { key: "dms_owner", label: "DMS Owner", type: FieldType.String },
+    { key: "status", label: "Status", type: FieldType.Enum, fieldOptions: Object.values(DeviceStatus) },
+    { key: "creation_ts", label: "Expires At", type: FieldType.Date }
+];

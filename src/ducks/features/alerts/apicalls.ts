@@ -4,7 +4,7 @@ import { Event, SubChannel, Subscription, SubscriptionCondition } from "./models
 export const getEvents = async (): Promise<Array<Event>> => {
     return apiRequest({
         method: "GET",
-        url: `${window._env_.LAMASSU_ALERTS}/v1/events/latests`
+        url: `${window._env_.LAMASSU_ALERTS}/v1/events/latest`
     }) as Promise<Array<Event>>;
 };
 

@@ -14,7 +14,7 @@ import TimelineDot from "@mui/lab/TimelineDot";
 import { TimelineOppositeContent } from "@mui/lab";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate } from "react-router-dom";
-import { Device, DeviceEvent, Slot, slotStatusToColor } from "ducks/features/devices/models";
+import { Device, DeviceEvent, DeviceEventType, Slot, slotStatusToColor } from "ducks/features/devices/models";
 import { apicalls } from "ducks/apicalls";
 import { Certificate, CertificateStatus } from "ducks/features/cav3/models";
 import Grid from "@mui/material/Unstable_Grid2";
@@ -57,22 +57,24 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
     const slot: Slot<string> = filteredSlot;
 
     useEffect(() => {
-        const mainEvents = Object.keys(device.events).map((eventTS):DeviceLog => {
+        const mainEvents = Object.keys(device.events).map((eventTS): DeviceLog => {
             return {
                 event: device.events[eventTS],
                 ts: moment(eventTS)
             };
         });
 
-        const idSlotEvents = Object.keys(device.identity.events).map((eventTS):DeviceLog => {
+        const idSlotEvents = Object.keys(device.identity.events).map((eventTS): DeviceLog => {
             return {
-                event: device.events[eventTS],
+                event: device.identity.events[eventTS],
                 ts: moment(eventTS)
             };
         });
 
         setDevEvents([...mainEvents, ...idSlotEvents].sort((a, b) => a.ts.isBefore(b.ts) ? 1 : -1));
     }, [device]);
+
+    console.log(devEvents);
 
     useEffect(() => {
         const run = async () => {
@@ -270,26 +272,80 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
                     <Grid sx={{ flexGrow: 1, overflowY: "auto", overflowX: "hidden", height: "0px" }}>
                         <Timeline position="left" sx={{ width: "100%", marginLeft: "-20px" }}>
                             {
-                                devEvents.map((ev, idx) => (
-                                    <TimelineItem key={idx}>
-                                        <TimelineOppositeContent style={{ maxWidth: "1px", paddingLeft: "0px", paddingRight: "0px" }} />
-                                        <TimelineSeparator>
-                                            <TimelineDot variant="outlined" sx={{ margin: 0 }} />
-                                            <TimelineConnector />
-                                        </TimelineSeparator>
-                                        <TimelineContent sx={{ marginTop: "-11.5px", marginBottom: "25px" }}>
-                                            <Typography fontWeight="500">{ev.event.type}</Typography>
-                                            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                                                <Typography sx={{ color: theme.palette.text.secondary, marginRight: "5px" }} fontSize="13px">{ev.ts.format("DD-MM-YYYY HH:mm")}</Typography>
-                                            </Box>
-                                            <Box sx={{ marginTop: "10px" }}>
-                                                <Typography fontSize="12px">
-                                                    {ev.event.description}
-                                                </Typography>
-                                            </Box>
-                                        </TimelineContent>
-                                    </TimelineItem>
-                                ))
+                                devEvents.map((ev, idx) => {
+                                    let eventColor:string | [string, string] = "gray";
+                                    switch (ev.event.type) {
+                                    case DeviceEventType.Created:
+                                        eventColor = "green";
+                                        break;
+
+                                    case DeviceEventType.Provisioned:
+                                        eventColor = "green";
+                                        break;
+
+                                    case DeviceEventType.ReProvisioned:
+                                        eventColor = "orange";
+                                        break;
+
+                                    case DeviceEventType.ShadowUpdated:
+                                        eventColor = "orange";
+                                        break;
+
+                                    case DeviceEventType.Renewed:
+                                        eventColor = "green";
+                                        break;
+                                    case DeviceEventType.Decommissioned:
+                                        eventColor = "red";
+                                        break;
+                                    case DeviceEventType.StatusUpdated:
+                                        if (ev.event.description.includes("to 'REVOKED'")) {
+                                            eventColor = "red";
+                                        } else if (ev.event.description.includes("to 'ACTIVE'")) {
+                                            eventColor = "green";
+                                        } else if (ev.event.description.includes("to 'REQUIRES_ACTION'")) {
+                                            eventColor = "red";
+                                        } else if (ev.event.description.includes("to 'ACTIVE_WITH_WARNS'")) {
+                                            eventColor = ["#000000", "#F1DB3D"];
+                                        } else if (ev.event.description.includes("to 'WARN'")) {
+                                            eventColor = ["#000000", "#F1DB3D"];
+                                        } else if (ev.event.description.includes("to 'ACTIVE_WITH_CRITICAL'")) {
+                                            eventColor = ["#444444", "#F88B56"];
+                                        } else if (ev.event.description.includes("to 'CRITICAL'")) {
+                                            eventColor = ["#444444", "#F88B56"];
+                                        } else {
+                                            eventColor = "gray";
+                                        }
+                                        break;
+
+                                    default:
+                                        break;
+                                    }
+                                    return (
+                                        <TimelineItem key={idx}>
+                                            <TimelineOppositeContent style={{ maxWidth: "1px", paddingLeft: "0px", paddingRight: "0px" }} />
+                                            <TimelineSeparator>
+                                                <TimelineDot variant="outlined" sx={{ margin: 0 }} />
+                                                {
+                                                    idx !== devEvents.length - 1 && (
+                                                        <TimelineConnector />
+                                                    )
+                                                }
+                                            </TimelineSeparator>
+                                            <TimelineContent sx={{ marginTop: "-11.5px", marginBottom: "25px", display: "flex", flexDirection: "column", alignItems: "end" }}>
+                                                <LamassuChip label={ev.event.type} color={eventColor} />
+                                                <Box sx={{ display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+                                                    <Typography sx={{ color: theme.palette.text.secondary, marginRight: "5px" }} fontSize="13px">{ev.ts.format("DD-MM-YYYY HH:mm")}</Typography>
+                                                    <Typography sx={{ color: theme.palette.text.secondary, marginRight: "5px" }} fontSize="13px">{ev.ts.fromNow()}</Typography>
+                                                </Box>
+                                                <Box sx={{ marginTop: "10px" }}>
+                                                    <Typography fontSize="12px">
+                                                        {ev.event.description}
+                                                    </Typography>
+                                                </Box>
+                                            </TimelineContent>
+                                        </TimelineItem>
+                                    );
+                                })
                             }
                         </Timeline>
                     </Grid>

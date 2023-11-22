@@ -170,24 +170,31 @@ const IconInput: React.FC<IconInputProps> = ({ label, size = 45, iconSize = size
                                 </Grid>
                                 <Grid item container spacing={2}>
                                     {
-                                        filteredIcons.map((val, idx) => (
-                                            <Grid key={idx} item xs="auto">
-                                                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", width: "55px", height: "55px", background: bg, cursor: "pointer" }} component={Paper} onClick={() => {
-                                                    setIcon({
-                                                        bg,
-                                                        fg,
-                                                        name: val
-                                                    });
-                                                    setOpen(false);
-                                                    resetModal();
-                                                }}>
-                                                    {
-                                                        icons.find(i => i[0] === val)![1]({ fontSize: "30px", color: fg })
-                                                    }
-                                                </Box>
-                                                {/* <pre>{val.name}</pre> */}
-                                            </Grid>
-                                        ))
+                                        filteredIcons.map((val, idx) => {
+                                            const icon = icons.find(i => i[0] === val);
+                                            return (
+                                                <Grid key={idx} item xs="auto">
+                                                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", width: "55px", height: "55px", background: bg, cursor: "pointer" }} component={Paper} onClick={() => {
+                                                        setIcon({
+                                                            bg,
+                                                            fg,
+                                                            name: val
+                                                        });
+                                                        setOpen(false);
+                                                        resetModal();
+                                                    }}>
+                                                        {
+                                                            icon
+                                                                ? icon[1]({ fontSize: "30px", color: fg })
+                                                                : (
+                                                                    <>NF</>
+                                                                )
+                                                        }
+                                                    </Box>
+                                                    {/* <pre>{val.name}</pre> */}
+                                                </Grid>
+                                            );
+                                        })
                                     }
                                 </Grid>
                             </Grid>

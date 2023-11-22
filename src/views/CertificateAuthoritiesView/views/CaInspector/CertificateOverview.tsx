@@ -6,16 +6,17 @@ import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
 import { TextField } from "components/LamassuComponents/dui/TextField";
 import { X509Certificate, parseCRT } from "components/utils/cryptoUtils/crt";
 import { CryptoEngineViewer } from "components/LamassuComponents/lamassu/CryptoEngineViewer";
-import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/models";
+import { CAStatsByCA, CertificateAuthority, CertificateStatus, CryptoEngine } from "ducks/features/cav3/models";
 import CAFetchViewer from "components/LamassuComponents/lamassu/CAFetchViewer";
 import { Doughnut } from "components/Charts/Doughnut";
 
 interface Props {
     caData: CertificateAuthority
+    stats: CAStatsByCA
     engines: CryptoEngine[]
 }
 
-export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
+export const CertificateOverview: React.FC<Props> = ({ caData, engines, stats }) => {
     const theme = useTheme();
     const [parsedCertificate, setParsedCertificate] = useState<X509Certificate | undefined>();
     useEffect(() => {
@@ -23,9 +24,12 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
             const crt = await parseCRT(window.atob(caData.certificate));
             setParsedCertificate(crt);
         };
-
         run();
     }, []);
+
+    const statsActive = stats[CertificateStatus.Active] ? stats[CertificateStatus.Active] : 0;
+    const statsRevoked = stats[CertificateStatus.Revoked] ? stats[CertificateStatus.Revoked] : 0;
+    const statsExpired = stats[CertificateStatus.Expired] ? stats[CertificateStatus.Expired] : 0;
 
     const pars = window.window.atob(caData.certificate);
     const certificateSubject = {
@@ -71,6 +75,12 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
         };
     }
 
+    let percentageActive = 0;
+    if (statsActive > 0) {
+        const total = statsActive + statsExpired + statsRevoked;
+        percentageActive = Math.round(statsActive * 100 / total);
+    }
+
     return (
         <Grid container columns={12} spacing={2}>
             <Grid item xs={12} container flexDirection={"column"}>
@@ -79,15 +89,15 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
                     dataset={[
                         {
                             label: "Active",
-                            value: 13,
+                            value: statsActive,
                             color: "green"
                         }, {
                             label: "Expired",
-                            value: 13,
+                            value: statsExpired,
                             color: "orange"
                         }, {
                             label: "Revoked",
-                            value: 13,
+                            value: statsRevoked,
                             color: "red"
                         }
                     ]}
@@ -95,9 +105,9 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
                     subtitle={""}
                     onRefresh={() => {
                     }}
-                    primaryStat={"-"}
+                    primaryStat={`${percentageActive}`}
                     statLabel={"Active Certificates"}
-                    percentage={false}
+                    percentage={true}
                     cardColor={theme.palette.homeCharts.deviceStatusCard.primary}
                     primaryTextColor={theme.palette.homeCharts.deviceStatusCard.text}
                     secondaryTextColor={theme.palette.homeCharts.deviceStatusCard.textSecondary}

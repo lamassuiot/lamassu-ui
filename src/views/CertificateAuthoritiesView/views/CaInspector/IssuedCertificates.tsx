@@ -4,6 +4,7 @@ import { LamassuChip } from "components/LamassuComponents/Chip";
 import { ListWithDataController, ListWithDataControllerConfigProps } from "components/LamassuComponents/Table";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
+import UnarchiveOutlinedIcon from "@mui/icons-material/UnarchiveOutlined";
 import moment from "moment";
 import * as caApiCalls from "ducks/features/cav3/apicalls";
 import { useTheme } from "@mui/system";
@@ -18,7 +19,6 @@ import { FetchViewer } from "components/LamassuComponents/lamassu/FetchViewer";
 import { KeyValueLabel } from "components/LamassuComponents/dui/KeyValueLabel";
 import { Modal } from "components/LamassuComponents/dui/Modal";
 import { MonoChromaticButton } from "components/LamassuComponents/dui/MonoChromaticButton";
-import UnarchiveOutlinedIcon from "@mui/icons-material/UnarchiveOutlined";
 import { MultiKeyValueInput } from "components/LamassuComponents/dui/MultiKeyValueInput";
 import { apicalls } from "ducks/apicalls";
 
@@ -54,14 +54,17 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
     );
 
     const refreshAction = async () => {
+        setIsLoading(true);
         try {
             const resp = await caApiCalls.getIssuedCertificatesByCA(
-                caData.id
-                // tableConfig.pagination.selectedItemsPerPage!,
-                // tableConfig.pagination.selectedPage! * tableConfig.pagination.selectedItemsPerPage!,
-                // tableConfig.sort.selectedMode!,
-                // tableConfig.sort.selectedField!,
-                // tableConfig.filter.filters!.map((f: any) => { return f.propertyKey + "[" + f.propertyOperator + "]=" + f.propertyValue; })
+                caData.id,
+                {
+                    bookmark: "",
+                    limit: tableConfig.pagination.selectedItemsPerPage!,
+                    sortField: tableConfig.sort.selectedField!,
+                    sortMode: tableConfig.sort.selectedMode!,
+                    filters: tableConfig.filters.activeFilters.map(filter => { return `${filter.propertyField.key}[${filter.propertyOperator}]${filter.propertyValue}`; })
+                }
             );
             setCerts(resp.list);
         } catch (error) {
@@ -85,13 +88,13 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
     const [revokeReason, setRevokeReason] = useState("Unspecified");
 
     const certTableColumns = [
-        { key: "serialNumber", query: "serial_number", title: "Serial Number", align: "start", size: 4 },
+        { key: "serialNumber", sortFieldKey: "serial_number", query: "serial_number", title: "Serial Number", align: "start", size: 4 },
         { key: "commonName", title: "Common Name", align: "center", size: 3 },
         { key: "key", title: "Key", align: "center", size: 2 },
-        { key: "certificateStatus", title: "Certificate Status", align: "center", size: 1 },
+        { key: "certificateStatus", sortFieldKey: "status", title: "Certificate Status", align: "center", size: 1 },
         { key: "certificateIssuance", title: "Issued At", align: "center", size: 2 },
         { key: "certificateExpiration", title: "Expires At", align: "center", size: 2 },
-        { key: "certificateRevocation", title: "Revoked At", align: "center", size: 3 },
+        { key: "certificateRevocation", sortFieldKey: "revocation_timestamp", title: "Revoked At", align: "center", size: 3 },
         { key: "revocationReason", title: "Revocation Reason", align: "center", size: 1 },
         { key: "actions", title: "", align: "end", size: 2 }
     ];
@@ -267,7 +270,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
                 withRefresh={() => { refreshAction(); }}
                 onChange={(ev: any) => {
                     if (!deepEqual(ev, tableConfig)) {
-                        setTableConfig(prev => ({ ...prev, ...ev }));
+                        setTableConfig(ev);
                     }
                 }}
             />

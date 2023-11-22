@@ -24,7 +24,6 @@ export const DeviceView = () => {
                     <CreateDevice onSubmit={async (device) => {
                         await apicalls.devices.createDevice({
                             id: device.id,
-                            alias: device.alias,
                             tags: device.tag,
                             metadata: {},
                             dms_id: device.dms_name,

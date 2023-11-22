@@ -29,8 +29,8 @@ export const CloudProviders: React.FC<Props> = ({ caData }) => {
 
     const cloudConnectorTableColumns = [
         { key: "connectorIcon", title: "", align: "start", size: 1 },
-        { key: "connectorId", title: "Connector ID", align: "start", size: 2 },
-        { key: "syncStatus", title: "Synchronization Status", align: "center", size: 2 },
+        { key: "connectorId", title: "Connector ID", align: "start", size: 4 },
+        { key: "syncStatus", title: "Synchronization Status", align: "center", size: 7 },
         { key: "actions", title: "", align: "end", size: 2 }
     ];
 
