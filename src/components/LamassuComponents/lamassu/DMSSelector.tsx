@@ -5,7 +5,7 @@ import { DMS } from "ducks/features/ra/models";
 import { apicalls } from "ducks/apicalls";
 
 type Props = {
-    onSelect: (dms: DMS | DMS[]) => void
+    onSelect: (dms: DMS | DMS[] | undefined) => void
     value?: DMS | DMS[]
     label: string
     selectLabel: string
@@ -34,7 +34,7 @@ const DMSSelector: React.FC<Props> = (props: Props) => {
             multiple={props.multiple}
             optionID={(dms) => dms.name}
             optionRenderer={(dms) => <DMSViewer dms={dms} />}
-            onSelect={(dms) => { console.log(dms); props.onSelect(dms); }}
+            onSelect={(dms) => { props.onSelect(dms); }}
             value={props.value}
         />
     );

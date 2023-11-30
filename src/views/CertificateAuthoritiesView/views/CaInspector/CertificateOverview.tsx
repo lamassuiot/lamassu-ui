@@ -83,36 +83,40 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines, stats })
 
     return (
         <Grid container columns={12} spacing={2}>
-            <Grid item xs={12} container flexDirection={"column"}>
-                <Doughnut
-                    small={false}
-                    dataset={[
-                        {
-                            label: "Active",
-                            value: statsActive,
-                            color: "green"
-                        }, {
-                            label: "Expired",
-                            value: statsExpired,
-                            color: "orange"
-                        }, {
-                            label: "Revoked",
-                            value: statsRevoked,
-                            color: "red"
-                        }
-                    ]}
-                    title="Certificates Status"
-                    subtitle={""}
-                    onRefresh={() => {
-                    }}
-                    primaryStat={`${percentageActive}`}
-                    statLabel={"Active Certificates"}
-                    percentage={true}
-                    cardColor={theme.palette.homeCharts.deviceStatusCard.primary}
-                    primaryTextColor={theme.palette.homeCharts.deviceStatusCard.text}
-                    secondaryTextColor={theme.palette.homeCharts.deviceStatusCard.textSecondary}
-                />
-            </Grid>
+            {
+                caData.type !== "EXTERNAL" && (
+                    <Grid item xs={12} container flexDirection={"column"}>
+                        <Doughnut
+                            small={true}
+                            dataset={[
+                                {
+                                    label: "Active",
+                                    value: statsActive,
+                                    color: "green"
+                                }, {
+                                    label: "Expired",
+                                    value: statsExpired,
+                                    color: "orange"
+                                }, {
+                                    label: "Revoked",
+                                    value: statsRevoked,
+                                    color: "red"
+                                }
+                            ]}
+                            title="Certificates Status"
+                            subtitle={""}
+                            onRefresh={() => {
+                            }}
+                            primaryStat={`${percentageActive}`}
+                            statLabel={"Active Certificates"}
+                            percentage={true}
+                            cardColor={theme.palette.homeCharts.deviceStatusCard.primary}
+                            primaryTextColor={theme.palette.homeCharts.deviceStatusCard.text}
+                            secondaryTextColor={theme.palette.homeCharts.deviceStatusCard.textSecondary}
+                        />
+                    </Grid>
+                )
+            }
             {
                 caData.issuer_metadata.id !== caData.id && (
                     <Grid item xs={12} container flexDirection={"column"}>
@@ -120,7 +124,7 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines, stats })
                             <SubsectionTitle>Parent CA</SubsectionTitle>
                         </Grid>
                         <Grid item flexDirection={"column"} spacing={1}>
-                            <CAFetchViewer caName={caData.issuer_metadata.id} elevation={false}/>
+                            <CAFetchViewer caName={caData.issuer_metadata.id} elevation={false} />
                         </Grid>
                     </Grid>
                 )
@@ -132,7 +136,7 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines, stats })
                             <SubsectionTitle>Crypto Engine</SubsectionTitle>
                         </Grid>
                         <Grid item flexDirection={"column"} spacing={1}>
-                            <CryptoEngineViewer engine={engines.find(engine => engine.id === caData.engine_id)!} withDebugMetadata/>
+                            <CryptoEngineViewer engine={engines.find(engine => engine.id === caData.engine_id)!} withDebugMetadata />
                         </Grid>
                     </Grid>
                 )

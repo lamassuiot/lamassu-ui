@@ -8,7 +8,7 @@ import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/models";
 
 type Props = {
     limitSelection?:string[] // CA IDs
-    onSelect: (ca: CertificateAuthority | CertificateAuthority[]) => void
+    onSelect: (ca: CertificateAuthority | CertificateAuthority[] | undefined) => void
     value?: CertificateAuthority | CertificateAuthority[]
     label: string
     selectLabel: string
@@ -52,7 +52,7 @@ const CASelectorV2: React.FC<Props> = (props: Props) => {
                     multiple={props.multiple}
                     optionID={(ca) => ca.id}
                     optionRenderer={(ca) => <CAViewer caData={ca} engine={engines.find(eng => eng.id === ca.engine_id)!} elevation={false} />}
-                    onSelect={(ca) => { console.log(ca); props.onSelect(ca); }}
+                    onSelect={(ca) => { props.onSelect(ca); }}
                     value={props.value} />
             );
         }}

@@ -12,6 +12,7 @@ import { DMSCACertificates } from "./DmsActions/CACertificates";
 import { RequestStatus } from "ducks/reducers_utils";
 import { apicalls } from "ducks/apicalls";
 import { selectors } from "ducks/reducers";
+import { actions } from "ducks/actions";
 
 export const DMSView = () => {
     const navigate = useNavigate();
@@ -90,7 +91,7 @@ const UpdateDMSForm: React.FC<UpdateDMSFormProps> = ({ dmsName }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // dispatch(dmsActions.getDMSAction.request({ name: dmsName }));
+        dispatch(actions.dmsActions.getDMSByID.request(dmsName));
     }, []);
 
     if (requestStatus.isLoading) {
@@ -103,8 +104,6 @@ const UpdateDMSForm: React.FC<UpdateDMSFormProps> = ({ dmsName }) => {
         );
     }
 
-    console.log(dms);
-
     if (requestStatus.status === RequestStatus.Success && dms !== undefined) {
         return <DMSForm
             dms={dms}
@@ -114,5 +113,6 @@ const UpdateDMSForm: React.FC<UpdateDMSFormProps> = ({ dmsName }) => {
                 navigate("/dms");
             }} />;
     }
+
     return <>something went wrong</>;
 };

@@ -27,6 +27,10 @@ export const Operands = (fieldType: FieldType): Operator[] => {
             { label: "Contains", filterValue: "contains" },
             { label: "Not Contains", filterValue: "notcontains" }
         ];
+    case FieldType.StringArray:
+        return [
+            { label: "Contains", filterValue: "contains" }
+        ];
     case FieldType.Date:
         return [
             { label: "Before", filterValue: "before" },
@@ -57,7 +61,8 @@ export enum FieldType {
     Number = "number",
     Date = "date",
     Enum = "enum",
-    String = "string"
+    String = "string",
+    StringArray = "string_array"
 };
 
 export type Field = {
@@ -81,18 +86,21 @@ const emptyFilter = {
     propertyValue: ""
 };
 
-const renderFilterTypeIcon = (type: string, theme: Theme) => {
+const renderFilterTypeIcon = (type: FieldType, theme: Theme) => {
     switch (type) {
-    case "string":
+    case FieldType.String:
         return <ShortTextRoundedIcon sx={{ marginRight: "10px", color: theme.palette.text.primaryLight }} />;
 
-    case "enum":
+    case FieldType.StringArray:
+        return <ShortTextRoundedIcon sx={{ marginRight: "10px", color: theme.palette.text.primaryLight }} />;
+
+    case FieldType.Enum:
         return <AiOutlineNumber style={{ marginRight: "10px", color: theme.palette.text.primaryLight }} />;
 
-    case "number":
+    case FieldType.Number:
         return <AiOutlineNumber style={{ marginRight: "10px", color: theme.palette.text.primaryLight }} />;
 
-    case "date":
+    case FieldType.Date:
         return <BsCalendar3 style={{ marginRight: "10px", color: theme.palette.text.primaryLight }} />;
 
     default:
@@ -180,6 +188,7 @@ export const Filters: React.FC<Props> = ({ externalRender = false, fields, filte
     const loadInputForPropertyKey = (field: Field) => {
         switch (field.type) {
         case FieldType.String:
+        case FieldType.StringArray:
             return <TextField label="" value={newFilter.propertyValue} onChange={(ev) => setNewFiler((prev) => ({ ...prev, propertyValue: ev.target.value, propertyOperatorType: field.type }))} />;
         case FieldType.Enum: {
             let options: any[] = [];
@@ -217,8 +226,6 @@ export const Filters: React.FC<Props> = ({ externalRender = false, fields, filte
                     label=""
                     value={moment(newFilter.propertyValue)}
                     onChange={(newValue: any) => {
-                        console.log(newValue);
-                        console.log(moment(newValue).toISOString());
                         setNewFiler((prev) => ({ ...prev, propertyValue: moment(newValue).toISOString(), propertyOperatorType: field.type }));
                     }}
                 />

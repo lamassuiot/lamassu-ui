@@ -99,9 +99,9 @@ export const CryptoEngineViewer: React.FC<CryptoEngineViewerProps> = ({ engine, 
                             </IconButton>
                         </Grid>
                         <Dialog open={showMeta} onClose={(ev: any) => {
-                            console.log(ev); ev.stopPropagation(); setShowMeta(false);
+                            ev.stopPropagation(); setShowMeta(false);
                         }} fullWidth maxWidth={"lg"}>
-                            <DialogContent onClick={(ev: any) => { console.log(ev); ev.stopPropagation(); }} >
+                            <DialogContent onClick={(ev: any) => { ev.stopPropagation(); }} >
                                 <Grid container flexDirection={"column"} spacing={2}>
                                     <Grid item container flexDirection={"column"} spacing={1}>
                                         <Grid item>

@@ -24,9 +24,10 @@ export const DeviceStatusChart : React.FC<Props> = ({ deviceStats, ...props }) =
     [
         DeviceStatus.NoIdentity,
         DeviceStatus.Active,
-        DeviceStatus.ActiveSlotWithPreventive,
-        DeviceStatus.ActiveSlotWithCritical,
-        DeviceStatus.ActiveSlotWithExpiredRevoked,
+        DeviceStatus.RenewalWindow,
+        DeviceStatus.AboutToExpire,
+        DeviceStatus.Expired,
+        DeviceStatus.Revoked,
         DeviceStatus.Decommissioned
     ].map((statusKey) => {
         // @ts-ignore
@@ -40,6 +41,8 @@ export const DeviceStatusChart : React.FC<Props> = ({ deviceStats, ...props }) =
         });
         return statusKey;
     });
+
+    console.log(dataset);
 
     return (
 

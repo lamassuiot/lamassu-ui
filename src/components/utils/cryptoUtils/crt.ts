@@ -28,7 +28,6 @@ export const parseCRT = async (rawCRT: string): Promise<X509Certificate> => {
         console.log(crt.extensions.length);
         for (let i = 0; i < crt.extensions.length; i++) {
             const ext = crt.extensions[i];
-            console.log(ext.extnID);
         }
         const san = await parseSANFromExtensions(crt.extensions);
         x509.subjectAltName = san;

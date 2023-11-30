@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Button, Grid, IconButton, MenuItem, Paper, Skeleton, Typography, useTheme } from "@mui/material";
 import { Box } from "@mui/system";
 import { LamassuChip } from "components/LamassuComponents/Chip";
@@ -7,11 +7,11 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import moment from "moment";
-import { RequestStatus, capitalizeFirstLetter } from "ducks/reducers_utils";
+import { capitalizeFirstLetter } from "ducks/reducers_utils";
 import SplitButton, { Option } from "components/LamassuComponents/SplitButton";
 import { useAppSelector } from "ducks/hooks";
 import { selectors } from "ducks/reducers";
-import { DeviceStatus, deviceStatusToColor } from "ducks/features/devices/models";
+import { Device, DeviceStatus, deviceStatusToColor } from "ducks/features/devices/models";
 import { DeviceInspectorSlotView } from "./DeviceInspectorViews/DeviceInspectorSlotView";
 import { actions } from "ducks/actions";
 import { Modal } from "components/LamassuComponents/dui/Modal";
@@ -22,31 +22,34 @@ import { LamassuSwitch } from "components/LamassuComponents/Switch";
 import { Select } from "components/LamassuComponents/dui/Select";
 
 interface Props {
-    deviceID: string,
+    device: Device,
 }
 
-export const DeviceInspector: React.FC<Props> = ({ deviceID }) => {
+export const DeviceInspector: React.FC<Props> = ({ device }) => {
     const theme = useTheme();
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
     const requestStatus = useAppSelector(state => selectors.devices.getDeviceListRequestStatus(state));
-    const device = useAppSelector(state => selectors.devices.getDevice(state, deviceID));
 
     const [decommissioningOpen, setDecommissioningOpen] = useState(false);
     const [forceUpdate, setForceUpdate] = useState<{ open: boolean, connectorID: string, selectedActions: { [name: string]: boolean } }>({ open: false, connectorID: "", selectedActions: {} });
 
-    useEffect(() => {
-        refreshAction();
-    }, []);
-
     const refreshAction = () => {
-        dispatch(actions.devicesActions.getDeviceByID.request(deviceID));
+        dispatch(actions.devicesActions.getDeviceByID.request(device.id));
     };
 
     const deviceActions: Option[] = [];
 
     if (device) {
+        if (device.status !== DeviceStatus.Decommissioned) {
+            deviceActions.push({
+                disabled: false,
+                label: "Assign Identity",
+                onClick: () => { }
+            });
+        }
+
         let connectorID = "";
         const connectorMeta = Object.keys(device.metadata).find(mKey => mKey.includes("lamassu.io/iot/"));
         if (connectorMeta) {
@@ -74,16 +77,6 @@ export const DeviceInspector: React.FC<Props> = ({ deviceID }) => {
                 setDecommissioningOpen(true);
             }
         });
-    }
-
-    if (!requestStatus.isLoading && requestStatus.status === RequestStatus.Failed) {
-        return (
-            <>failed req</>
-        );
-    } else if (!requestStatus.isLoading && requestStatus.status === RequestStatus.Success && device === undefined) {
-        return (
-            <>something went wrong</>
-        );
     }
 
     return (
@@ -216,7 +209,7 @@ export const DeviceInspector: React.FC<Props> = ({ deviceID }) => {
                         </Grid>
                         <Grid item xs="auto">
                             <Button variant="contained" onClick={async () => {
-                                await apicalls.devices.decommissionDevice(deviceID);
+                                await apicalls.devices.decommissionDevice(device.id);
                                 dispatch(actions.devicesActions.decommissionDevice());
                                 setDecommissioningOpen(false);
                             }}>Decommission</Button>
@@ -283,8 +276,8 @@ export const DeviceInspector: React.FC<Props> = ({ deviceID }) => {
                                             ...actionsToTrigger
                                         ]
                                     };
-                                    await apicalls.devices.updateDeviceMetadata(deviceID, newMeta);
-                                    dispatch(actions.devicesActions.getDeviceByID.request(deviceID));
+                                    await apicalls.devices.updateDeviceMetadata(device.id, newMeta);
+                                    dispatch(actions.devicesActions.getDeviceByID.request(device.id));
                                 }
                                 setForceUpdate({ open: false, connectorID: "", selectedActions: {} });
                             }}>Force Update</Button>

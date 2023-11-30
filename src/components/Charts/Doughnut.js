@@ -25,7 +25,7 @@ export const Doughnut = ({ dataset, small = true, title, subtitle, primaryStat, 
   }
 
   const options = {
-    cutout: small ? 115 : 120,
+    cutout: small ? 90 : 120,
     borderWidth: 0,
     backgroundColor: localColors,
     hoverBackgroundColor: localColors,
@@ -77,7 +77,7 @@ export const Doughnut = ({ dataset, small = true, title, subtitle, primaryStat, 
         <Box sx={{}} >
           <DoughnutChart data={data} options={options} style={{ zIndex: 10, position: "relative" }} />
         </Box>
-        <Box sx={{ marginTop: "-215px", marginBottom: "90px", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
+        <Box sx={{ marginTop: small ? "-180px" : "-215px", marginBottom: small ? "60px" : "90px", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
           <Box style={{ display: "flex", alignItems: "end" }}>
             <Typography sx={{ fontSize: "35px", fontWeight: "600", color: primaryTextColor }}>{primaryStat}</Typography>
             {

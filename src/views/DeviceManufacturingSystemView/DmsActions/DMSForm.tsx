@@ -161,6 +161,8 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
             const caMeta = watchEnrollmentCA.metadata;
             if (registeredInAWSKey in caMeta && caMeta[registeredInAWSKey].register === true) {
                 setAwsSync(AWSSync.SyncOK);
+            } else {
+                setAwsSync(AWSSync.RequiresSync);
             }
         }
     }, [watchEnrollmentCA, watchAwsIotIntegration.id]);
@@ -244,7 +246,6 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
 
                 const firstConnectorKey = Object.keys(dmsMeta).find(key => key.includes("lamassu.io/iot/"));
                 if (firstConnectorKey && firstConnectorKey.startsWith("lamassu.io/iot/aws.")) {
-                    console.log(firstConnectorKey);
                     const awsMetaConfig: AWSIoTDMSMetadata = dmsMeta[firstConnectorKey];
                     const connectorID = firstConnectorKey.replace("lamassu.io/iot/", "");
                     updateDMS.awsIotIntegration = {
@@ -592,7 +593,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                                 )
                                             }
                                             {
-                                                awsSync === AWSSync.SyncOK && (
+                                                awsSync === AWSSync.SyncOK && registeredInAWSKey in watchEnrollmentCA.metadata && (
                                                     <Grid item xs={12} container flexDirection={"column"}>
                                                         <FullAlert severity="success">
                                                             <Grid container flexDirection={"column"} spacing={2} sx={{ width: "100%" }}>
@@ -858,8 +859,8 @@ function policyBuilder (accountID: string, shadowName: string) {
                     "iot:Publish"
                 ],
                 Resource: [
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/get",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/update"
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID*"
                 ]
             },
             {
@@ -869,11 +870,8 @@ function policyBuilder (accountID: string, shadowName: string) {
                 ],
                 Resource: [
                     // "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/dt/lms/well-known/cacerts",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/get/accepted",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/get/rejected",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/update/accepted",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/update/rejected",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/update"
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/${iot:Connection.Thing.ThingName}",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/${iot:Connection.Thing.ThingName}/shadow/SHADOWID*"
                 ]
             },
             {
@@ -883,11 +881,8 @@ function policyBuilder (accountID: string, shadowName: string) {
                 ],
                 Resource: [
                     // "arn:aws:iot:eu-west-1:ACCOUNTID:topic/dt/lms/well-known/cacerts",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/get/accepted",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/get/rejected",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/update/accepted",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/update/rejected",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID/update"
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID*"
                 ]
             }
         ]

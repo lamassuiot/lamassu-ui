@@ -18,7 +18,7 @@ export const getDMSs = createAsyncAction(
     failed(actionTypes.GET_DMSS)
 )<ListRequest, ListResponse<DMS>, Error>();
 
-export const getDeviceByID = createAsyncAction(
+export const getDMSByID = createAsyncAction(
     actionTypes.GET_DMS_BY_ID,
     success(actionTypes.GET_DMS_BY_ID),
     failed(actionTypes.GET_DMS_BY_ID)

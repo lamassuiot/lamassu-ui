@@ -18,6 +18,8 @@ import { Device, DeviceEvent, DeviceEventType, Slot, slotStatusToColor } from "d
 import { apicalls } from "ducks/apicalls";
 import { Certificate, CertificateStatus } from "ducks/features/cav3/models";
 import Grid from "@mui/material/Unstable_Grid2";
+import { Switch } from "components/LamassuComponents/dui/Switch";
+import Label from "components/LamassuComponents/dui/typographies/Label";
 
 interface Props {
     slotID?: string | undefined,
@@ -51,6 +53,7 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
     const [certificates, setCertificates] = useState<CertResponse[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
+    const [includeIDSlotLogs, setIncludeIDSlotLogs] = useState(false);
     const [showCertificate, setShowCertificate] = useState(false);
     const [showRevokeCertificate, setShowRevokeCertificate] = useState(false);
 
@@ -64,17 +67,18 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
             };
         });
 
-        const idSlotEvents = Object.keys(device.identity.events).map((eventTS): DeviceLog => {
-            return {
-                event: device.identity.events[eventTS],
-                ts: moment(eventTS)
-            };
-        });
+        let idSlotEvents: Array<DeviceLog> = [];
+        if (includeIDSlotLogs) {
+            idSlotEvents = Object.keys(device.identity.events).map((eventTS): DeviceLog => {
+                return {
+                    event: device.identity.events[eventTS],
+                    ts: moment(eventTS)
+                };
+            });
+        }
 
         setDevEvents([...mainEvents, ...idSlotEvents].sort((a, b) => a.ts.isBefore(b.ts) ? 1 : -1));
-    }, [device]);
-
-    console.log(devEvents);
+    }, [device, includeIDSlotLogs]);
 
     useEffect(() => {
         const run = async () => {
@@ -86,7 +90,6 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
             }
 
             const responses = await Promise.all(promises);
-            console.log(responses);
 
             const cerResponses: CertResponse[] = [];
             for (let i = 0; i <= slot.active_version; i++) {
@@ -111,8 +114,6 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
     ];
 
     const certificatesRenderer = (cert: CertResponse) => {
-        console.log(cert);
-
         return {
             version: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary }}>{cert.version}</Typography>,
             serialNumber: <Typography style={{ fontWeight: "500", fontSize: 13, color: theme.palette.text.primary }}>{cert.cert.serial_number}</Typography>,
@@ -268,8 +269,18 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
                     </Grid>
                 </Grid>
 
-                <Grid xs={3} container flexDirection={"column"} component={Paper} borderRadius={0} sx={{ padding: "20px" }}>
-                    <Grid sx={{ flexGrow: 1, overflowY: "auto", overflowX: "hidden", height: "0px" }}>
+                <Grid xs={3} container flexDirection={"column"} component={Paper} borderRadius={0} >
+                    <Grid container justifyContent={"flex-end"} sx={{ background: theme.palette.primary.light, borderBottom: `2px solid ${theme.palette.primary.main}`, padding: "10px 20px" }}>
+                        <Grid xs="auto" container alignItems={"flex-end"} flexDirection={"column"} justifyContent={"flex-end"} >
+                            <Grid>
+                                <Label sx={{ color: theme.palette.primary.main }}>Include Identity Slot logs</Label>
+                            </Grid>
+                            <Grid>
+                                <Switch label="" value={includeIDSlotLogs} onChange={(ev) => setIncludeIDSlotLogs(!includeIDSlotLogs)} />
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                    <Grid sx={{ flexGrow: 1, overflowY: "auto", overflowX: "hidden", height: "0px", padding: "20px" }}>
                         <Timeline position="left" sx={{ width: "100%", marginLeft: "-20px" }}>
                             {
                                 devEvents.map((ev, idx) => {

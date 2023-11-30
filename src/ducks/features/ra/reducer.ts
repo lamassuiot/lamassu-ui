@@ -33,6 +33,18 @@ export const dmssReducer = createReducer<DMSsState, RootAction>(initialState)
 
     .handleAction(actions.dmsActions.getDMSs.success, (state, action) => {
         return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Success }, list: action.payload.list, next: action.payload.next };
+    })
+
+    .handleAction(actions.dmsActions.getDMSByID.request, (state, action) => {
+        return { ...state, status: { isLoading: true, status: RequestStatus.Pending, type: RequestType.Read, err: "" }, list: [] };
+    })
+
+    .handleAction(actions.dmsActions.getDMSByID.failure, (state, action) => {
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Failed } };
+    })
+
+    .handleAction(actions.dmsActions.getDMSByID.success, (state, action) => {
+        return { ...state, status: { ...state.status, isLoading: false, status: RequestStatus.Success }, list: [action.payload], next: "" };
     });
 
 const getSelector = (state: RootState): DMSsState => state.dmss;

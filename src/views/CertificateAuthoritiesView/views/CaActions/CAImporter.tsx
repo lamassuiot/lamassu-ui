@@ -101,7 +101,7 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
                         if (engine.length > 0) {
                             setValue("cryptoEngine", engine[0]);
                         }
-                    } else {
+                    } else if (engine) {
                         setValue("cryptoEngine", engine);
                     }
                 }} />

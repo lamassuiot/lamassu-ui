@@ -107,7 +107,7 @@ export const CloudProviders: React.FC<Props> = ({ caData }) => {
                 totalDataItems={cloudConnectors.length}
                 invertContrast={true}
                 isLoading={false}
-                onChange={(ev: any) => { console.log("callback", ev); }}
+                onChange={(ev: any) => { }}
                 emptyContentComponent={
                     <Grid container justifyContent={"center"} alignItems={"center"} sx={{ height: "100%" }}>
                         <Grid item xs="auto" container justifyContent={"center"} alignItems={"center"} flexDirection="column">

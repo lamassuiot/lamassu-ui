@@ -30,6 +30,21 @@ export const getDMSs: Epic<RootAction, RootAction, RootState, {}> = (action$, st
         )
     );
 
+export const getDMS: Epic<RootAction, RootAction, RootState, {}> = (action$, store$) =>
+    action$.pipe(
+        filter(isActionOf(actions.getDMSByID.request)),
+        tap((item: any) => console.log("%c Epic ", "background:#399999; border-radius:5px;font-weight: bold;", "", item)),
+        exhaustMap((action: PayloadAction<string, string>) =>
+            from(
+                apicalls.getDMSByID(action.payload)
+            ).pipe(
+                map(actions.getDMSByID.success),
+                tap((item: any) => console.log("%c Epic ", "background:#25eeee; border-radius:5px;font-weight: bold;", "", item)),
+                catchError((message) => of(actions.getDMSByID.failure(message)))
+            )
+        )
+    );
+
 export const triggerGetDMSs: Epic<RootAction, RootAction, RootState, {}> = (action$, store$) =>
     action$.pipe(
         filter((rootAction, value) => isActionOf([

@@ -95,7 +95,7 @@ export const CertificateListView = () => {
                 </Typography>
             ),
             cn: (
-                <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary }}>{cert.subject.common_name}</Typography>
+                <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary, wordBreak: "break-word" }}>{cert.subject.common_name}</Typography>
             ),
             caid: (
                 <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary }}>{cert.issuer_metadata.id}</Typography>

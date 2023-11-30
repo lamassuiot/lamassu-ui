@@ -1,16 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Typography, useTheme } from "@mui/material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, useTheme } from "@mui/material";
 import { useDispatch } from "react-redux";
 import * as caApicalls from "ducks/features/cav3/apicalls";
-import Stepper from "@mui/material/Stepper/Stepper";
-import Step from "@mui/material/Step/Step";
-import StepLabel from "@mui/material/StepLabel/StepLabel";
-import { Skeleton } from "@mui/lab";
-import Box from "@mui/material/Box/Box";
 import { Certificate } from "@fidm/x509";
-import CertRequestForm from "components/LamassuComponents/composed/CertRequestForm";
-import { CodeCopier } from "components/LamassuComponents/dui/CodeCopier";
-import CertificateDecoder from "components/LamassuComponents/composed/Certificates/CertificateDecoder";
 
 interface Props {
     caName: string,
@@ -57,19 +49,19 @@ export const IssueCert: React.FC<Props> = ({ caName, isOpen, onClose = () => { }
         <Dialog open={isOpen} maxWidth={"xl"}>
             <DialogTitle>Issuing Certificate for CA: {caName}</DialogTitle>
             <DialogContent>
-                <Grid container style={{ marginTop: "20px" }}>
-                    <Grid item xs={12}>
-                        <Stepper activeStep={step} alternativeLabel>
-                            {["Create CSR", "Issue Certificate", "Process completion"].map((label) => (
-                                <Step key={label}>
-                                    <StepLabel>{label}</StepLabel>
-                                </Step>
-                            ))}
-                        </Stepper>
-                    </Grid>
-                </Grid>
                 <Grid item xs={12} container sx={{ marginTop: "20px" }}>
-                    {
+                    <Grid xs>
+                        <Box sx={{ borderRadius: "5px", border: "2px solid blue", padding: "5px" }}>
+                            <Grid container>
+                                <Grid item>
+
+                                </Grid>
+                            </Grid>
+                        </Box>
+                    </Grid>
+                    <Grid xs></Grid>
+                    <Grid xs></Grid>
+                    {/* {
                         step === 0 && (
                             <CertRequestForm onCreate={csr => {
                                 setCSR(csr);
@@ -143,7 +135,7 @@ export const IssueCert: React.FC<Props> = ({ caName, isOpen, onClose = () => { }
                                 }
                             </Grid>
                         )
-                    }
+                    } */}
                 </Grid>
             </DialogContent>
             <DialogActions>
@@ -163,7 +155,7 @@ export const IssueCert: React.FC<Props> = ({ caName, isOpen, onClose = () => { }
                     </Grid>
                 </Grid>
             </DialogActions>
-        </Dialog>
+        </Dialog >
     );
 };
 

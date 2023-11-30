@@ -151,6 +151,17 @@ export const signCertificateRequest = async (caName: string, csr: string): Promi
     });
 };
 
+export const importCertificate = async (crt: string): Promise<models.Certificate> => {
+    return apiRequest({
+        method: "POST",
+        url: window._env_.LAMASSU_CA_API + "/v1/certificates/import",
+        data: {
+            certificate: crt,
+            metadata: {}
+        }
+    });
+};
+
 export const updateCertificateStatus = async (certSerial: string, status: models.CertificateStatus, revocationReason?: string): Promise<models.Certificate> => {
     const body: any = {
         status: status

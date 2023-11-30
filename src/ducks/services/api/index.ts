@@ -71,7 +71,6 @@ export const apiRequest = async ({ method = "GET", url, data, query, headers = {
                 const json = await response.json();
                 return json;
             }
-            console.log("no JSOn");
 
             const text = await response.text();
             return text;
@@ -89,7 +88,6 @@ export const apiRequest = async ({ method = "GET", url, data, query, headers = {
 export const makeRequestWithActions = (fetchPromise: Promise<any>, actionType: string, meta = {}) =>
     rxjsFrom(fetchPromise).pipe(
         map((data) => {
-            console.log(data);
             // console.log(data && !data.error);
             if (data && !data.error) {
                 return {

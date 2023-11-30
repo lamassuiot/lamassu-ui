@@ -5,7 +5,7 @@ import { CryptoEngineViewer } from "./CryptoEngineViewer";
 import { CryptoEngine } from "ducks/features/cav3/models";
 
 type Props = {
-    onSelect: (engine: CryptoEngine | CryptoEngine[]) => void
+    onSelect: (engine: CryptoEngine | CryptoEngine[] | undefined) => void
     value?: CryptoEngine | CryptoEngine[]
 }
 
@@ -19,7 +19,7 @@ const CryptoEngineSelector: React.FC<Props> = (props: Props) => {
         multiple={false}
         optionID={(engine) => engine.id}
         optionRenderer={(engine) => <CryptoEngineViewer engine={engine} withDebugMetadata />}
-        onSelect={(engine) => { console.log(engine); props.onSelect(engine); }}
+        onSelect={(engine) => { props.onSelect(engine); }}
         value={props.value}
     />;
 };

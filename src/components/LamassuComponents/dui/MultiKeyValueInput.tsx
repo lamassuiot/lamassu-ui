@@ -19,8 +19,6 @@ const MultiKeyValueInput: React.FC<MultiKeyValueInputProps> = ({ label, value = 
     const [newVal, setNewVal] = useState("");
 
     useEffect(() => {
-        console.log(keyValues);
-
         if (onChange) {
             onChange(keyValues);
         }

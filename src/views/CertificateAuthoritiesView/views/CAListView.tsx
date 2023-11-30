@@ -126,7 +126,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                                 </Grid>
                                 <Grid item xs={"auto"} container justifyContent={"flex-end"}>
                                     <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 40, height: 40, marginLeft: 10 }}>
-                                        <IconButton style={{ background: theme.palette.primary.light }} onClick={() => { setIsMainModalOpen(true); navigate("create"); }}>
+                                        <IconButton style={{ background: theme.palette.primary.light }} onClick={() => { setViewMode("list"); setIsMainModalOpen(true); navigate("create"); }}>
                                             <AddIcon style={{ color: theme.palette.primary.main }} />
                                         </IconButton>
                                     </Box>
@@ -197,9 +197,15 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                                                                                         }}
                                                                                         label={`${ca.level === 0 ? "Root: " : ""} Level ${ca.level}`}
                                                                                         icon={
-                                                                                            <Box sx={{ height: "20px", width: "20px", paddingLeft: "5px" }}>
-                                                                                                <img src={EnginesIcons.find(ei => ei.uniqueID === caEngine!.type)!.icon} height={"100%"} width={"100%"} />
-                                                                                            </Box>
+                                                                                            ca.type !== "EXTERNAL"
+                                                                                                ? (
+                                                                                                    <Box sx={{ height: "20px", width: "20px", paddingLeft: "5px" }}>
+                                                                                                        <img src={EnginesIcons.find(ei => ei.uniqueID === caEngine!.type)!.icon} height={"100%"} width={"100%"} />
+                                                                                                    </Box>
+                                                                                                )
+                                                                                                : (
+                                                                                                    <></>
+                                                                                                )
                                                                                         }
                                                                                     />
                                                                                 );

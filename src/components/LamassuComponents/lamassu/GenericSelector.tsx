@@ -14,7 +14,7 @@ interface WrapperProps<T> {
     label: string
     selectLabel: string
     multiple: boolean
-    onSelect: (cert: T | T[]) => void
+    onSelect: (cert: T | T[] | undefined) => void
     value?: T | T[]
 }
 
@@ -68,7 +68,7 @@ export const GenericSelector = <T extends object>(props: GenericSelectorProps<T>
     React.useEffect(() => {
         if (props.multiple) {
             props.onSelect(selectedOptions);
-        } else if (selectedOption) {
+        } else {
             props.onSelect(selectedOption);
         }
     }, [selectedOptions, selectedOption]);

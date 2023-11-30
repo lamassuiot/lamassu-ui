@@ -50,15 +50,17 @@ export const CreateDevice: React.FC<Props> = ({ onSubmit }) => {
     const watchAll = watch();
 
     const submit = handleSubmit(data => {
+        console.log(data);
+        console.log(data.deviceReg.dms?.settings.enrollment_settings.device_provisioning_profile);
+        console.log(data.deviceReg.dms?.settings.enrollment_settings.device_provisioning_profile.tags);
+
         const run = async () => {
             const actionPayload = {
                 id: data.deviceReg.id,
                 dms_name: data.deviceReg.dms?.name,
                 tags: data.deviceReg.dms?.settings.enrollment_settings.device_provisioning_profile.tags,
-                description: "",
                 icon_name: data.deviceReg.dms?.settings.enrollment_settings.device_provisioning_profile.icon,
                 icon_color: data.deviceReg.dms?.settings.enrollment_settings.device_provisioning_profile.icon_color
-
             };
             onSubmit(actionPayload);
         };

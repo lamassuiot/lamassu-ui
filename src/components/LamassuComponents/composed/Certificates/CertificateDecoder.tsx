@@ -23,11 +23,8 @@ const CertificateDecoder: React.FC<CertificateDecoderProps> = ({ crtPem }) => {
                     const crtInfo = await parseCRT(crtPem);
                     setCrtProps(crtInfo);
                     setIsValid(true);
-                    console.log(crtInfo!.serialNumber);
-                    console.log(typeof crtInfo!.serialNumber);
                 } catch (err) {
                     console.log(err);
-
                     setIsValid(false);
                 }
             }

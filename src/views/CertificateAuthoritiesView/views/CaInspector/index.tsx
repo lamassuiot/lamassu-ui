@@ -86,8 +86,70 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
             </Box>
         );
     } else if (caData !== undefined) {
-        return (
+        let tabs = [
+            {
+                label: "Overview",
+                path: "",
+                goto: "",
+                element: <div style={{ margin: "0 35px" }}>
+                    <CertificateOverview caData={caData} engines={engines} stats={caStats} />
+                </div>
+            },
+            {
+                label: "Metadata",
+                path: "metadata",
+                goto: "metadata",
+                element: <div style={{ margin: "0 35px" }}>
+                    <CAMetadata caData={caData} />
+                </div>
+            },
+            {
+                label: "CA Certificate",
+                path: "root",
+                goto: "root",
+                element: (
+                    <div style={{ margin: "0 35px" }}>
+                        <Grid container padding={"20px 0px"}>
+                            <Grid item xs={6}>
+                                <CertificateView certificate={caData} />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <CertificateDecoder crtPem={window.window.atob(caData.certificate)} />
+                            </Grid>
+                        </Grid>
+                    </div>
+                )
+            }
+        ];
 
+        if (caData.type !== "EXTERNAL") {
+            tabs = [...tabs, {
+                label: "Issued Certificate",
+                path: "certificates",
+                goto: "certificates",
+                element: <div style={{ margin: "0 35px" }}>
+                    <IssuedCertificates caData={caData} />
+                </div>
+            },
+            {
+                label: "Sign & Verify",
+                path: "signature",
+                goto: "signature",
+                element: <div style={{ margin: "0 35px" }}>
+                    <SignVerifyView caData={caData} />
+                </div>
+            },
+            {
+                label: "Cloud Providers",
+                path: "cloud/*",
+                goto: "cloud",
+                element: <div style={{ margin: "0 35px" }}>
+                    <CloudProviders caData={caData} />
+                </div>
+            }];
+        }
+
+        return (
             <Box style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                 <Box style={{ padding: "40px 40px 0 40px" }}>
                     <Grid container spacing={2} justifyContent="flex-start">
@@ -140,65 +202,7 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                         headerStyle={{ margin: "0 25px" }}
                         contentStyle={{}}
                         useParamsKey="*"
-                        tabs={[
-                            {
-                                label: "Overview",
-                                path: "",
-                                goto: "",
-                                element: <div style={{ margin: "0 35px" }}>
-                                    <CertificateOverview caData={caData} engines={engines} stats={caStats} />
-                                </div>
-                            },
-                            {
-                                label: "Metadata",
-                                path: "metadata",
-                                goto: "metadata",
-                                element: <div style={{ margin: "0 35px" }}>
-                                    <CAMetadata caData={caData} />
-                                </div>
-                            },
-                            {
-                                label: "CA Certificate",
-                                path: "root",
-                                goto: "root",
-                                element: (
-                                    <div style={{ margin: "0 35px" }}>
-                                        <Grid container padding={"20px 0px"}>
-                                            <Grid item xs={6}>
-                                                <CertificateView certificate={caData} />
-                                            </Grid>
-                                            <Grid item xs={6}>
-                                                <CertificateDecoder crtPem={window.window.atob(caData.certificate)} />
-                                            </Grid>
-                                        </Grid>
-                                    </div>
-                                )
-                            },
-                            {
-                                label: "Issued Certificate",
-                                path: "certificates",
-                                goto: "certificates",
-                                element: <div style={{ margin: "0 35px" }}>
-                                    <IssuedCertificates caData={caData} />
-                                </div>
-                            },
-                            {
-                                label: "Sign & Verify",
-                                path: "signature",
-                                goto: "signature",
-                                element: <div style={{ margin: "0 35px" }}>
-                                    <SignVerifyView caData={caData} />
-                                </div>
-                            },
-                            {
-                                label: "Cloud Providers",
-                                path: "cloud/*",
-                                goto: "cloud",
-                                element: <div style={{ margin: "0 35px" }}>
-                                    <CloudProviders caData={caData} />
-                                </div>
-                            }
-                        ]}
+                        tabs={tabs}
                     />
                 </div>
                 <Modal

@@ -161,13 +161,15 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                                 if (engine.length > 0) {
                                     setValue("cryptoEngine", engine[0]);
                                 }
-                            } else {
+                            } else if (engine) {
                                 setValue("cryptoEngine", engine);
                             }
                         }} />
                     </Grid>
                     <Grid item xs={12}>
                         <CASelectorV2 value={getValues("parentCA")} onSelect={(elems) => {
+                            console.log(elems);
+
                             if (!Array.isArray(elems)) {
                                 setValue("parentCA", elems);
                             }
