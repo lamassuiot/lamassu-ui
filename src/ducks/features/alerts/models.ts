@@ -28,11 +28,10 @@ export enum SubChannelType {
     MsTeams = "MSTEAMS"
 }
 
-export type SubChannel = {
-    type: SubChannelType
-    name: string
-    config: any
-}
+export type SubChannel =
+| {type: SubChannelType.Email, config: SubChannelEmailConfig }
+| {type: SubChannelType.Webhook, name: string, config: SubChannelWebhookConfig }
+| {type: SubChannelType.MsTeams, name: string, config: SubChannelMSTeamsConfig }
 
 export type SubChannelEmailConfig = {
     email: string

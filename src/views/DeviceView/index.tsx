@@ -25,9 +25,7 @@ const RoutedDeviceInspector = () => {
         dispatch(actions.devicesActions.getDeviceByID.request(deviceID));
     };
 
-    console.log("aaaaaaaaaaaa");
     useEffect(() => {
-        console.log("triggered");
         refreshAction();
     }, []);
 
@@ -65,7 +63,7 @@ export const DeviceView = () => {
                             id: device.id,
                             tags: device.tags,
                             metadata: {},
-                            dms_id: device.dms_name,
+                            dms_id: device.dms_id,
                             icon: device.icon_name,
                             icon_color: device.icon_color
                         });

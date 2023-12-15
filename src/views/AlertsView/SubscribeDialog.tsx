@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Stepper, Step, StepLabel, FormControl, Grid, MenuItem, Stack, Typography, useTheme, Alert } from "@mui/material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stepper, Step, StepLabel, FormControl, Grid, MenuItem, Typography, useTheme, Alert } from "@mui/material";
 import { CloudEvent } from "cloudevents";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import WebhookOutlinedIcon from "@mui/icons-material/WebhookOutlined";
@@ -13,12 +13,17 @@ import { ColoredButton } from "components/LamassuComponents/ColoredButton";
 import { useAuth } from "react-oidc-context";
 import { Select } from "components/LamassuComponents/dui/Select";
 import { TextField } from "components/LamassuComponents/dui/TextField";
+import { apicalls } from "ducks/apicalls";
+import { SubChannel, SubChannelType, SubscriptionCondition, SubscriptionConditionType } from "ducks/features/alerts/models";
+import { ChannelChip } from "./SubscriptionChip";
+import { actions } from "ducks/actions";
 
 interface Props {
     event: CloudEvent | undefined,
     isOpen: boolean,
     onClose: any
 }
+
 export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => {
     const theme = useTheme();
     const dispatch = useDispatch();
@@ -29,86 +34,88 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
 
     const [email, setEmail] = useState<string>();
 
-    const [channels, setChannels] = useState<Array<any>>([]);
+    const [subscription, setSubscription] = useState<SubChannel>({ type: SubChannelType.Email, config: { email: "" } });
 
-    const [selectedChannelType, setSelectedChannelType] = useState<string>("email");
-    const [selectedSubscriptionName, setSelectedSubscriptionName] = useState<string>("email");
-    const [selectedSubscriptionConfig, setSelectedSubscriptionConfig] = useState<any>({});
-
-    const [selectedConditionType, setSelectedConditionType] = useState<string>("json_schema");
+    const [selectedConditionType, setSelectedConditionType] = useState<SubscriptionConditionType | "None">("None");
     const [jsonFilter, setJsonFilter] = useState<string>("");
 
     const [isJsonFilterValid, setIsJsonFilterValid] = useState<boolean>(false);
 
-    const fulfilsAddSubscriptionRules = (subType: any) => {
-        if (selectedSubscriptionName === "") {
-            return false;
+    const fulfilsAddSubscriptionRules = (sub: SubChannel) => {
+        switch (sub.type) {
+        case SubChannelType.Email:
+            if (sub.config.email !== "") {
+                return true;
+            }
+            break;
+        case SubChannelType.Webhook:
+            if (sub.name !== "" && sub.config.webhook_url !== "" && sub.config.webhook_method !== "") {
+                return true;
+            }
+            break;
+        case SubChannelType.MsTeams:
+            if (sub.name !== "" && sub.config.webhook_url !== "") {
+                return true;
+            }
+            break;
         }
-        switch (subType) {
-        case "email":
-            if (selectedSubscriptionConfig.email_address && selectedSubscriptionConfig.email_address !== "") {
-                return true;
-            }
-            break;
-        case "webhook":
-            if (selectedSubscriptionConfig.webhook_url && selectedSubscriptionConfig.webhook_url !== "" && selectedSubscriptionConfig.webhook_method && selectedSubscriptionConfig.webhook_method !== "") {
-                return true;
-            }
-            break;
-        case "msteams":
-            if (selectedSubscriptionConfig.webhook_url && selectedSubscriptionConfig.webhook_url !== "") {
-                return true;
-            }
-            break;
 
-        default:
-            break;
-        }
         return false;
     };
 
     const clean = () => {
         setCurrentStep(0);
         setJsonFilter("");
-        setSelectedConditionType("json_schema");
-        setChannels([]);
+        setSelectedConditionType(SubscriptionConditionType.JsonPath);
+        setSubscription({ type: SubChannelType.Email, config: { email: "" } });
+    };
+
+    const trySetEmail = () => {
+        if (auth.user) {
+            setEmail(auth.user.profile.email);
+            if (auth.user.profile.email) {
+                setSubscription({ type: SubChannelType.Email, config: { email: auth.user.profile.email } });
+            } else {
+                setSubscription({ type: SubChannelType.Email, config: { email: "" } });
+            }
+        } else {
+            setSubscription({ type: SubChannelType.Email, config: { email: "" } });
+        }
+    };
+
+    const resetSubType = (type: SubChannelType) => {
+        switch (type) {
+        case SubChannelType.Email:
+            trySetEmail();
+            break;
+        case SubChannelType.Webhook:
+            setSubscription({ type: SubChannelType.Webhook, name: "", config: { webhook_method: "POST", webhook_url: "" } });
+            break;
+        case SubChannelType.MsTeams:
+            setSubscription({ type: SubChannelType.MsTeams, name: "", config: { webhook_url: "" } });
+            break;
+        default:
+            break;
+        }
     };
 
     useEffect(() => {
         const init = async () => {
-            if (auth.user) {
-                setEmail(auth.user.profile.email);
-                if (selectedChannelType === "email") {
-                    setSelectedSubscriptionConfig({ email_address: auth.user.profile.email });
-                }
-            }
+            trySetEmail();
         };
         init();
     }, []);
 
     useEffect(() => {
-        if (currentStep === 0 && channels.length === 0) {
-            setDisableNextStepBtn(true);
+        if (currentStep === 0) {
+            setDisableNextStepBtn(!fulfilsAddSubscriptionRules(subscription));
         } else {
             setDisableNextStepBtn(false);
         }
-    }, [currentStep, channels]);
+    }, [currentStep, subscription]);
 
     useEffect(() => {
-        setSelectedSubscriptionName(
-            selectedChannelType
-        );
-        if (selectedChannelType === "email") {
-            setSelectedSubscriptionConfig({
-                email_address: email
-            });
-        } else {
-            setSelectedSubscriptionConfig({});
-        }
-    }, [selectedChannelType]);
-
-    useEffect(() => {
-        if (selectedConditionType === "json_schema") {
+        if (selectedConditionType === SubscriptionConditionType.JsonSchema) {
             setJsonFilter(JSON.stringify(createSchema(event), null, 4));
         } else {
             setJsonFilter("$.data");
@@ -116,16 +123,16 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
     }, [selectedConditionType, event]);
 
     useEffect(() => {
-        if (selectedConditionType === "json_schema") {
+        if (selectedConditionType === SubscriptionConditionType.JsonSchema) {
             try {
                 setIsJsonFilterValid(jsonschema.validate(event, JSON.parse(jsonFilter)).valid);
             } catch (ex) { }
-        } else {
+        } else if (selectedConditionType === SubscriptionConditionType.JsonPath) {
             try {
                 setIsJsonFilterValid(JSONPath(jsonFilter, JSON.parse(JSON.stringify(event)), undefined, undefined).length > 0);
             } catch (ex) { }
         }
-    }, [jsonFilter]);
+    }, [jsonFilter, selectedConditionType]);
 
     const steps = [
         "Channels",
@@ -133,29 +140,8 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
         "Confirmation"
     ];
 
-    const renderAddedChannels = () => {
-        return (
-            channels.map((subscription, index) => {
-                let icon = <></>;
-                if (subscription.type === "email") {
-                    icon = <EmailOutlinedIcon />;
-                } else if (subscription.type === "msteams") {
-                    icon = <img src={process.env.PUBLIC_URL + "assets/msteams.png"} height="18px" />;
-                } else if (subscription.type === "webhook") {
-                    icon = <WebhookOutlinedIcon />;
-                }
-
-                return (
-                    <Chip key={index} icon={icon} label={subscription.name} onDelete={() => {
-                        setChannels(channels.filter(s => s.name !== subscription.name));
-                    }} />
-                );
-            })
-        );
-    };
-
     return (
-        <Dialog open={isOpen} onClose={() => { clean(); onClose(); }} maxWidth={"lg"}>
+        <Dialog open={isOpen} onClose={() => { clean(); onClose(); }} maxWidth={"md"} fullWidth>
             {
                 event && (
                     <>
@@ -177,11 +163,14 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                                     <FormControl fullWidth>
                                                         <Select
                                                             label="Channel Type"
-                                                            value={selectedChannelType}
+                                                            value={subscription.type}
                                                             // @ts-ignore
-                                                            onChange={(ev) => setSelectedChannelType(ev.target.value!)}
+                                                            onChange={(ev) => {
+                                                                // @ts-ignore
+                                                                resetSubType(ev.target.value);
+                                                            }}
                                                         >
-                                                            <MenuItem value="email">
+                                                            <MenuItem value={SubChannelType.Email}>
                                                                 <Grid container spacing={2}>
                                                                     <Grid item xs="auto">
                                                                         <EmailOutlinedIcon />
@@ -191,7 +180,7 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                                                     </Grid>
                                                                 </Grid>
                                                             </MenuItem>
-                                                            <MenuItem value="msteams">
+                                                            <MenuItem value={SubChannelType.MsTeams}>
                                                                 <Grid container spacing={2}>
                                                                     <Grid item xs="auto">
                                                                         <img src={process.env.PUBLIC_URL + "assets/msteams.png"} height="20px" />
@@ -201,7 +190,7 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                                                     </Grid>
                                                                 </Grid>
                                                             </MenuItem>
-                                                            <MenuItem value="webhook">
+                                                            <MenuItem value={SubChannelType.Webhook}>
                                                                 <Grid container spacing={2}>
                                                                     <Grid item xs="auto">
                                                                         <WebhookOutlinedIcon />
@@ -215,36 +204,37 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                                     </FormControl>
                                                 </Grid>
                                                 {
-                                                    selectedChannelType === "email" && (
+                                                    subscription.type === SubChannelType.Email && (
                                                         <Grid item xs={12}>
-                                                            <TextField label="Email Address" fullWidth value={email} />
+                                                            <TextField label="Email Address" fullWidth value={email} onChange={(ev) => setSubscription({ ...subscription, config: { email: ev.target.value.trim() } })} />
                                                         </Grid>
                                                     )
                                                 }
                                                 {
-                                                    selectedChannelType === "msteams" && (
+                                                    subscription.type === SubChannelType.MsTeams && (
                                                         <>
                                                             <Grid item xs={12}>
-                                                                <TextField label="Name" fullWidth value={selectedSubscriptionName} onChange={(ev) => setSelectedSubscriptionName(ev.target.value.trim())} />
+                                                                <TextField label="Name" fullWidth value={subscription.name} onChange={(ev) => setSubscription({ ...subscription, name: ev.target.value.trim() })} />
                                                             </Grid>
                                                             <Grid item xs={12}>
-                                                                <TextField label="Incoming Microsoft Teams Webhook URL" fullWidth value={selectedSubscriptionConfig.webhook_url} onChange={(ev) => setSelectedSubscriptionConfig((prev: any) => { return { ...prev, webhook_url: ev.target.value.trim() }; })} />
+                                                                <TextField label="Incoming Microsoft Teams Webhook URL" fullWidth value={subscription.config.webhook_url} onChange={(ev) => setSubscription({ ...subscription, config: { ...subscription.config, webhook_url: ev.target.value.trim() } })} />
                                                             </Grid>
                                                         </>
                                                     )
                                                 }
                                                 {
-                                                    selectedChannelType === "webhook" && (
+                                                    subscription.type === SubChannelType.Webhook && (
                                                         <>
                                                             <Grid item xs={12}>
-                                                                <TextField label="Name" fullWidth value={selectedSubscriptionName} onChange={(ev) => setSelectedSubscriptionName(ev.target.value.trim())} />
+                                                                <TextField label="Name" fullWidth value={subscription.name} onChange={(ev) => setSubscription({ ...subscription, name: ev.target.value.trim() })} />
                                                             </Grid>
                                                             <Grid item xs={12}>
                                                                 <FormControl fullWidth>
                                                                     <Select
                                                                         label="Method"
-                                                                        value={selectedSubscriptionConfig.webhook_method}
-                                                                        onChange={(ev) => setSelectedSubscriptionConfig((prev: any) => { return { ...prev, webhook_method: ev.target.value }; })}
+                                                                        value={subscription.config.webhook_method}
+                                                                        // @ts-ignore
+                                                                        onChange={(ev) => setSubscription({ ...subscription, config: { ...subscription.config, webhook_url: ev.target.value.trim() } })}
                                                                     >
                                                                         <MenuItem value="POST">POST</MenuItem>
                                                                         <MenuItem value="PUT">PUT</MenuItem>
@@ -252,33 +242,11 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                                                 </FormControl>
                                                             </Grid>
                                                             <Grid item xs={12}>
-                                                                <TextField label="Webhook URL" fullWidth value={selectedSubscriptionConfig.webhook_url} onChange={(ev) => setSelectedSubscriptionConfig((prev: any) => { return { ...prev, webhook_url: ev.target.value.trim() }; })} />
+                                                                <TextField label="Webhook URL" fullWidth value={subscription.config.webhook_url} onChange={(ev) => setSubscription({ ...subscription, config: { ...subscription.config, webhook_url: ev.target.value.trim() } })} />
                                                             </Grid>
                                                         </>
                                                     )
                                                 }
-                                                <Grid item xs={12}>
-                                                    <ColoredButton customtextcolor={theme.palette.primary.main} customcolor={theme.palette.primary.light} variant="contained" color="primary" disabled={!fulfilsAddSubscriptionRules(selectedChannelType)} onClick={() => {
-                                                        const subs = channels.filter(s => s.name !== selectedSubscriptionName);
-                                                        setChannels([...subs, {
-                                                            type: selectedChannelType,
-                                                            name: selectedSubscriptionName,
-                                                            config: selectedSubscriptionConfig
-                                                        }]);
-                                                    }} >
-                                                        Add Channel
-                                                    </ColoredButton>
-                                                </Grid>
-                                            </Grid>
-                                            <Grid item xs={12}>
-                                                <DialogContentText>
-                                                    Channels
-                                                </DialogContentText>
-                                                <Stack direction="row" spacing={1}>
-                                                    {
-                                                        renderAddedChannels()
-                                                    }
-                                                </Stack>
                                             </Grid>
                                         </>
                                     )
@@ -294,77 +262,86 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                                         // @ts-ignore
                                                         onChange={(select) => setSelectedConditionType(select.target.value)}
                                                     >
-                                                        <MenuItem value="json_schema">JSON Schema</MenuItem>
-                                                        <MenuItem value="json_path">JSON Path</MenuItem>
+                                                        <MenuItem value={"None"}><i>None</i></MenuItem>
+                                                        <MenuItem value={SubscriptionConditionType.JsonSchema}>JSON Schema</MenuItem>
+                                                        <MenuItem value={SubscriptionConditionType.JsonPath}>JSON Path</MenuItem>
                                                     </Select>
                                                 </FormControl>
                                             </Grid>
                                             {
-                                                selectedConditionType === "json_schema"
-                                                    ? (
-                                                        <Grid item xs={12}>
-                                                            <Box sx={{ minHeight: "100px" }}>
-                                                                <TextField
-                                                                    label="JSON Schema"
-                                                                    multiline
-                                                                    fullWidth
-                                                                    value={jsonFilter}
-                                                                    inputProps={{
-                                                                        spellCheck: false,
-                                                                        style: {
-                                                                            fontFamily: "\"Fira code\", \"Fira Mono\", monospace",
-                                                                            fontSize: 12,
-                                                                            lineHeight: 1
-                                                                        }
-                                                                    }}
-                                                                    onChange={(ev) => setJsonFilter(ev.target.value.trim())}
-                                                                />
+                                                selectedConditionType !== "None" && (
+                                                    <>
+                                                        {
+                                                            selectedConditionType === SubscriptionConditionType.JsonSchema
+                                                                ? (
+                                                                    <Grid item xs={12}>
+                                                                        <Box sx={{ minHeight: "100px" }}>
+                                                                            <TextField
+                                                                                label="JSON Schema"
+                                                                                multiline
+                                                                                fullWidth
+                                                                                value={jsonFilter}
+                                                                                inputProps={{
+                                                                                    spellCheck: false,
+                                                                                    style: {
+                                                                                        fontFamily: "\"Fira code\", \"Fira Mono\", monospace",
+                                                                                        fontSize: 12,
+                                                                                        lineHeight: 1
+                                                                                    }
+                                                                                }}
+                                                                                onChange={(ev) => setJsonFilter(ev.target.value.trim())}
+                                                                            />
 
-                                                            </Box>
+                                                                        </Box>
+                                                                    </Grid>
+                                                                )
+                                                                : (
+                                                                    <Grid item xs={12}>
+                                                                        <TextField label="JSON Path Expression" fullWidth value={jsonFilter} onChange={(ev) => setJsonFilter(ev.target.value.trim())} />
+                                                                    </Grid>
+                                                                )
+                                                        }
+                                                        <Grid item xs={12} container marginTop={"25px"} spacing={2}>
+                                                            <Grid item xs={6} container direction="column">
+                                                                <Grid item xs="auto">
+                                                                    <Typography fontWeight={500}>Input Event</Typography>
+                                                                </Grid>
+                                                                <Grid item xs container>
+                                                                    <Grid item xs>
+                                                                        <SyntaxHighlighter wrapLongLines={true} language="json" style={theme.palette.mode === "light" ? materialLight : materialOceanic} customStyle={{ fontSize: 12, padding: 20, borderRadius: 10, width: "100", height: "fit-content" }} wrapLines={true} lineProps={{ style: { color: theme.palette.text.primaryLight, wordBreak: "break-all", whiteSpace: "pre-wrap" } }}>
+                                                                            {JSON.stringify(event, null, 4)}
+                                                                        </SyntaxHighlighter>
+                                                                    </Grid>
+                                                                </Grid>
+                                                            </Grid>
+                                                            <Grid item xs={6} container direction="column">
+                                                                <Grid item xs="auto">
+                                                                    <Typography fontWeight={500}>Evaluation Result</Typography>
+                                                                </Grid>
+                                                                <Grid item xs container>
+                                                                    <Grid item xs>
+                                                                        {
+                                                                            isJsonFilterValid
+                                                                                ? (
+                                                                                    <Alert severity="success">
+                                                                                        The filter matches this Cloud Event
+                                                                                    </Alert>
+                                                                                )
+                                                                                : (
+                                                                                    <Alert severity="error">
+                                                                                        The filter does not match this Cloud Event
+                                                                                    </Alert>
+                                                                                )
+                                                                        }
+                                                                    </Grid>
+                                                                </Grid>
+                                                            </Grid>
                                                         </Grid>
-                                                    )
-                                                    : (
-                                                        <Grid item xs={12}>
-                                                            <TextField label="JSON Path Expression" fullWidth value={jsonFilter} onChange={(ev) => setJsonFilter(ev.target.value.trim())} />
-                                                        </Grid>
-                                                    )
+                                                    </>
+                                                )
+
                                             }
-                                            <Grid item xs={12} container marginTop={"25px"} spacing={2}>
-                                                <Grid item xs={6} container direction="column">
-                                                    <Grid item xs="auto">
-                                                        <Typography fontWeight={500}>Input Event</Typography>
-                                                    </Grid>
-                                                    <Grid item xs container>
-                                                        <Grid item xs>
-                                                            <SyntaxHighlighter wrapLongLines={true} language="json" style={theme.palette.mode === "light" ? materialLight : materialOceanic} customStyle={{ fontSize: 12, padding: 20, borderRadius: 10, width: "100", height: "fit-content" }} wrapLines={true} lineProps={{ style: { color: theme.palette.text.primaryLight, wordBreak: "break-all", whiteSpace: "pre-wrap" } }}>
-                                                                {JSON.stringify(event, null, 4)}
-                                                            </SyntaxHighlighter>
-                                                        </Grid>
-                                                    </Grid>
-                                                </Grid>
-                                                <Grid item xs={6} container direction="column">
-                                                    <Grid item xs="auto">
-                                                        <Typography fontWeight={500}>Evaluation Result</Typography>
-                                                    </Grid>
-                                                    <Grid item xs container>
-                                                        <Grid item xs>
-                                                            {
-                                                                isJsonFilterValid
-                                                                    ? (
-                                                                        <Alert severity="success">
-                                                                            The filter matches this Cloud Event
-                                                                        </Alert>
-                                                                    )
-                                                                    : (
-                                                                        <Alert severity="error">
-                                                                            The filter does not match this Cloud Event
-                                                                        </Alert>
-                                                                    )
-                                                            }
-                                                        </Grid>
-                                                    </Grid>
-                                                </Grid>
-                                            </Grid>
+
                                         </Grid>
                                     )
                                 }
@@ -373,47 +350,51 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                         <Grid item xs={12} container spacing={2}>
                                             <Grid item xs={12} container spacing={2}>
                                                 <Grid item xs={12}>
-                                                    <Typography>Channels</Typography>
+                                                    <Typography>Channel</Typography>
                                                 </Grid>
                                                 <Grid item xs={12}>
-                                                    {
-                                                        renderAddedChannels()
-                                                    }
+                                                    <ChannelChip channel={subscription} onClick={(sub) => { }} />
                                                 </Grid>
                                             </Grid>
-                                            <Grid item xs={12}>
-                                                <Grid item xs={12} container spacing={2}>
-                                                    <Grid item xs="auto">
-                                                        <Typography variant="button">Filter Format:</Typography>
-                                                    </Grid>
-                                                    <Grid item xs="auto">
-                                                        <Typography variant="button" style={{ background: theme.palette.background.darkContrast, padding: 5, fontSize: 12 }}>{selectedConditionType}</Typography>
-                                                    </Grid>
-                                                </Grid>
-                                            </Grid>
-                                            <Grid item xs={12}>
-                                                <Grid item xs={12} container spacing={2}>
-                                                    <Grid item xs="auto">
-                                                        <Typography variant="button">Filter Expression:</Typography>
-                                                    </Grid>
-                                                    {
-                                                        selectedConditionType === "json_schema" && (
-                                                            <Grid item xs={12}>
-                                                                <SyntaxHighlighter wrapLongLines={true} language="json" style={theme.palette.mode === "light" ? materialLight : materialOceanic} customStyle={{ fontSize: 12, padding: 20, borderRadius: 10, width: "100", height: "fit-content" }} wrapLines={true} lineProps={{ style: { color: theme.palette.text.primaryLight, wordBreak: "break-all", whiteSpace: "pre-wrap" } }}>
-                                                                    {JSON.stringify(JSON.parse(jsonFilter), null, 4)}
-                                                                </SyntaxHighlighter>
+                                            {
+                                                selectedConditionType !== "None" && (
+                                                    <>
+                                                        <Grid item xs={12}>
+                                                            <Grid item xs={12} container spacing={2}>
+                                                                <Grid item xs="auto">
+                                                                    <Typography variant="button">Filter Format:</Typography>
+                                                                </Grid>
+                                                                <Grid item xs="auto">
+                                                                    <Typography variant="button" style={{ background: theme.palette.background.darkContrast, padding: 5, fontSize: 12 }}>{selectedConditionType}</Typography>
+                                                                </Grid>
                                                             </Grid>
-                                                        )
-                                                    }
-                                                    {
-                                                        selectedConditionType === "json_path" && (
-                                                            <Grid item xs="auto">
-                                                                <Typography variant="button" style={{ background: theme.palette.background.darkContrast, padding: 5, fontSize: 12 }}>{jsonFilter}</Typography>
+                                                        </Grid>
+                                                        <Grid item xs={12}>
+                                                            <Grid item xs={12} container spacing={2}>
+                                                                <Grid item xs="auto">
+                                                                    <Typography variant="button">Filter Expression:</Typography>
+                                                                </Grid>
+                                                                {
+                                                                    selectedConditionType === SubscriptionConditionType.JsonSchema && (
+                                                                        <Grid item xs={12}>
+                                                                            <SyntaxHighlighter wrapLongLines={true} language="json" style={theme.palette.mode === "light" ? materialLight : materialOceanic} customStyle={{ fontSize: 12, padding: 20, borderRadius: 10, width: "100", height: "fit-content" }} wrapLines={true} lineProps={{ style: { color: theme.palette.text.primaryLight, wordBreak: "break-all", whiteSpace: "pre-wrap" } }}>
+                                                                                {JSON.stringify(JSON.parse(jsonFilter), null, 4)}
+                                                                            </SyntaxHighlighter>
+                                                                        </Grid>
+                                                                    )
+                                                                }
+                                                                {
+                                                                    selectedConditionType === SubscriptionConditionType.JsonPath && (
+                                                                        <Grid item xs="auto">
+                                                                            <Typography variant="button" style={{ background: theme.palette.background.darkContrast, padding: 5, fontSize: 12 }}>{jsonFilter}</Typography>
+                                                                        </Grid>
+                                                                    )
+                                                                }
                                                             </Grid>
-                                                        )
-                                                    }
-                                                </Grid>
-                                            </Grid>
+                                                        </Grid>
+                                                    </>
+                                                )
+                                            }
                                         </Grid>
                                     )
                                 }
@@ -422,11 +403,11 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                         <DialogActions>
                             <Grid container>
                                 <Grid item xs>
-                                    <Button onClick={() => { clean(); onClose(); }} variant="outlined">Cancel</Button>
+                                    <Button onClick={() => { clean(); onClose(); }} variant="text">Cancel</Button>
                                 </Grid>
                                 <Grid item xs="auto" container spacing={2}>
                                     <Grid item xs="auto">
-                                        <Button disabled={currentStep === 0} onClick={() => { setCurrentStep(currentStep - 1); }} variant="outlined">Previous</Button>
+                                        <Button disabled={currentStep === 0} onClick={() => { setCurrentStep(currentStep - 1); }} variant="text">Previous</Button>
                                     </Grid>
                                     <Grid item xs="auto">
                                         {
@@ -444,9 +425,19 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose }) => 
                                                 )
                                                 : (
 
-                                                    <Button onClick={() => {
-                                                        // dispatch(eventsActions.subscribeAction.request({ eventType: event.type, channels: channels, condition_type: selectedConditionType, conditions: [jsonFilter] }));
-                                                        clean();
+                                                    <Button onClick={async () => {
+                                                        let conditions: SubscriptionCondition[] = [];
+                                                        if (selectedConditionType !== "None") {
+                                                            conditions = [{ condition: jsonFilter, type: selectedConditionType }];
+                                                        }
+                                                        try {
+                                                            await apicalls.alerts.subscribe("_lms_system", event.type, conditions, subscription);
+                                                            // dispatch(eventsActions.subscribeAction.request({ eventType: event.type, channels: channels, condition_type: selectedConditionType, conditions: [jsonFilter] }));
+                                                            clean();
+                                                            dispatch(actions.alertsActions.getSubscriptions.request("_lms_system"));
+                                                        } catch (e) {
+
+                                                        }
                                                         onClose();
                                                     }} variant="contained">Subscribe</Button>
                                                 )

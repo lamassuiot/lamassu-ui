@@ -1,22 +1,21 @@
 import React, { useEffect, useState } from "react";
 import moment from "moment";
-import { useTheme } from "@mui/system";
-import { Grid, Skeleton } from "@mui/material";
+import { } from "@mui/system";
+import { Grid, Skeleton, useTheme } from "@mui/material";
 import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
 import { TextField } from "components/LamassuComponents/dui/TextField";
 import { X509Certificate, parseCRT } from "components/utils/cryptoUtils/crt";
 import { CryptoEngineViewer } from "components/LamassuComponents/lamassu/CryptoEngineViewer";
-import { CAStatsByCA, CertificateAuthority, CertificateStatus, CryptoEngine } from "ducks/features/cav3/models";
+import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/models";
 import CAFetchViewer from "components/LamassuComponents/lamassu/CAFetchViewer";
-import { Doughnut } from "components/Charts/Doughnut";
+import { CATimeline } from "views/CertificateAuthoritiesView/components/CATimeline";
 
 interface Props {
     caData: CertificateAuthority
-    stats: CAStatsByCA
     engines: CryptoEngine[]
 }
 
-export const CertificateOverview: React.FC<Props> = ({ caData, engines, stats }) => {
+export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
     const theme = useTheme();
     const [parsedCertificate, setParsedCertificate] = useState<X509Certificate | undefined>();
     useEffect(() => {
@@ -26,10 +25,6 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines, stats })
         };
         run();
     }, []);
-
-    const statsActive = stats[CertificateStatus.Active] ? stats[CertificateStatus.Active] : 0;
-    const statsRevoked = stats[CertificateStatus.Revoked] ? stats[CertificateStatus.Revoked] : 0;
-    const statsExpired = stats[CertificateStatus.Expired] ? stats[CertificateStatus.Expired] : 0;
 
     const pars = window.window.atob(caData.certificate);
     const certificateSubject = {
@@ -75,46 +70,19 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines, stats })
         };
     }
 
-    let percentageActive = 0;
-    if (statsActive > 0) {
-        const total = statsActive + statsExpired + statsRevoked;
-        percentageActive = Math.round(statsActive * 100 / total);
-    }
-
     return (
         <Grid container columns={12} spacing={2}>
             {
                 caData.type !== "EXTERNAL" && (
-                    <Grid item xs={12} container flexDirection={"column"}>
-                        <Doughnut
-                            small={true}
-                            dataset={[
-                                {
-                                    label: "Active",
-                                    value: statsActive,
-                                    color: "green"
-                                }, {
-                                    label: "Expired",
-                                    value: statsExpired,
-                                    color: "orange"
-                                }, {
-                                    label: "Revoked",
-                                    value: statsRevoked,
-                                    color: "red"
-                                }
-                            ]}
-                            title="Certificates Status"
-                            subtitle={""}
-                            onRefresh={() => {
-                            }}
-                            primaryStat={`${percentageActive}`}
-                            statLabel={"Active Certificates"}
-                            percentage={true}
-                            cardColor={theme.palette.homeCharts.deviceStatusCard.primary}
-                            primaryTextColor={theme.palette.homeCharts.deviceStatusCard.text}
-                            secondaryTextColor={theme.palette.homeCharts.deviceStatusCard.textSecondary}
-                        />
-                    </Grid>
+                    <>
+                        <Grid item xs height={"75px"}>
+                            <CATimeline
+                                caIssuedAt={moment(caData.valid_from)}
+                                caExpiration={moment(caData.valid_to)}
+                                issuanceDuration={caData.issuance_expiration.type === "Duration" ? caData.issuance_expiration.duration : (caData.issuance_expiration.type === "Time" ? caData.issuance_expiration.time : "")}
+                            />
+                        </Grid>
+                    </>
                 )
             }
             {

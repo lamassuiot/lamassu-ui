@@ -158,6 +158,7 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
                     {
                         watchAll.parsedCertificate && (
                             <CATimeline
+                                caIssuedAt={watchAll.parsedCertificate.notBefore}
                                 caExpiration={watchAll.parsedCertificate.notAfter}
                                 issuanceDuration={watchIssuanceExpiration.type === "duration" ? watchIssuanceExpiration.duration : (watchIssuanceExpiration.type === "date" ? watchIssuanceExpiration.date : "")}
                             />

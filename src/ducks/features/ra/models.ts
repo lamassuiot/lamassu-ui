@@ -1,3 +1,6 @@
+import { Certificate } from "../cav3/models";
+import { Device } from "../devices/models";
+
 export type DMSStats = {
     total: number
 }
@@ -65,6 +68,12 @@ export type CADistributionSettings = {
     include_system_ca: boolean,
     include_enrollment_ca: boolean,
     managed_cas: string[]
+}
+
+export type BindResponse = {
+    device: Device,
+    certificate: Certificate,
+    dms: DMS
 }
 
 // /////////////////

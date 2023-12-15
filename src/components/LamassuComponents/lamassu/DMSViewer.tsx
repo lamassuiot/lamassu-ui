@@ -24,7 +24,7 @@ export const DMSViewer: React.FC<DMSViewerProps> = ({ dms, simple = false }) => 
             <>
                 <Grid item xs={"auto"}>
                     <Typography fontWeight={"500"} fontSize={"14px"}>{dms.name}</Typography>
-                    <Typography fontWeight={"400"} fontSize={"14px"}>{dms.name}</Typography>
+                    <Typography fontWeight={"400"} fontSize={"14px"}>{dms.id}</Typography>
                 </Grid>
 
             </>

@@ -57,7 +57,7 @@ export const CreateDevice: React.FC<Props> = ({ onSubmit }) => {
         const run = async () => {
             const actionPayload = {
                 id: data.deviceReg.id,
-                dms_name: data.deviceReg.dms?.name,
+                dms_id: data.deviceReg.dms?.id,
                 tags: data.deviceReg.dms?.settings.enrollment_settings.device_provisioning_profile.tags,
                 icon_name: data.deviceReg.dms?.settings.enrollment_settings.device_provisioning_profile.icon,
                 icon_color: data.deviceReg.dms?.settings.enrollment_settings.device_provisioning_profile.icon_color

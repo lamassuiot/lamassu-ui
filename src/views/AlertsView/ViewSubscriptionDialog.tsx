@@ -1,7 +1,7 @@
 import React from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid, Typography, useTheme } from "@mui/material";
 import { useDispatch } from "react-redux";
-import { Subscription } from "ducks/features/alerts/models";
+import { SubChannelType, Subscription } from "ducks/features/alerts/models";
 import { materialLight, materialOceanic } from "react-syntax-highlighter/dist/esm/styles/prism";
 import SyntaxHighlighter from "react-syntax-highlighter";
 
@@ -20,7 +20,7 @@ export const ViewSubscriptionDialog: React.FC<Props> = ({ subscription, isOpen, 
             {
                 subscription && (
                     <>
-                        <DialogTitle>Subscription to event: {subscription.channel.name}</DialogTitle>
+                        <DialogTitle>Subscription to event: {subscription.channel.type}</DialogTitle>
                         <DialogContent>
                             <Grid container spacing={2}>
                                 <Grid item xs={12} container spacing={2}>
@@ -28,7 +28,15 @@ export const ViewSubscriptionDialog: React.FC<Props> = ({ subscription, isOpen, 
                                         <Typography variant="button">Subscription Name:</Typography>
                                     </Grid>
                                     <Grid item xs="auto">
-                                        <Typography variant="button" style={{ background: theme.palette.background.darkContrast, padding: 5, fontSize: 12 }}>{subscription.channel.name}</Typography>
+                                        <Typography variant="button" style={{ background: theme.palette.background.darkContrast, padding: 5, fontSize: 12 }}>
+                                            {subscription.channel.type === SubChannelType.Email
+                                                ? (
+                                                    subscription.channel.config.email
+                                                )
+                                                : (
+                                                    subscription.channel.name
+                                                )}
+                                        </Typography>
                                     </Grid>
                                 </Grid>
                                 <Grid item xs={12} container spacing={2}>

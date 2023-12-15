@@ -20,6 +20,9 @@ import { IconInput } from "components/LamassuComponents/dui/IconInput";
 import Label from "components/LamassuComponents/dui/typographies/Label";
 import { LamassuSwitch } from "components/LamassuComponents/Switch";
 import { Select } from "components/LamassuComponents/dui/Select";
+import { CertificateSelector } from "components/LamassuComponents/lamassu/CertificateSelector";
+import { FieldType } from "components/FilterInput";
+import { DeviceTimeline } from "./DeviceInspectorViews/DeviceTimeline";
 
 interface Props {
     device: Device,
@@ -34,6 +37,8 @@ export const DeviceInspector: React.FC<Props> = ({ device }) => {
 
     const [decommissioningOpen, setDecommissioningOpen] = useState(false);
     const [forceUpdate, setForceUpdate] = useState<{ open: boolean, connectorID: string, selectedActions: { [name: string]: boolean } }>({ open: false, connectorID: "", selectedActions: {} });
+    const [showAssignIdentity, setShowAssignIdentity] = useState(false);
+    const [bindedCert, setBindedCert] = useState("");
 
     const refreshAction = () => {
         dispatch(actions.devicesActions.getDeviceByID.request(device.id));
@@ -46,7 +51,7 @@ export const DeviceInspector: React.FC<Props> = ({ device }) => {
             deviceActions.push({
                 disabled: false,
                 label: "Assign Identity",
-                onClick: () => { }
+                onClick: () => { setShowAssignIdentity(true); }
             });
         }
 
@@ -82,20 +87,22 @@ export const DeviceInspector: React.FC<Props> = ({ device }) => {
     return (
         <Box sx={{ width: "100%", height: "100%", display: "flex", flexDirection: "column" }}>
             <Box sx={{ padding: "20px", width: "calc(100% - 40px)", borderRadius: 0, zIndex: 10 }} component={Paper} elevation={2}>
-                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                        {
-                            requestStatus.isLoading
-                                ? (
-                                    <Skeleton variant="rectangular" width={"40px"} height={"40px"} sx={{ borderRadius: "10px", marginBottom: "20px" }} />
-                                )
-                                : (
-                                    <Box>
-                                        <IconInput readonly label="" size={40} value={{ bg: device!.icon_color.split("-")[0], fg: device!.icon_color.split("-")[1], name: device!.icon }} />
-                                    </Box>
-                                )
-                        }
-                        <Box sx={{ marginLeft: "15px" }}>
+                <Grid container alignItems={"center"} justifyContent={"space-between"} spacing={"40px"}>
+                    <Grid item xs container alignItems={"center"} spacing="20px">
+                        <Grid item xs="auto">
+                            {
+                                requestStatus.isLoading
+                                    ? (
+                                        <Skeleton variant="rectangular" width={"40px"} height={"40px"} sx={{ borderRadius: "10px", marginBottom: "20px" }} />
+                                    )
+                                    : (
+                                        <Box>
+                                            <IconInput readonly label="" size={40} value={{ bg: device!.icon_color.split("-")[0], fg: device!.icon_color.split("-")[1], name: device!.icon }} />
+                                        </Box>
+                                    )
+                            }
+                        </Grid>
+                        <Grid item xs="auto">
                             {
                                 requestStatus.isLoading
                                     ? (
@@ -110,42 +117,40 @@ export const DeviceInspector: React.FC<Props> = ({ device }) => {
                                         </>
                                     )
                             }
-                        </Box>
-                        <Box sx={{ marginLeft: "25px" }}>
-                            <Grid item container alignItems={"center"} flexDirection="column" spacing={0}>
-                                <Grid item container>
+                        </Grid>
+                        <Grid item xs="auto" container alignItems={"center"} flexDirection="column" spacing={0}>
+                            <Grid item container>
+                                {
+                                    requestStatus.isLoading
+                                        ? (
+                                            <Skeleton variant="rectangular" width={"60px"} height={"20px"} sx={{ borderRadius: "10px", marginBottom: "20px" }} />
+                                        )
+                                        : (
+                                            <LamassuChip label={capitalizeFirstLetter(device!.status)} color={deviceStatusToColor(device!.status)} />
+                                        )
+                                }
+                            </Grid>
+                            <Grid item container>
+                                <Box style={{ display: "flex", alignItems: "center", marginTop: "3px" }}>
                                     {
                                         requestStatus.isLoading
                                             ? (
-                                                <Skeleton variant="rectangular" width={"60px"} height={"20px"} sx={{ borderRadius: "10px", marginBottom: "20px" }} />
+                                                <Skeleton variant="rectangular" width={"50px"} height={"20px"} sx={{ borderRadius: "10px", marginBottom: "20px" }} />
                                             )
                                             : (
-                                                <LamassuChip label={capitalizeFirstLetter(device!.status)} color={deviceStatusToColor(device!.status)} />
+                                                <>
+                                                    <AccessTimeIcon style={{ color: theme.palette.text.secondary, fontSize: 15, marginRight: 5 }} />
+                                                    <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>{`Creation date: ${moment(device!.creation_timestamp).format("DD/MM/YYYY")}`}</Typography>
+                                                </>
                                             )
                                     }
-                                </Grid>
-                                <Grid item container>
-                                    <Box style={{ display: "flex", alignItems: "center", marginTop: "3px" }}>
-                                        {
-                                            requestStatus.isLoading
-                                                ? (
-                                                    <Skeleton variant="rectangular" width={"50px"} height={"20px"} sx={{ borderRadius: "10px", marginBottom: "20px" }} />
-                                                )
-                                                : (
-                                                    <>
-                                                        <AccessTimeIcon style={{ color: theme.palette.text.secondary, fontSize: 15, marginRight: 5 }} />
-                                                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>{`Creation date: ${moment(device!.creation_timestamp).format("DD/MM/YYYY")}`}</Typography>
-                                                    </>
-                                                )
-                                        }
-                                    </Box>
-                                </Grid>
+                                </Box>
                             </Grid>
-                        </Box>
+                        </Grid>
                         {
                             !requestStatus.isLoading && (
                                 <>
-                                    <Box sx={{ marginLeft: "35px" }}>
+                                    <Grid item xs="auto">
                                         {
                                             device!.tags.length > 0
                                                 ? (
@@ -163,12 +168,15 @@ export const DeviceInspector: React.FC<Props> = ({ device }) => {
                                                     <Grid item xs={12} style={{ height: 37 }} />
                                                 )
                                         }
-                                    </Box>
+                                    </Grid>
                                 </>
                             )
                         }
-                    </Box>
-                    <Grid container spacing={2} sx={{ width: "fit-content" }}>
+                        <Grid item xs>
+                            <DeviceTimeline device={device}/>
+                        </Grid>
+                    </Grid>
+                    <Grid item xs="auto" container spacing={2} sx={{ width: "fit-content" }}>
                         {
                             !requestStatus.isLoading && (
                                 <>
@@ -184,7 +192,7 @@ export const DeviceInspector: React.FC<Props> = ({ device }) => {
                             )
                         }
                     </Grid>
-                </Box>
+                </Grid>
             </Box>
             {
                 device !== undefined && device.status !== DeviceStatus.NoIdentity && (
@@ -213,6 +221,43 @@ export const DeviceInspector: React.FC<Props> = ({ device }) => {
                                 dispatch(actions.devicesActions.decommissionDevice());
                                 setDecommissioningOpen(false);
                             }}>Decommission</Button>
+                        </Grid>
+                    </Grid>
+                }
+            />
+            <Modal
+                isOpen={showAssignIdentity}
+                onClose={() => setShowAssignIdentity(false)}
+                title="Assign Identity"
+                subtitle="Select the certificate to be attached to this device. Only certificate with a Common Name matching the device ID are displayed"
+                maxWidth="md"
+                content={
+                    <Grid container sx={{ marginTop: "20px" }}>
+                        <CertificateSelector label="Certificate" selectLabel="Select the Device Certificate to be attached"
+                            filters={[
+                                { propertyField: { key: "subject.common_name", label: "Common Name", type: FieldType.String }, propertyOperator: "equal", propertyValue: device.id }
+                            ]}
+                            multiple={false} onSelect={(cert) => {
+                                if (cert) {
+                                    if (!Array.isArray(cert)) {
+                                        setBindedCert(cert.serial_number);
+                                    }
+                                }
+                            }
+                            } />
+                    </Grid>
+                }
+                actions={
+                    <Grid container>
+                        <Grid item xs>
+                            <Button variant="text" onClick={() => setShowAssignIdentity(false)}>Close</Button>
+                        </Grid>
+                        <Grid item xs="auto">
+                            <Button variant="contained" onClick={async () => {
+                                await apicalls.dms.bindDeviceIdentity(device.id, bindedCert);
+                                dispatch(actions.devicesActions.getDeviceByID.request(device.id));
+                                setShowAssignIdentity(false);
+                            }}>Assign Identity</Button>
                         </Grid>
                     </Grid>
                 }

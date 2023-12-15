@@ -30,6 +30,7 @@ import { useAppSelector } from "ducks/hooks";
 import { selectors } from "ducks/reducers";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { apicalls } from "ducks/apicalls";
+import { SingleStatDoughnut } from "components/Charts/SingleStatDoughnut";
 
 const revokeCodes = [
     ["AACompromise", "It is known, or suspected, that aspects of the Attribute Authority (AA) validated in the attribute certificate have been compromised."],
@@ -79,6 +80,17 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
         refreshAction();
     }, [caName]);
 
+    const statsActive = caStats[CertificateStatus.Active] ? caStats[CertificateStatus.Active] : 0;
+    const statsRevoked = caStats[CertificateStatus.Revoked] ? caStats[CertificateStatus.Revoked] : 0;
+    const statsExpired = caStats[CertificateStatus.Expired] ? caStats[CertificateStatus.Expired] : 0;
+
+    const totalCerts = statsActive + statsExpired + statsRevoked;
+
+    let percentageActive = 0;
+    if (statsActive > 0) {
+        percentageActive = Math.round(statsActive * 100 / totalCerts);
+    }
+
     if (requestState.isLoading) {
         return (
             <Box padding={"30px"}>
@@ -92,7 +104,7 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                 path: "",
                 goto: "",
                 element: <div style={{ margin: "0 35px" }}>
-                    <CertificateOverview caData={caData} engines={engines} stats={caStats} />
+                    <CertificateOverview caData={caData} engines={engines} />
                 </div>
             },
             {
@@ -151,26 +163,41 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
 
         return (
             <Box style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                <Box style={{ padding: "40px 40px 0 40px" }}>
+                <Box style={{ padding: "30px 40px 0 40px" }}>
                     <Grid container spacing={2} justifyContent="flex-start">
-                        <Grid item xs container spacing={"10px"}>
+                        <Grid item xs container spacing={"100px"}>
                             <Grid item xs="auto">
-                                <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 26, lineHeight: "24px", marginRight: "10px" }}>{caData.subject.common_name}</Typography>
+                                <Grid item xs="auto" container spacing={1}>
+                                    {
+                                        <Grid item xs="auto">
+                                            <LamassuChip label={caData.type} color={[theme.palette.primary.main, theme.palette.primary.light]} />
+                                        </Grid>
+                                    }
+                                    <Grid item xs="auto">
+                                        <LamassuChip label={`Key Strength: ${caData.key_metadata.strength}`} rounded />
+                                    </Grid>
+                                    <Grid item xs="auto">
+                                        <LamassuChip label={caData.status} color={caData.status !== CertificateStatus.Active ? "red" : "gray"} rounded style={{ marginLeft: "5px" }} />
+                                    </Grid>
+                                </Grid>
+                                <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 26, lineHeight: "24px", marginRight: "10px", marginTop: "10px" }}>{caData.subject.common_name}</Typography>
                                 <Label sx={{ marginTop: "5px", color: theme.palette.text.secondary }}>{caData.id}</Label>
                             </Grid>
                             {
-                                <Grid item xs="auto">
-                                    <LamassuChip label={caData.type} color={[theme.palette.primary.main, theme.palette.primary.light]} />
-                                </Grid>
+                                caData.type !== "EXTERNAL" && totalCerts > 0 && (
+                                    <Grid item xs="auto" container spacing={2}>
+                                        <Grid item xs="auto">
+                                            <SingleStatDoughnut statNumber={statsActive} total={totalCerts} color="green" label="Active" />
+                                        </Grid>
+                                        <Grid item xs="auto">
+                                            <SingleStatDoughnut statNumber={statsExpired} total={totalCerts} color="orange" label="Expired" />
+                                        </Grid>
+                                        <Grid item xs="auto">
+                                            <SingleStatDoughnut statNumber={statsRevoked} total={totalCerts} color="red" label="Revoked" />
+                                        </Grid>
+                                    </Grid>
+                                )
                             }
-                            <Grid item xs="auto" container>
-                                <Grid item xs="auto">
-                                    <LamassuChip label={caData.key_metadata.strength} rounded />
-                                </Grid>
-                                <Grid item xs="auto">
-                                    <LamassuChip label={caData.status} color={caData.status !== CertificateStatus.Active ? "red" : "gray"} rounded style={{ marginLeft: "5px" }} />
-                                </Grid>
-                            </Grid>
                         </Grid>
                         <Grid item xs="auto" container justifyContent="flex-end" spacing={2}>
                             <Grid item>

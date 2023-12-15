@@ -1,4 +1,4 @@
-import { Box, Grid, Paper, useTheme } from "@mui/material";
+import { Box, Grid, IconButton, useTheme } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import * as eventsActions from "ducks/features/alerts/actions";
@@ -8,11 +8,15 @@ import moment from "moment";
 import { SubscribeDialog } from "./SubscribeDialog";
 import { Event, Subscription } from "ducks/features/alerts/models";
 import { ViewSubscriptionDialog } from "./ViewSubscriptionDialog";
-import { selectors } from "ducks/reducers";
 import { LamassuTable } from "components/LamassuComponents/Table";
 import Label from "components/LamassuComponents/dui/typographies/Label";
 import { CodeCopier } from "components/LamassuComponents/dui/CodeCopier";
 import { MonoChromaticButton } from "components/LamassuComponents/dui/MonoChromaticButton";
+import { SubscriptionChip } from "./SubscriptionChip";
+import { apicalls } from "ducks/apicalls";
+import { actions } from "ducks/actions";
+import StandardWrapperView from "views/StandardWrapperView";
+import RefreshIcon from "@mui/icons-material/Refresh";
 
 type EventItem = {
     EventTitle: string
@@ -20,7 +24,7 @@ type EventItem = {
     EventSource: string
     LastSeen: string
     LastSeenDiff: string
-    Subscribed: boolean
+    Subscriptions: Subscription[]
     Event: Event
     Counter: number
 }
@@ -30,12 +34,8 @@ export const AlertsView = () => {
     const dispatch = useDispatch();
 
     const [subscriptionEvent, setSubscriptionEvent] = useState<any | undefined>(undefined);
-    const [expandedEvents, setExpandedEvents] = useState<Array<string>>([]);
 
     const [viewSubscription, setViewSubscription] = useState<Subscription>();
-
-    const eventRequestStatus = useAppSelector((state) => selectors.alerts.getEventsRequestStatus(state));
-    const subscriptionsRequestStatus = useAppSelector((state) => selectors.alerts.getSubscriptionsRequestStatus(state));
 
     const registeredEvents = useAppSelector((state) => eventsSelector.getEvents(state));
     const userSubscription = useAppSelector((state) => eventsSelector.getSubscriptions(state));
@@ -46,7 +46,7 @@ export const AlertsView = () => {
 
     const refreshAction = () => {
         dispatch(eventsActions.getEvents.request({}));
-        dispatch(eventsActions.getSubscriptions.request({}));
+        dispatch(eventsActions.getSubscriptions.request("_lms_system"));
     };
 
     const events = registeredEvents.map((ev): EventItem => {
@@ -56,7 +56,7 @@ export const AlertsView = () => {
             EventSource: ev.event.source,
             LastSeen: moment(ev.seen_at).format("YYYY-MM-DD HH:mm:ss"),
             LastSeenDiff: moment(ev.seen_at).fromNow(),
-            Subscribed: userSubscription.filter(sub => sub.event_type === ev.event.type).length > 0,
+            Subscriptions: userSubscription.filter(sub => sub.event_type === ev.event.type),
             Counter: ev.counter,
             Event: ev
         };
@@ -67,7 +67,8 @@ export const AlertsView = () => {
         { key: "eventSrc", title: "Event Source", align: "center", size: 2 },
         { key: "ctr", title: "Event Counter", align: "center", size: 1 },
         { key: "lastSeen", title: "Last Seen", align: "center", size: 2 },
-        { key: "actions", title: "", align: "end", size: 5 }
+        { key: "subs", title: "Active Subscriptions", align: "center", size: 3 },
+        { key: "actions", title: "", align: "end", size: 3 }
     ];
 
     const eventsRender = (event: EventItem) => {
@@ -80,6 +81,28 @@ export const AlertsView = () => {
             ),
             eventSrc: (
                 <Label>{event.EventTitle}</Label>
+            ),
+            subs: (
+                <Grid container spacing={1} justifyContent={"center"}>
+                    {
+                        event.Subscriptions.map((sub, idx) => {
+                            console.log(sub);
+
+                            return (
+                                <Grid item key={idx} >
+                                    <SubscriptionChip sub={sub} onClick={(sub) => { }} onDelete={async (sub) => {
+                                        try {
+                                            await apicalls.alerts.unsubscribe("_lms_system", sub.id);
+                                            dispatch(actions.alertsActions.getSubscriptions.request("_lms_system"));
+                                        } catch (e) {
+
+                                        }
+                                    }} />
+                                </Grid>
+                            );
+                        })
+                    }
+                </Grid>
             ),
             lastSeen: (
                 <Grid container>
@@ -117,22 +140,38 @@ export const AlertsView = () => {
 
     return (
         <>
-            <Box sx={{ padding: "30px", height: "calc(100% - 60px)", display: "flex", flexDirection: "column" }}>
-                <Box component={Paper} sx={{ padding: "20px", height: "1px", flex: 1, overflowY: "auto" }}>
-                    <LamassuTable
-                        data={events}
-                        listConf={columnConf}
-                        listRender={{
-                            renderFunc: eventsRender,
-                            enableRowExpand: true,
-                            columnConf: columnConf
-                        }}
-                        sort={{
-                            enabled: false
-                        }}
-                    />
-                </Box>
-            </Box>
+
+            <StandardWrapperView
+                title="Alerts"
+                subtitle="Monitor and get notified when operations are requested to the PKI"
+                headerActions={[
+                    <IconButton key="refresh" style={{ background: theme.palette.primary.light }} onClick={() => {
+                        refreshAction();
+                    }}>
+                        <RefreshIcon style={{ color: theme.palette.primary.main }} />
+                    </IconButton>
+                ]}
+                tabs={[
+                    {
+                        label: "default",
+                        element: (
+                            <LamassuTable
+                                data={events}
+                                listConf={columnConf}
+                                listRender={{
+                                    renderFunc: eventsRender,
+                                    enableRowExpand: true,
+                                    columnConf: columnConf
+                                }}
+                                sort={{
+                                    enabled: false
+                                }}
+                            />
+                        )
+                    }
+                ]}
+            />
+
             <ViewSubscriptionDialog isOpen={viewSubscription !== undefined} subscription={viewSubscription} onClose={() => { setViewSubscription(undefined); }} />
             <SubscribeDialog isOpen={subscriptionEvent !== undefined} event={subscriptionEvent} onClose={() => { setSubscriptionEvent(undefined); }} />
         </>

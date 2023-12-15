@@ -1,6 +1,6 @@
 import { ListResponse, QueryParameters } from "ducks/models";
 import { apiRequest, queryParametersToURL } from "ducks/services/api";
-import { CreateUpdateDMSPayload, DMS, DMSStats } from "./models";
+import { BindResponse, CreateUpdateDMSPayload, DMS, DMSStats } from "./models";
 
 export const getStats = async (): Promise<DMSStats> => {
     return apiRequest({
@@ -37,4 +37,15 @@ export const updateDMS = async (id: string, payload: CreateUpdateDMSPayload): Pr
         url: `${window._env_.LAMASSU_DMS_MANAGER_API}/v1/dms/${id}`,
         data: payload
     }) as Promise<DMS>;
+};
+
+export const bindDeviceIdentity = async (device_id: string, cert_sn: string): Promise<BindResponse> => {
+    return apiRequest({
+        method: "POST",
+        url: `${window._env_.LAMASSU_DMS_MANAGER_API}/v1/dms/bind-identity`,
+        data: {
+            device_id: device_id,
+            certificate_serial_number: cert_sn
+        }
+    }) as Promise<BindResponse>;
 };

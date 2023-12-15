@@ -71,7 +71,7 @@ export const CertificateCard: React.FC<Props> = ({ ca, engine, elevation = true,
                                                 <LamassuChip
                                                     color={"red"}
                                                     label={
-                                                        `${ca.status} · ${moment(ca.valid_to).format("DD/MM/YYYY")} ·  ${moment.duration(moment().diff(moment(ca.status === CertificateStatus.Revoked ? ca.revocation_timestamp : ca.valid_to))).humanize(true)}`
+                                                        `${ca.status} · ${moment(ca.valid_to).format("DD/MM/YYYY")} ·  ${moment.duration(moment(ca.status === CertificateStatus.Revoked ? ca.revocation_timestamp : ca.valid_to).diff(moment())).humanize(true)}`
                                                     }
                                                 />
                                             )

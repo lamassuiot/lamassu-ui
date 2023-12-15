@@ -121,9 +121,7 @@ export const DeviceList = () => {
                             <Grid item>
                                 <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
                                     <IconButton onClick={() => {
-                                        if (device.identity) {
-                                            navigate(device.id);
-                                        }
+                                        navigate(device.id);
                                     }}>
                                         <FormatAlignJustifyIcon fontSize={"small"} />
                                     </IconButton>

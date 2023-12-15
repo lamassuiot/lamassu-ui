@@ -7,6 +7,7 @@ import { FieldType, Filter, Filters, Field } from "components/FilterInput";
 
 interface WrapperProps<T> {
     fetcher: (filters: Filter[]) => Promise<T[]>
+    filters?: Filter[]
     filtrableProps: Field[]
     searchBarFilterKey: string
     optionRenderer: (item: T) => React.ReactElement
@@ -31,7 +32,7 @@ export const GenericSelector = <T extends object>(props: GenericSelectorProps<T>
         return () => clearTimeout(timer);
     }, [fastTypeQuery]);
 
-    const [filters, setFilters] = React.useState<Filter[]>([]);
+    const [filters, setFilters] = React.useState<Filter[]>(props.filters ? props.filters : []);
 
     const [loading, setLoading] = React.useState(false);
     const [options, setOptions] = React.useState<readonly T[]>([]);

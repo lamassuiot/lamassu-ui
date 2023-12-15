@@ -3,37 +3,91 @@ import { Typography, Box } from "@mui/material";
 import Label from "components/LamassuComponents/dui/typographies/Label";
 import Grid from "@mui/material/Unstable_Grid2";
 
+export interface Stage {
+    label: string | React.ReactElement,
+    size: number,
+    background: string,
+    color: string,
+    startLabel: string | React.ReactElement | undefined,
+    endLabel: string | React.ReactElement | undefined,
+}
+export interface Event {
+    label: string | React.ReactElement,
+    position: number,
+}
 interface Props {
-    stages: {
-        label: string,
-        size: number,
-        background: string,
-        color: string,
-        startLabel: string | React.ReactElement | undefined,
-        endLabel: string | React.ReactElement | undefined,
-    }[]
+    stages: Stage[]
+    events?: Event[]
+    useColumns?: boolean
 }
 
-export const Timeline: React.FC<Props> = ({ stages }) => {
+export const Timeline: React.FC<Props> = ({ stages, useColumns = true, events = [] }) => {
     return (
-        <Grid container flexDirection={"column"}>
-            <Grid xs container columns={stages.reduce((accumulator, currentValue) => accumulator + currentValue.size, 0)} >
+        <Grid container flexDirection={"column"} {...!useColumns && { sx: { width: "max-content" } }}>
+            <Grid container {...useColumns ? { columns: stages.reduce((accumulator, currentValue) => accumulator + currentValue.size, 0) } : { sx: { width: "max-width", flexWrap: "nowrap" } }} alignItems={"start"}>
+                {
+                    events.map((event, idx) => {
+                        let evSize = event.position;
+                        if (idx > 0) {
+                            evSize = event.position - events[idx - 1].position;
+                        }
+                        return (
+                            (
+                                <Grid key={idx} {...useColumns ? { xs: evSize } : { sx: { width: evSize * 20 } }} container alignItems={"flex-start"} justifyContent={"space-between"}>
+                                    <Grid xs="auto" container flexDirection={"column"}></Grid>
+                                    <Grid xs="auto" container flexDirection={"column"} alignItems={"end"}>
+                                        {
+                                            event.label && (
+                                                <>
+                                                    <Grid>
+                                                        {
+                                                            typeof event.label === "string"
+                                                                ? (
+                                                                    <Label>{event.label}</Label>
+                                                                )
+                                                                : (
+                                                                    event.label
+                                                                )
+                                                        }
+                                                    </Grid>
+                                                    <Grid><Box height={"20px"} borderLeft={"1px solid #aaa"} /></Grid>
+                                                </>
+                                            )
+                                        }
+                                    </Grid>
+                                </Grid>
+                            )
+                        );
+                    })
+                }
+            </Grid>
+            <Grid xs container {...useColumns ? { columns: stages.reduce((accumulator, currentValue) => accumulator + currentValue.size, 0) } : { sx: { width: "max-width", flexWrap: "nowrap" } }} >
                 {
                     stages.map((stage, idx) => (
-                        <Grid key={idx} xs={stage.size} height={"30px"}>
+                        <Grid key={idx} {...useColumns ? { xs: stage.size } : { sx: { width: stage.size * 20 } }} height={"30px"}>
                             <Box sx={{ background: stage.background, color: stage.color, height: "100%", ...idx === 0 && { borderTopLeftRadius: "15px", borderBottomLeftRadius: "15px" }, ...idx === stages.length - 1 && { borderTopRightRadius: "15px", borderBottomRightRadius: "15px" } }} >
                                 <Grid container alignItems={"center"} justifyContent={"center"} width={"100%"} height={"100%"}>
-                                    <Grid xs="auto"><Typography fontFamily={"monospace"}>{stage.label}</Typography></Grid>
+                                    <Grid xs="auto">
+                                        {
+                                            typeof stage.label === "string"
+                                                ? (
+                                                    <Typography fontFamily={"monospace"}>{stage.label}</Typography>
+                                                )
+                                                : (
+                                                    stage.label
+                                                )
+                                        }
+                                    </Grid>
                                 </Grid>
                             </Box>
                         </Grid>
                     ))
                 }
             </Grid>
-            <Grid container columns={stages.reduce((accumulator, currentValue) => accumulator + currentValue.size, 0)} alignItems={"start"}>
+            <Grid container {...useColumns ? { columns: stages.reduce((accumulator, currentValue) => accumulator + currentValue.size, 0) } : { sx: { width: "max-width", flexWrap: "nowrap" } }} alignItems={"start"}>
                 {
                     stages.map((stage, idx) => (
-                        <Grid key={idx} xs={stage.size} container alignItems={"flex-start"} justifyContent={"space-between"}>
+                        <Grid key={idx} {...useColumns ? { xs: stage.size } : { sx: { width: stage.size * 20 } }} container alignItems={"flex-start"} justifyContent={"space-between"}>
                             <Grid xs="auto" container flexDirection={"column"}>
                                 {
                                     stage.startLabel && (

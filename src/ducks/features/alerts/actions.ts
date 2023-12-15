@@ -14,7 +14,7 @@ export const getSubscriptions = createAsyncAction(
     actionTypes.GET_SUBSCRIPTIONS,
     success(actionTypes.GET_SUBSCRIPTIONS),
     failed(actionTypes.GET_SUBSCRIPTIONS)
-)<any, Array<Subscription>, Error>();
+)<string, Array<Subscription>, Error>();
 
 export const getEvents = createAsyncAction(
     actionTypes.GET_EVENTS,

@@ -8,11 +8,22 @@ const unitConverterToSeconds = {
 };
 
 const validDurationRegex = (test: string) => {
-    const validator = /\d+[ywdhms]{1}/;
+    const validator = /\d+[ywdhms]{1}/g;
     const res = test.match(validator);
-    if (res && res[0] === test) {
+    if (!res) {
+        return false;
+    }
+
+    let strBuilder = "";
+    for (let i = 0; i < res.length; i++) {
+        const pStr = res[i];
+        strBuilder = strBuilder + pStr;
+    }
+
+    if (strBuilder === test) {
         return true;
     }
+
     return false;
 };
 const durationValueUnitSplitRegex = /\d+|\D+/g;

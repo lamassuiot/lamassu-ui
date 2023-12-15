@@ -302,6 +302,7 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                     </Grid>
                     <Grid item>
                         <CATimeline
+                            caIssuedAt={moment()}
                             caExpiration={watchCAExpiration.type === "duration" ? watchCAExpiration.duration : (watchCAExpiration.type === "date" ? watchCAExpiration.date : "")}
                             issuanceDuration={watchIssuanceExpiration.type === "duration" ? watchIssuanceExpiration.duration : (watchIssuanceExpiration.type === "date" ? watchIssuanceExpiration.date : "")}
                         />

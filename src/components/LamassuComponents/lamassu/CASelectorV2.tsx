@@ -3,8 +3,7 @@ import { getCAs, getEngines } from "ducks/features/cav3/apicalls";
 import { GenericSelector } from "./GenericSelector";
 import CAViewer from "./CAViewer";
 import { FetchViewer } from "./FetchViewer";
-import { FieldType } from "components/FilterInput";
-import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/models";
+import { CertificateAuthority, CryptoEngine, casFilters } from "ducks/features/cav3/models";
 
 type Props = {
     limitSelection?:string[] // CA IDs
@@ -23,12 +22,7 @@ const CASelectorV2: React.FC<Props> = (props: Props) => {
             return (
                 <GenericSelector
                     searchBarFilterKey="id"
-                    filtrableProps={[
-                        { key: "id", label: "CA ID", type: FieldType.String },
-                        { key: "status", label: "Status", type: FieldType.Enum, fieldOptions: ["ACTIVE", "EXPIRED", "REVOKED"] },
-                        { key: "valid_to", label: "Expires At", type: FieldType.Date },
-                        { key: "valid_from", label: "Valid From", type: FieldType.Date }
-                    ]}
+                    filtrableProps={casFilters}
                     fetcher={async (filters) => {
                         const casResp = await getCAs({
                             limit: 25,

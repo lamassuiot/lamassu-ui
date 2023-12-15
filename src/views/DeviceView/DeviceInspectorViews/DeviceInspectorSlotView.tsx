@@ -245,7 +245,6 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
                         } */}
                     </Grid>
                 </Grid>
-
             </Box>
             <Grid container sx={{ flexGrow: 1, overflowY: "hidden", height: "300px" }} columns={13}>
                 <Grid xs={10} sx={{ padding: "30px", overflowY: "scroll", height: "100%" }} container>

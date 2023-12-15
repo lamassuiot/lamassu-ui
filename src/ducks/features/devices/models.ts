@@ -15,13 +15,13 @@ export const deviceStatusToColor = (status: DeviceStatus): string | [string, str
     case DeviceStatus.NoIdentity:
         return ["#ffffff", "#08C2D4"];
     case DeviceStatus.Active:
-        return "green";
+        return ["#ffffff", "#008000"];
     case DeviceStatus.RenewalWindow:
         return ["#000000", "#F1DB3D"];
     case DeviceStatus.AboutToExpire:
         return ["#444444", "#F88B56"];
     case DeviceStatus.Expired:
-        return ["#000000", "#8e8e8e"];
+        return ["#ffffff", "#8e8e8e"];
     case DeviceStatus.Revoked:
         return "red";
     case DeviceStatus.Decommissioned:

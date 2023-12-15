@@ -46,6 +46,6 @@ export const triggerGetSubs: Epic<RootAction, RootAction, RootState, {}> = (acti
             actions.unsubscribe
         ], rootAction)),
         map((val: any) => {
-            return actions.getSubscriptions.request({});
+            return actions.getSubscriptions.request("_lms_system");
         })
     );

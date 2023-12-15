@@ -7,9 +7,10 @@ interface Props {
     title: string
     subtitle: string,
     tabs: TabsListItemsProps[]
+    headerActions?: React.ReactNode[]
 }
 
-const StandardWrapperView: React.FC<Props> = ({ title, subtitle, tabs }) => {
+const StandardWrapperView: React.FC<Props> = ({ title, subtitle, tabs, headerActions = [] }) => {
     const theme = useTheme();
     const [selectedTab, setSelectedTab] = useState(0);
 
@@ -17,15 +18,30 @@ const StandardWrapperView: React.FC<Props> = ({ title, subtitle, tabs }) => {
         <Box sx={{ height: "100%" }} component={Paper}>
             <Box style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                 <Box style={{ padding: "40px 40px 0 40px" }}>
-                    <Grid item container spacing={2} justifyContent="flex-start">
-                        <Grid item xs={12}>
-                            <Box style={{ display: "flex", alignItems: "center" }}>
-                                <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 26, lineHeight: "24px", marginRight: "10px" }}>{title}</Typography>
-                            </Box>
+                    <Grid container>
+                        <Grid item xs>
+                            <Grid item container spacing={2} justifyContent="flex-start">
+                                <Grid item xs={12}>
+                                    <Box style={{ display: "flex", alignItems: "center" }}>
+                                        <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 26, lineHeight: "24px", marginRight: "10px" }}>{title}</Typography>
+                                    </Box>
+                                </Grid>
+                            </Grid>
+                            <Grid>
+                                <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13, marginTop: "10px" }}>{subtitle}</Typography>
+                            </Grid>
                         </Grid>
-                    </Grid>
-                    <Grid>
-                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13, marginTop: "10px" }}>{subtitle}</Typography>
+                        <Grid item xs="auto" container spacing={1}>
+                            {
+                                headerActions.map((action, idx) => {
+                                    return (
+                                        <Grid key={idx} item xs="auto">
+                                            {action}
+                                        </Grid>
+                                    );
+                                })
+                            }
+                        </Grid>
                     </Grid>
                 </Box>
                 {
@@ -36,7 +52,7 @@ const StandardWrapperView: React.FC<Props> = ({ title, subtitle, tabs }) => {
                             </Box>
                         )
                         : (
-                            <TabsList tabs={tabs} headerStyle={{ margin: "0 25px" }} contentStyle={{ margin: "15px 40px" }}/>
+                            <TabsList tabs={tabs} headerStyle={{ margin: "0 25px" }} contentStyle={{ margin: "15px 40px" }} />
                         )
                 }
             </Box>
