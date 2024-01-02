@@ -143,7 +143,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
                         {moment(cert.valid_to).format("DD-MM-YYYY HH:mm")}
                     </Typography >
                     <Typography style={{ fontWeight: "300", fontSize: 12, color: theme.palette.text.primary }}>
-                        {moment.duration(moment(caData.valid_to).diff(moment())).humanize(true)}
+                        {moment.duration(moment(cert.valid_to).diff(moment())).humanize(true)}
                     </Typography >
                 </Box>
             ),

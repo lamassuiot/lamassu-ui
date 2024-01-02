@@ -292,11 +292,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                 if (data.awsIotIntegration.enableShadow) {
                     shadowConfig = {
                         enable: true,
-                        shadow_name: data.awsIotIntegration.shadowType === "classic"
-                            ? ""
-                            : (
-                                data.awsIotIntegration.namedShadowName === "lamassu-identity" ? "" : data.awsIotIntegration.namedShadowName
-                            )
+                        shadow_name: data.awsIotIntegration.shadowType === "classic" ? "" : data.awsIotIntegration.namedShadowName
                     };
                 }
 
@@ -859,8 +855,8 @@ function policyBuilder (accountID: string, shadowName: string) {
                     "iot:Publish"
                 ],
                 Resource: [
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID*"
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/$aws/things/${iot:Connection.Thing.ThingName}",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/$aws/things/${iot:Connection.Thing.ThingName}/shadow/SHADOWID*"
                 ]
             },
             {
@@ -870,8 +866,8 @@ function policyBuilder (accountID: string, shadowName: string) {
                 ],
                 Resource: [
                     // "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/dt/lms/well-known/cacerts",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/${iot:Connection.Thing.ThingName}",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/${iot:Connection.Thing.ThingName}/shadow/SHADOWID*"
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/$aws/things/${iot:Connection.Thing.ThingName}",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topicfilter/$aws/things/${iot:Connection.Thing.ThingName}/shadow/SHADOWID*"
                 ]
             },
             {
@@ -881,8 +877,8 @@ function policyBuilder (accountID: string, shadowName: string) {
                 ],
                 Resource: [
                     // "arn:aws:iot:eu-west-1:ACCOUNTID:topic/dt/lms/well-known/cacerts",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}",
-                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/${iot:Connection.Thing.ThingName}/shadow/SHADOWID*"
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/$aws/things/${iot:Connection.Thing.ThingName}",
+                    "arn:aws:iot:eu-west-1:ACCOUNTID:topic/$aws/things/${iot:Connection.Thing.ThingName}/shadow/SHADOWID*"
                 ]
             }
         ]
