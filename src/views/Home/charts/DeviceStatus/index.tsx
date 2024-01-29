@@ -44,10 +44,7 @@ export const DeviceStatusChart : React.FC<Props> = ({ deviceStats, ...props }) =
         return statusKey;
     });
 
-    console.log(dataset);
-
     return (
-
         <Doughnut
             small={false}
             dataset={dataset}
@@ -57,7 +54,9 @@ export const DeviceStatusChart : React.FC<Props> = ({ deviceStats, ...props }) =
 
             }}
             onClick={(ev) => {
-                navigate(`/devmanager?filter=status[equal]${status[ev[0].index]}`);
+                if (ev.length > 0) {
+                    navigate(`/devmanager?filter=status[equal]${status[ev[0].index]}`);
+                }
             }}
             primaryStat={primaryStat}
             statLabel={"Provisioned Devices"}
