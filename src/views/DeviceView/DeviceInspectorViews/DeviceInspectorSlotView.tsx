@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Divider, IconButton, Paper, Typography, useTheme } from "@mui/material";
+import { Divider, IconButton, Paper, Tooltip, Typography, useTheme } from "@mui/material";
 import { Box } from "@mui/system";
 import moment from "moment";
 import { LamassuChip } from "components/LamassuComponents/Chip";
@@ -20,7 +20,7 @@ import { Certificate, CertificateStatus } from "ducks/features/cav3/models";
 import Grid from "@mui/material/Unstable_Grid2";
 import { Switch } from "components/LamassuComponents/dui/Switch";
 import Label from "components/LamassuComponents/dui/typographies/Label";
-
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 interface Props {
     slotID?: string | undefined,
     device: Device,
@@ -110,7 +110,8 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
         { key: "issuedDate", title: "Issued Date", align: "center", size: 2 },
         { key: "lifespan", title: "Lifespan", align: "center", size: 2 },
         { key: "expiredDate", title: "Expiration Date", align: "center", size: 2 },
-        { key: "revokeDate", title: "Revocation Date", align: "center", size: 2 }
+        { key: "revokeDate", title: "Revocation Date", align: "center", size: 2 },
+        { key: "actions", title: "Actions", align: "end", size: 1 }
     ];
 
     const certificatesRenderer = (cert: CertResponse) => {
@@ -138,7 +139,6 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
                 moment.duration(moment(cert.cert.valid_to).diff(moment(cert.cert.valid_from))).humanize(false)
             }</Typography>,
             revokeDate: <Typography style={{ fontWeight: "400", fontSize: 14, color: theme.palette.text.primary }}>
-
                 {
                     cert.cert.status === CertificateStatus.Revoked
                         ? (
@@ -160,7 +160,22 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
                             </>
                         )
                 }
-            </Typography>
+            </Typography>,
+            actions: (
+                <Box>
+                    <Grid container spacing={1}>
+                        <Grid>
+                            <Tooltip title="Go to certificate view">
+                                <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
+                                    <IconButton onClick={() => { navigate(`/certificates?filter=serial_number[contains]${cert.cert.serial_number}`); }}>
+                                        <ArrowForwardIcon fontSize={"small"} />
+                                    </IconButton>
+                                </Box>
+                            </Tooltip>
+                        </Grid>
+                    </Grid>
+                </Box >
+            )
         };
     };
 
@@ -283,7 +298,7 @@ export const DeviceInspectorSlotView: React.FC<Props> = ({ slotID, device }) => 
                         <Timeline position="left" sx={{ width: "100%", marginLeft: "-20px" }}>
                             {
                                 devEvents.map((ev, idx) => {
-                                    let eventColor:string | [string, string] = "gray";
+                                    let eventColor: string | [string, string] = "gray";
                                     switch (ev.event.type) {
                                     case DeviceEventType.Created:
                                         eventColor = "green";

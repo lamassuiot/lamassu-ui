@@ -165,8 +165,8 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
             <Box style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                 <Box style={{ padding: "30px 40px 0 40px" }}>
                     <Grid container spacing={2} justifyContent="flex-start">
-                        <Grid item xs container spacing={"100px"}>
-                            <Grid item xs="auto">
+                        <Grid item xs container spacing={{ xs: "0px", xl: "100px" }} flexDirection={{ xs: "column", xl: "row" }}>
+                            <Grid item container xs="auto" flexDirection={"column"}>
                                 <Grid item xs="auto" container spacing={1}>
                                     {
                                         <Grid item xs="auto">

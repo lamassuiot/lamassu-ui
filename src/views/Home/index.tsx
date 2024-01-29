@@ -138,7 +138,6 @@ export const Home = () => {
                                 </Grid>
                             </Box>
                         </Box>
-
                         <DeviceStatusChart deviceStats={deviceStats} style={{ marginLeft: "20px" }} />
                     </Box>
                 );

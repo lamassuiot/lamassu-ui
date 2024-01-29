@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { useTheme } from "@mui/material";
 import { DeviceStats, DeviceStatus, deviceStatusToColor } from "ducks/features/devices/models";
 import { capitalizeFirstLetter } from "ducks/reducers_utils";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
     deviceStats : DeviceStats
@@ -13,15 +14,14 @@ interface Props {
 export const DeviceStatusChart : React.FC<Props> = ({ deviceStats, ...props }) => {
     const theme = useTheme();
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     const totalDevices = deviceStats.total;
-
     const enablePrimaryStat = totalDevices !== 0;
-
     const primaryStat = enablePrimaryStat ? Math.floor(deviceStats.status_distribution[DeviceStatus.Active] * 100 / totalDevices) : "-";
 
     const dataset: any = [];
-    [
+    const status = [
         DeviceStatus.NoIdentity,
         DeviceStatus.Active,
         DeviceStatus.RenewalWindow,
@@ -29,7 +29,9 @@ export const DeviceStatusChart : React.FC<Props> = ({ deviceStats, ...props }) =
         DeviceStatus.Expired,
         DeviceStatus.Revoked,
         DeviceStatus.Decommissioned
-    ].map((statusKey) => {
+    ];
+
+    status.map((statusKey) => {
         // @ts-ignore
         const color = deviceStatusToColor(statusKey as typeof DeviceStatus);
         dataset.push({
@@ -52,6 +54,10 @@ export const DeviceStatusChart : React.FC<Props> = ({ deviceStats, ...props }) =
             title="Device Provisioning Status"
             subtitle={""}
             onRefresh={() => {
+
+            }}
+            onClick={(ev) => {
+                navigate(`/devmanager?filter=status[equal]${status[ev[0].index]}`);
             }}
             primaryStat={primaryStat}
             statLabel={"Provisioned Devices"}

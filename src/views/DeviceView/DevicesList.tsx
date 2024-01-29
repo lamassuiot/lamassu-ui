@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, Button, Grid, IconButton, Paper, Typography, useTheme } from "@mui/material";
 import FormatAlignJustifyIcon from "@mui/icons-material/FormatAlignJustify";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { LamassuChip } from "components/LamassuComponents/Chip";
 import { ListWithDataController, ListWithDataControllerConfigProps } from "components/LamassuComponents/Table";
 import { GoLinkExternal } from "react-icons/go";
@@ -14,6 +14,7 @@ import moment from "moment";
 import { selectors } from "ducks/reducers";
 import { actions } from "ducks/actions";
 import { IconInput } from "components/LamassuComponents/dui/IconInput";
+import { Filter } from "components/FilterInput";
 
 export const DeviceList = () => {
     const theme = useTheme();
@@ -21,21 +22,45 @@ export const DeviceList = () => {
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const [searchParams, _] = useSearchParams();
 
     const requestStatus = useAppSelector((state) => selectors.devices.getDeviceListRequestStatus(state));
     const deviceList = useAppSelector((state) => selectors.devices.getDevices(state));
     const devicesNext = useAppSelector((state) => selectors.devices.getNextBookmark(state));
     const totalDevices = -1;
 
-    const [tableConfig, setTableConfig] = useState<ListWithDataControllerConfigProps>(
-        {
+    const [tableConfig, setTableConfig] = useState<ListWithDataControllerConfigProps>(() => {
+        const urlFilters = searchParams.getAll("filter");
+        const filters: Filter[] = [];
+
+        urlFilters.forEach(f => {
+            // check filter syntax
+            if (f.includes("[") && f.includes("]")) {
+                const propName = f.substring(0, f.indexOf("["));
+                const op = f.substring(f.indexOf("[") + 1, f.indexOf("]"));
+                const val = f.substring(f.indexOf("]") + 1, f.length);
+
+                if (propName !== "" && op !== "" && val !== "") {
+                    const field = deviceFields.find(field => field.key === propName);
+                    if (field) {
+                        filters.push({
+                            propertyField: field,
+                            propertyOperator: op,
+                            propertyValue: val
+                        });
+                    }
+                }
+            }
+        });
+
+        return {
             filters: {
-                activeFilters: [],
+                activeFilters: filters,
                 options: deviceFields
             },
             sort: {
                 enabled: true,
-                selectedField: "id",
+                selectedField: "creation_timestamp",
                 selectedMode: "asc"
             },
             pagination: {
@@ -44,8 +69,8 @@ export const DeviceList = () => {
                 selectedItemsPerPage: 50,
                 selectedPage: 0
             }
-        }
-    );
+        };
+    });
 
     const refreshAction = () => dispatch(actions.devicesActions.getDevices.request({
         bookmark: "",
@@ -76,7 +101,7 @@ export const DeviceList = () => {
     ];
 
     const deviceRender = (device: Device) => {
-        const dmsContent = device.dms_owner;
+        const dmsContent = device.dms_owner_id;
         const iconSplit = device.icon_color.split("-");
         return {
             icon: (

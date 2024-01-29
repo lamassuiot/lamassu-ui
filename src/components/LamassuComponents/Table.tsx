@@ -200,10 +200,11 @@ export const LamassuCardWrapper: React.FC<LamassuCardWrapperProps> = ({ data, re
 export interface LamassuQueryInputProps {
     queryPlaceholder: string
     onChange: any
+    initValue?: string
 }
 
-const LamassuQueryInput: React.FC<LamassuQueryInputProps> = ({ queryPlaceholder, onChange }) => {
-    const [fastTypeQuery, setFastTypeQuery] = useState("");
+const LamassuQueryInput: React.FC<LamassuQueryInputProps> = ({ initValue = "", queryPlaceholder, onChange }) => {
+    const [fastTypeQuery, setFastTypeQuery] = useState(initValue);
     useEffect(() => {
         const timer = setTimeout(() => {
             onChange(fastTypeQuery);
@@ -304,8 +305,19 @@ export const ListWithDataController: React.FC<ListWithDataControllerProps> = ({
         }
     }
 
-    const [query, setQuery] = useState("");
-    const [filters, setFilters] = useState<Filter[]>([]);
+    const [query, setQuery] = useState(() => {
+        // check if there is any filter with 'query'. If so, remove it
+        const queryFields = listConf.filter(c => c.query);
+        for (let i = 0; i < queryFields.length; i++) {
+            const queryField = queryFields[i];
+            const idx = config.filters.activeFilters.findIndex(f => f.propertyField.key === queryField.query);
+            if (idx >= 0) {
+                return config.filters.activeFilters[idx].propertyValue;
+            }
+        }
+        return "";
+    });
+    const [filters, setFilters] = useState<Filter[]>(config.filters.activeFilters);
 
     useEffect(() => {
         const queryFieldId = listConf.find(c => c.query);
@@ -360,7 +372,9 @@ export const ListWithDataController: React.FC<ListWithDataControllerProps> = ({
                     <Box>
                         <Box component={Paper} sx={{ padding: "5px", height: 30, display: "flex", alignItems: "center", width: 300, background: invertContrast && theme.palette.background.lightContrast }}>
                             <AiOutlineSearch size={20} color="#626365" style={{ marginLeft: 10, marginRight: 10 }} />
-                            <LamassuQueryInput queryPlaceholder={queryPlaceholder} onChange={(newValue: any) => { setQuery(newValue); }} />
+                            <LamassuQueryInput initValue={query} queryPlaceholder={queryPlaceholder} onChange={(newValue: any) => {
+                                setQuery(newValue);
+                            }} />
                         </Box>
                     </Box>
 
@@ -437,7 +451,9 @@ export const ListWithDataController: React.FC<ListWithDataControllerProps> = ({
                             {
                                 config.filters && (
                                     <Grid xs="auto">
-                                        <Filters externalRender filters={filters} fields={config.filters.options} onChange={(filters) => setFilters([...filters])} />
+                                        <Filters externalRender filters={filters} fields={config.filters.options} onChange={(filters) => {
+                                            setFilters([...filters]);
+                                        }} />
                                     </Grid>
                                 )
                             }
@@ -453,7 +469,9 @@ export const ListWithDataController: React.FC<ListWithDataControllerProps> = ({
                         <Typography style={{ fontWeight: 500, fontSize: 12, padding: "10px", color: theme.palette.text.primaryLight }}>{dataset.length} RESULTS</Typography>
                     </Grid>
                     <Grid xs="auto" container justifyContent={"flex-end"} gap={2}>
-                        <FilterRenderer filters={filters} onChange={(newF) => setFilters([...newF])} />
+                        <FilterRenderer filters={filters} onChange={(newF) => {
+                            setFilters([...newF]);
+                        }} />
                     </Grid>
                 </Grid>
             </Box>

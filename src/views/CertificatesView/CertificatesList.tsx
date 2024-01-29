@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Box, Button, Grid, IconButton, MenuItem, Paper, Tooltip, Typography, useTheme } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ListWithDataController, ListWithDataControllerConfigProps } from "components/LamassuComponents/Table";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "ducks/hooks";
@@ -20,10 +20,12 @@ import { MultiKeyValueInput } from "components/LamassuComponents/dui/MultiKeyVal
 import { MonoChromaticButton } from "components/LamassuComponents/dui/MonoChromaticButton";
 import { TextField } from "components/LamassuComponents/dui/TextField";
 import { Select } from "components/LamassuComponents/dui/Select";
+import { Filter } from "components/FilterInput";
 
 export const CertificateListView = () => {
     const theme = useTheme();
     const themeMode = theme.palette.mode;
+    const [searchParams, _] = useSearchParams();
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -36,10 +38,32 @@ export const CertificateListView = () => {
     const [isRevokeDialogOpen, setIsRevokeDialogOpen] = useState({ isOpen: false, serialNumber: "" });
     const [revokeReason, setRevokeReason] = useState("Unspecified");
 
-    const [tableConfig, setTableConfig] = useState<ListWithDataControllerConfigProps>(
-        {
+    const [tableConfig, setTableConfig] = useState<ListWithDataControllerConfigProps>(() => {
+        const urlFilters = searchParams.getAll("filter");
+        const filters: Filter[] = [];
+
+        urlFilters.forEach(f => {
+            // check filter syntax
+            if (f.includes("[") && f.includes("]")) {
+                const propName = f.substring(0, f.indexOf("["));
+                const op = f.substring(f.indexOf("[") + 1, f.indexOf("]"));
+                const val = f.substring(f.indexOf("]") + 1, f.length);
+                if (propName !== "" && op !== "" && val !== "") {
+                    const field = certificateFilters.find(field => field.key === propName);
+                    if (field) {
+                        filters.push({
+                            propertyField: field,
+                            propertyOperator: op,
+                            propertyValue: val
+                        });
+                    }
+                }
+            }
+        });
+
+        return {
             filters: {
-                activeFilters: [],
+                activeFilters: filters,
                 options: certificateFilters
             },
             sort: {
@@ -53,8 +77,8 @@ export const CertificateListView = () => {
                 selectedItemsPerPage: 50,
                 selectedPage: 0
             }
-        }
-    );
+        };
+    });
 
     const refreshAction = () => dispatch(actions.certsActions.getCerts.request({
         bookmark: "",

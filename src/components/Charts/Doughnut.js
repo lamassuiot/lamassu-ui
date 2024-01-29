@@ -1,7 +1,7 @@
-import React from "react"
+import React, { useRef } from "react"
 import { Grid, Paper, Typography } from "@mui/material"
 import { Box } from "@mui/system"
-import { Doughnut as DoughnutChart } from "react-chartjs-2"
+import { Doughnut as DoughnutChart, getElementAtEvent } from "react-chartjs-2"
 import { Chart, registerables } from "chart.js"
 import CachedIcon from '@mui/icons-material/Cached';
 import IconButton from '@mui/material/IconButton';
@@ -9,10 +9,11 @@ import { numberToHumanReadableString } from "components/utils/NumberToHumanReada
 
 Chart.register(...registerables)
 
-export const Doughnut = ({ dataset, small = true, title, subtitle, primaryStat, percentage = true, statLabel, cardColor, primaryTextColor, secondaryTextColor, ...props }) => {
+export const Doughnut = ({ dataset, small = true, title, subtitle, primaryStat, percentage = true, statLabel, cardColor, primaryTextColor, secondaryTextColor, onClick = (ev)=>{}, ...props }) => {
   const localDataset = dataset.map(dataCategory => dataCategory.value)
   const localLabels = dataset.map(dataCategory => dataCategory.label)
   const localColors = dataset.map(dataCategory => dataCategory.color)
+  const chartRef = useRef();
 
   const data = {
     datasets: [{
@@ -75,7 +76,9 @@ export const Doughnut = ({ dataset, small = true, title, subtitle, primaryStat, 
       </Grid>
       <Box sx={{ position: "relative", marginTop: "0px" }} >
         <Box sx={{}} >
-          <DoughnutChart data={data} options={options} style={{ zIndex: 10, position: "relative" }} />
+          <DoughnutChart ref={chartRef} data={data} options={options} style={{ zIndex: 10, position: "relative" }} onClick={ev => {
+            onClick(getElementAtEvent(chartRef.current, ev))
+          }} />
         </Box>
         <Box sx={{ marginTop: small ? "-180px" : "-215px", marginBottom: small ? "60px" : "90px", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
           <Box style={{ display: "flex", alignItems: "end" }}>

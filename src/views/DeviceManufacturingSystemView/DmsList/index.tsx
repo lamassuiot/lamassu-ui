@@ -32,6 +32,7 @@ import { createCSR, createPrivateKey, keyPairToPEM } from "components/utils/cryp
 import { errorToString } from "ducks/services/api";
 import { apicalls } from "ducks/apicalls";
 import { LamassuSwitch } from "components/LamassuComponents/Switch";
+import RouterOutlinedIcon from "@mui/icons-material/RouterOutlined";
 
 export const DmsList = () => {
     const dispatch = useDispatch();
@@ -188,6 +189,17 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                 </Grid>
                             </Grid>
                             <Grid item xs="auto" container spacing={"20px"}>
+                                <Grid item xs="auto" container spacing={1}>
+                                    <Grid item xs="auto">
+                                        <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
+                                            <Tooltip title="Watch DMS Devices">
+                                                <IconButton onClick={(ev) => { navigate(`/devmanager?filter=dms_owner_id[eqaul]${dms.id}`); }}>
+                                                    <RouterOutlinedIcon fontSize={"small"} />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </Box>
+                                    </Grid>
+                                </Grid>
                                 <Grid item xs="auto" container spacing={1}>
                                     <Grid item xs="auto">
                                         <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>

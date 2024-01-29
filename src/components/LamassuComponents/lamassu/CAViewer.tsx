@@ -5,7 +5,7 @@ import moment from "moment";
 import { CodeCopier } from "../dui/CodeCopier";
 import { LamassuChip } from "../Chip";
 import CertificateDecoder from "../composed/Certificates/CertificateDecoder";
-import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/models";
+import { CertificateAuthority, CertificateStatus, CryptoEngine } from "ducks/features/cav3/models";
 import { CryptoEngineViewer } from "./CryptoEngineViewer";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 
@@ -35,13 +35,26 @@ const CAViewer: React.FC<Props> = ({ caData, engine, actions = [], elevation = t
 
                 <Grid item xs container flexDirection={"column"}>
                     <Grid item xs>
-                        <Typography {...size === "small" && { fontSize: "0.8rem" }}>{caData.subject.common_name}</Typography>
+                        <Typography {...size === "small" && { fontSize: "0.8rem" }} sx={{ wordBreak: "break-word" }}>{caData.subject.common_name}</Typography>
                     </Grid>
                     <Grid item xs>
                         <Label {...size === "small" && { fontSize: "0.8rem" }}>{`CA ID: ${caData.id}`}</Label>
                     </Grid>
                     <Grid item xs>
-                        <Label>{`expires ${moment.duration(moment(caData.valid_to).diff(moment())).humanize(true)}`}</Label>
+                        {
+                            caData.status === CertificateStatus.Revoked
+                                ? (
+                                    <LamassuChip
+                                        color={"red"}
+                                        label={
+                                            `${caData.status} ·  ${moment.duration(moment(caData.revocation_timestamp).diff(moment())).humanize(true)}`
+                                        }
+                                    />
+                                )
+                                : (
+                                    <Label>{`${caData.status} ·  ${moment.duration(moment(caData.valid_to).diff(moment())).humanize(true)}`}</Label>
+                                )
+                        }
                     </Grid>
                 </Grid>
                 {

@@ -20,7 +20,6 @@ export const CertificateCard: React.FC<Props> = ({ ca, engine, elevation = true,
     const card = (
         <>
             <Grid container sx={{}}>
-
                 <Grid item xs="auto" container>
                     <Grid item>
                         <Box style={{ width: "10px", height: "60%", borderTopRightRadius: 10, borderBottomRightRadius: 10, background: selected ? theme.palette.primary.main : "transparent", position: "relative", top: "20%" }} />
@@ -41,7 +40,7 @@ export const CertificateCard: React.FC<Props> = ({ ca, engine, elevation = true,
 
                                 <Grid item xs>
                                     <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>{`${ca.key_metadata.type} ${ca.key_metadata.bits} - ${ca.key_metadata.strength}`}</Typography>
-                                    <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 20, lineHeight: "24px" }}>{ca.subject.common_name}</Typography>
+                                    <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 20, lineHeight: "24px", wordBreak: "break-word" }}>{ca.subject.common_name}</Typography>
                                     <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 12 }}>{ca.id}</Typography>
                                 </Grid>
 
@@ -76,7 +75,7 @@ export const CertificateCard: React.FC<Props> = ({ ca, engine, elevation = true,
                                                 />
                                             )
                                             : (
-                                                <Typography style={{ fontWeight: "400", fontSize: "13px" }} >{`${ca.status} · ${moment(ca.valid_to).format("DD/MM/YYYY")} ·  ${moment.duration(moment().diff(moment(ca.valid_to))).humanize(true)}`}</Typography>
+                                                <Typography style={{ fontWeight: "400", fontSize: "13px" }} >{`${ca.status} · ${moment(ca.valid_to).format("DD/MM/YYYY")} ·  ${moment.duration((moment(ca.valid_to).diff(moment()))).humanize(true)}`}</Typography>
                                             )
                                     }
                                 </Grid>
