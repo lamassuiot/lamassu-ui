@@ -46,7 +46,7 @@ export type Device = {
     icon_color: string;
     creation_timestamp: string;
     metadata: { [key: string]: any };
-    dms_owner_id: string;
+    dms_owner: string;
     events: { [key: string]: DeviceEvent };
     identity: Slot<string>
     slots: { [key: string]: Slot<string> }
@@ -118,7 +118,7 @@ export type CreateDevicePayload = {
 
 export const deviceFields: Field[] = [
     { key: "id", label: "ID", type: FieldType.String },
-    { key: "dms_owner_id", label: "DMS Owner", type: FieldType.String },
+    { key: "dms_owner", label: "DMS Owner", type: FieldType.String },
     { key: "status", label: "Status", type: FieldType.Enum, fieldOptions: Object.values(DeviceStatus) },
     { key: "creation_ts", label: "Expires At", type: FieldType.Date },
     { key: "tags", label: "Tags", type: FieldType.StringArray }

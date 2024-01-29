@@ -101,7 +101,7 @@ export const DeviceList = () => {
     ];
 
     const deviceRender = (device: Device) => {
-        const dmsContent = device.dms_owner_id;
+        const dmsContent = device.dms_owner;
         const iconSplit = device.icon_color.split("-");
         return {
             icon: (

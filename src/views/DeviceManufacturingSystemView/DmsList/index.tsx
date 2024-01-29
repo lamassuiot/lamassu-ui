@@ -193,7 +193,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                     <Grid item xs="auto">
                                         <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
                                             <Tooltip title="Watch DMS Devices">
-                                                <IconButton onClick={(ev) => { navigate(`/devmanager?filter=dms_owner_id[eqaul]${dms.id}`); }}>
+                                                <IconButton onClick={(ev) => { navigate(`/devmanager?filter=dms_owner[equal]${dms.id}`); }}>
                                                     <RouterOutlinedIcon fontSize={"small"} />
                                                 </IconButton>
                                             </Tooltip>
