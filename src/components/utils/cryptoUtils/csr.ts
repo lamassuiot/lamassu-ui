@@ -3,7 +3,7 @@ import * as pkijs from "pkijs";
 import * as asn1js from "asn1js";
 import { X509, X509Subject, fromPEM, parseRelativeDistinguishedNames, parseSANFromExtensions, parseSubjectPublicKeyInfo, toPEM } from "./x509";
 
-export const createPrivateKey = (keyType: "EC" | "RSA", keySize: number, hashAlg: "SHA-1" | "SHA-256" | "SHA-384" | "SHA-512"): Promise<CryptoKeyPair> => {
+export const createPrivateKey = (keyType: "ECDSA" | "RSA", keySize: number, hashAlg: "SHA-1" | "SHA-256" | "SHA-384" | "SHA-512"): Promise<CryptoKeyPair> => {
     const crypto = pkijs.getCrypto(true);
     const keyGenAlgoithm = keyType === "RSA" ? "RSASSA-PKCS1-V1_5" : "ECDSA";
     const algParams = pkijs.getAlgorithmParameters(keyGenAlgoithm, "generateKey") as any;
@@ -24,7 +24,7 @@ export const createPrivateKey = (keyType: "EC" | "RSA", keySize: number, hashAlg
     return crypto.generateKey(algParams.algorithm, true, algParams.usages);
 };
 
-export const keyPairToPEM = async (keyPair: CryptoKeyPair, keyType: "EC" | "RSA"): Promise<{ privateKey: string }> => {
+export const keyPairToPEM = async (keyPair: CryptoKeyPair, keyType: "ECDSA" | "RSA"): Promise<{ privateKey: string }> => {
     const crypto = pkijs.getCrypto(true);
     const privBuffer = await crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
 

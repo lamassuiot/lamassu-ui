@@ -9,12 +9,12 @@ import CloseIcon from "@mui/icons-material/Close";
 const RSAKeySizes = [2048, 3072, 4096];
 const defaultRSAKeySize = RSAKeySizes[RSAKeySizes.length - 1];
 
-const ECKeySizes = [192, 239, 256];
+const ECKeySizes = [256, 384, 521];
 const defaultECKeySizes = ECKeySizes[ECKeySizes.length - 1];
 
 export interface X509Value {
     keyMetadata: {
-        type: "RSA" | "EC",
+        type: "RSA" | "ECDSA",
         size: number
     }
     subject: {
@@ -49,7 +49,7 @@ const X509Form: React.FC<X509FormProps> = ({ value, onChange }) => {
                 <Grid item xs={6}>
                     <Select label="Key Type" value={value.keyMetadata.type} onChange={(ev) => {
                         switch (ev.target.value) {
-                        case "EC":
+                        case "ECDSA":
                             onChange({ ...value, keyMetadata: { type: ev.target.value, size: defaultECKeySizes } });
                             break;
 
@@ -63,7 +63,7 @@ const X509Form: React.FC<X509FormProps> = ({ value, onChange }) => {
                         }
                     }}>
                         <MenuItem value="RSA">RSA</MenuItem>
-                        <MenuItem value="EC">EC</MenuItem>
+                        <MenuItem value="ECDSA">ECDSA</MenuItem>
                     </Select>
                 </Grid>
                 <Grid item xs={6}>

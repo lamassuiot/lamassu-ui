@@ -17,7 +17,7 @@ export type X509SubjectAlternativeName = {
 }
 
 export type X509PublicKeyProps = {
-    keyType: "EC" | "RSA",
+    keyType: "ECDSA" | "RSA",
     keySize: number,
 }
 
@@ -33,12 +33,12 @@ export const parseSubjectPublicKeyInfo = async (subjectPublicKey: pkijs.PublicKe
     if (subjectPublicKey.algorithm.algorithmId === "1.2.840.10045.2.1") { // OID for Elliptic curve public key cryptography
         const ecPubKey = subjectPublicKey.parsedKey;
         if (ecPubKey instanceof pkijs.ECPublicKey) {
-            keyInfo = { keyType: "EC", keySize: parseInt(ecPubKey.namedCurve.replace("P-", ""), 10) };
+            keyInfo = { keyType: "ECDSA", keySize: parseInt(ecPubKey.namedCurve.replace("P-", ""), 10) };
         } else {
-            keyInfo = { keyType: "EC", keySize: -1 };
+            keyInfo = { keyType: "ECDSA", keySize: -1 };
         }
     } else if (subjectPublicKey.algorithm.algorithmId === "1.2.840.113549.1.1.1") { // OID for RSA
-        // keyInfo = { keyType: "EC", keySize: pkcs10.subjectPublicKeyInfo.parsedKey.valueHexView. }
+        // keyInfo = { keyType: "ECDSA", keySize: pkcs10.subjectPublicKeyInfo.parsedKey.valueHexView. }
         const rsaPubKey = subjectPublicKey.parsedKey;
         if (rsaPubKey instanceof pkijs.RSAPublicKey) {
             keyInfo = { keyType: "RSA", keySize: rsaPubKey.modulus.valueBlock.valueHexView.byteLength * 8 };
