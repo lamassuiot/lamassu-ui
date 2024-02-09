@@ -12,10 +12,11 @@ import * as duration from "components/utils/duration";
 import { FormDateInput } from "components/LamassuComponents/dui/form/DateInput";
 import { CATimeline } from "views/CertificateAuthoritiesView/components/CATimeline";
 import { X509Certificate, parseCRT } from "components/utils/cryptoUtils/crt";
-import { CryptoEngine, ExpirationFormat } from "ducks/features/cav3/models";
+import { CertificateAuthority, CryptoEngine, ExpirationFormat } from "ducks/features/cav3/models";
 import { actions } from "ducks/actions";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
+import CASelectorV2 from "components/LamassuComponents/lamassu/CASelectorV2";
 
 const keyPlaceHolder = `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIOUXa254YMYXWksCADpHFdJ+ly+nrQFsa0ozEuTZXmP5oAoGCCqGSM49
@@ -26,6 +27,7 @@ uywNx1FjrBpX2j6DBnyp1owBUY0Y1RVWpw==
 
 type FormData = {
     cryptoEngine: CryptoEngine
+    parentCA: CertificateAuthority | undefined
     id: string
     certificate: string | undefined
     parsedCertificate: X509Certificate | undefined
@@ -46,9 +48,12 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
+    const [preselectedCAParent] = useOutletContext<[CertificateAuthority | undefined]>();
+
     const { control, getValues, setValue, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
         defaultValues: {
             cryptoEngine: defaultEngine,
+            parentCA: preselectedCAParent,
             id: window.crypto.randomUUID(),
             certificate: "",
             parsedCertificate: undefined,
@@ -83,7 +88,7 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
             };
         }
         try {
-            await importCA(data.id, data.cryptoEngine.id, window.btoa(data.certificate!), window.btoa(data.privateKey), issuanceDur);
+            await importCA(data.id, data.cryptoEngine.id, window.btoa(data.certificate!), window.btoa(data.privateKey), issuanceDur, data.parentCA ? data.parentCA.id : "");
             dispatch(actions.caActionsV3.importCAWithKey(data.id));
             navigate(`/cas/${data.id}`);
         } catch (error) {
@@ -110,6 +115,15 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
             <Grid item xs={12} >
                 <FormTextField label="CA ID" name={"id"} control={control} disabled />
             </Grid>
+            <Grid item xs={12} >
+                <CASelectorV2 value={getValues("parentCA")} onSelect={(elems) => {
+                    console.log(elems);
+
+                    if (!Array.isArray(elems)) {
+                        setValue("parentCA", elems);
+                    }
+                }} multiple={false} label="Parent CA" selectLabel="Select Parent CA"
+                />            </Grid>
 
             <Grid item xs container spacing={1}>
                 <CertificateImporter onChange={async (crt) => {

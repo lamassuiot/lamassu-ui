@@ -66,7 +66,7 @@ export const createCA = async (payload: models.CreateCAPayload): Promise<models.
     }) as Promise<models.CertificateAuthority>;
 };
 
-export const importCA = async (id: string, engineID: string, certificateB64: string, privKeyB64: string, expiration: models.ExpirationFormat): Promise<models.CertificateAuthority> => {
+export const importCA = async (id: string, engineID: string, certificateB64: string, privKeyB64: string, expiration: models.ExpirationFormat, parentCAID: string): Promise<models.CertificateAuthority> => {
     return apiRequest({
         method: "POST",
         url: `${window._env_.LAMASSU_CA_API}/v1/cas/import`,
@@ -77,7 +77,8 @@ export const importCA = async (id: string, engineID: string, certificateB64: str
             ca: certificateB64,
             ca_chain: [],
             ca_type: "IMPORTED",
-            issuance_expiration: expiration
+            issuance_expiration: expiration,
+            parent_id: parentCAID
         }
     });
 };
