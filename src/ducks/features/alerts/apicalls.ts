@@ -1,5 +1,13 @@
 import { apiRequest } from "ducks/services/api";
 import { Event, SubChannel, Subscription, SubscriptionCondition } from "./models";
+import { APIServiceInfo } from "ducks/models";
+
+export const getApiInfo = async (): Promise<APIServiceInfo> => {
+    return apiRequest({
+        method: "GET",
+        url: `${window._env_.LAMASSU_ALERTS}/health`
+    }) as Promise<APIServiceInfo>;
+};
 
 export const getEvents = async (): Promise<Array<Event>> => {
     return apiRequest({

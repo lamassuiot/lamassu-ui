@@ -1,6 +1,13 @@
 import { apiRequest, queryParametersToURL } from "ducks/services/api";
 import * as models from "./models";
-import { ListResponse, QueryParameters } from "ducks/models";
+import { APIServiceInfo, ListResponse, QueryParameters } from "ducks/models";
+
+export const getApiInfo = async (): Promise<APIServiceInfo> => {
+    return apiRequest({
+        method: "GET",
+        url: `${window._env_.LAMASSU_CA_API}/health`
+    }) as Promise<APIServiceInfo>;
+};
 
 export const getStats = async (): Promise<models.CAStats> => {
     return apiRequest({

@@ -27,7 +27,8 @@ jobs:
       with:
         context: .
         build-args: |
-          BASE_IMAGE=alpine:3.14
+          SHA1VER=${{ env.SHA1VER }}
+          VERSION=${{ github.event.inputs.release_version }}
         tags: |
             ghcr.io/lamassuiot/lamassu-ui:${{ github.event.inputs.release_version }}
             ghcr.io/lamassuiot/lamassu-ui:latest

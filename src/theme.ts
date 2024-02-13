@@ -52,6 +52,11 @@ export const light: any = {
         gray: {
             main: "#EFF0F2"
         },
+        blue: {
+            light: "#184d60", // 184d60    4a6952
+            main: "#0068D1", // 2099C6    25ee32
+            dark: "#104c63" // 104c63   2F6140
+        },
         scrollbar: {
             thumb: "#555555",
             track: "#EEEEEE"

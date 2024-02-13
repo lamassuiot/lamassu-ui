@@ -1,6 +1,13 @@
-import { ListResponse, QueryParameters } from "ducks/models";
+import { APIServiceInfo, ListResponse, QueryParameters } from "ducks/models";
 import { apiRequest, queryParametersToURL } from "ducks/services/api";
 import { BindResponse, CreateUpdateDMSPayload, DMS, DMSStats } from "./models";
+
+export const getApiInfo = async (): Promise<APIServiceInfo> => {
+    return apiRequest({
+        method: "GET",
+        url: `${window._env_.LAMASSU_DMS_MANAGER_API}/health`
+    }) as Promise<APIServiceInfo>;
+};
 
 export const getStats = async (): Promise<DMSStats> => {
     return apiRequest({

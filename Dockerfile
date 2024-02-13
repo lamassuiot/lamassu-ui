@@ -22,8 +22,17 @@ LABEL authors="hsaiz@ikerlan.es"
 COPY --from=build /app/build /usr/share/nginx/html
 COPY ./nginx.conf /etc/nginx/conf.d/server.conf
 
+ARG SHA1VER= # set by build script
+ARG VERSION= # set by build script
+
 WORKDIR /usr/share/nginx/html
 COPY ./env-docker-config.js /tmpl/env-config.js.tmpl
+
+RUN now=$(TZ=GMT date +"%Y-%m-%dT%H:%M:%SZ") && \
+    sed -i "s/XXX_UI_VERSION/$VERSION/g" "/tmpl/env-config.js.tmpl" && \
+    sed -i "s/XXX_BUILD_ID/$SHA1VER/g" "/tmpl/env-config.js.tmpl" && \
+    sed -i "s/XXX_BUILD_TIME/$now/g" "/tmpl/env-config.js.tmpl"
+
 COPY ./docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
