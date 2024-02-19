@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import moment, { Moment } from "moment";
 import { FormSelect } from "components/LamassuComponents/dui/form/Select";
 import { FormTextField } from "components/LamassuComponents/dui/form/TextField";
-import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
 import { FormDateInput } from "components/LamassuComponents/dui/form/DateInput";
 import { createCA } from "ducks/features/cav3/apicalls";
 import { errorToString } from "ducks/services/api";
@@ -17,6 +16,7 @@ import { useDispatch } from "react-redux";
 import { actions } from "ducks/actions";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import CASelectorV2 from "components/LamassuComponents/lamassu/CASelectorV2";
+import { Subtitle2Stronger } from "@fluentui/react-text";
 
 type FormData = {
     cryptoEngine: CryptoEngine
@@ -153,7 +153,7 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
             <Grid container spacing={2} justifyContent="center" alignItems="center" sx={{ width: "100%", paddingY: "20px" }}>
                 <Grid item container spacing={2}>
                     <Grid item xs={12}>
-                        <SubsectionTitle>CA Settings</SubsectionTitle>
+                        <Subtitle2Stronger>CA Settings</Subtitle2Stronger>
                     </Grid>
                     <Grid item xs={12}>
                         <CryptoEngineSelector value={watchAll.cryptoEngine} onSelect={engine => {
@@ -206,7 +206,7 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
 
                 <Grid item container spacing={2}>
                     <Grid item xs={12}>
-                        <SubsectionTitle>Subject</SubsectionTitle>
+                        <Subtitle2Stronger>Subject</Subtitle2Stronger>
                     </Grid>
                     <Grid item xs={6} xl={4}>
                         <FormTextField label="Country" control={control} name="subject.country" />
@@ -234,7 +234,7 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
 
                 <Grid item container spacing={2}>
                     <Grid item xs={12}>
-                        <SubsectionTitle>CA Expiration Settings</SubsectionTitle>
+                        <Subtitle2Stronger>CA Expiration Settings</Subtitle2Stronger>
                     </Grid>
                     <Grid item xs={12} xl={4}>
                         <FormSelect control={control} name="caExpiration.type" label="Expiration By">
@@ -266,7 +266,7 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
 
                 <Grid item container spacing={2}>
                     <Grid item xs={12}>
-                        <SubsectionTitle>Issuance Expiration Settings</SubsectionTitle>
+                        <Subtitle2Stronger>Issuance Expiration Settings</Subtitle2Stronger>
                     </Grid>
                     <Grid item xs={12} xl={4}>
                         <FormSelect control={control} name="issuerExpiration.type" label="Issuance By">
@@ -298,7 +298,7 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
 
                 <Grid item container spacing={2} flexDirection={"column"}>
                     <Grid item>
-                        <SubsectionTitle>Timeline</SubsectionTitle>
+                        <Subtitle2Stronger>Timeline</Subtitle2Stronger>
                     </Grid>
                     <Grid item>
                         <CATimeline

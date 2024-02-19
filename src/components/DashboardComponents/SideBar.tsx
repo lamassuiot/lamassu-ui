@@ -2,16 +2,15 @@ import React, { useState, useEffect } from "react";
 
 import KeyboardArrowLeftOutlinedIcon from "@mui/icons-material/KeyboardArrowLeftOutlined";
 import KeyboardArrowRightOutlinedIcon from "@mui/icons-material/KeyboardArrowRightOutlined";
-import Brightness2OutlinedIcon from "@mui/icons-material/Brightness2Outlined";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import ExpandLess from "@mui/icons-material/ExpandLess";
-import Brightness5OutlinedIcon from "@mui/icons-material/Brightness5Outlined";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 
 import "./SideBar.css";
 import { Collapse, Grid, List, ListItem, Paper, Typography, useTheme } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Box } from "@mui/system";
+import { InfoRegular, WeatherMoonRegular, WeatherSunnyRegular } from "@fluentui/react-icons";
+import { Body1 } from "@fluentui/react-text";
 
 interface Props {
   onToggleDark: any
@@ -75,11 +74,11 @@ const SideBar: React.FC<Props> = ({ onToggleDark, onCollapse, collapsed, menuCon
                         ))
                     }
                     <MenuSeparator />
-                    <MenuButton title={theme.palette.mode === "dark" ? "Light" : "Dark"} icon={theme.palette.mode === "dark" ? <Brightness5OutlinedIcon /> : <Brightness2OutlinedIcon />} onClick={onToggleDark} collapsed={collapsed} />
+                    <MenuButton title={theme.palette.mode === "dark" ? "Light" : "Dark"} icon={theme.palette.mode === "dark" ? <WeatherMoonRegular /> : <WeatherSunnyRegular />} onClick={onToggleDark} collapsed={collapsed} />
                 </Box>
                 <Box>
                     <MenuSeparator />
-                    <MenuButton title="Info" icon={<InfoOutlinedIcon />} onClick={() => { handleSelectedPath("/info"); }} collapsed={collapsed} />
+                    <MenuButton title="Info" icon={<InfoRegular />} onClick={() => { handleSelectedPath("/info"); }} collapsed={collapsed} />
                 </Box>
             </Grid>
         </Paper>
@@ -135,7 +134,10 @@ const MenuItem: React.FC<MenuItemProps> = ({ active, exactLink = false, link, ti
                     }
 
                     {
-                        !collapsed && (<Typography style={{ marginLeft: 10, width: "100%", fontSize: 14, color: selected ? cPrimary.main : "", fontWeight: selected ? "bold" : "" }}> {title} </Typography>)
+                        !collapsed && (
+                            <Body1 style={{ marginLeft: 10, width: "100%", fontSize: 14, color: selected ? cPrimary.main : "", fontWeight: selected ? "bold" : "" }}>
+                                {title}
+                            </Body1>)
                     }
 
                     {children ? (expand ? <ExpandLess /> : <ExpandMore />) : null}

@@ -7,10 +7,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import "./DashboardLayout.css";
 import { GlobalStyles, Grid, Paper, Typography, IconButton, Slide } from "@mui/material";
-import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlined";
-import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
-import RouterOutlinedIcon from "@mui/icons-material/RouterOutlined";
-import { MdOutlinePrecisionManufacturing } from "react-icons/md";
 import { LamassuNotifications } from "components/DashboardComponents/LamassuNotifications";
 import CloseIcon from "@mui/icons-material/Close";
 import { Home } from "./Home";
@@ -22,13 +18,12 @@ import { DMSView } from "./DeviceManufacturingSystemView";
 import { useAppSelector } from "ducks/hooks";
 import * as notificationsSelector from "ducks/features/notifications/reducer";
 import { InfoView } from "./Info";
-import MailOutlinedIcon from "@mui/icons-material/MailOutlined";
 import SelectAllOutlinedIcon from "@mui/icons-material/SelectAllOutlined";
 import { AlertsView } from "./AlertsView";
 import { useAuth } from "react-oidc-context";
 import { LoggedOutView } from "./LoggedOutView";
-import { TbCertificate } from "react-icons/tb";
 import { CertificateListView } from "./CertificatesView/CertificatesList";
+import { AppFolderRegular, ArrowSyncCheckmarkRegular, BoxArrowUpRegular, BugRegular, BuildingBankRegular, CertificateRegular, ChannelAlertRegular, CheckRegular, CommunicationShieldRegular, ContactCardGroupRegular, DeveloperBoardRegular, KeyRegular, PipelineRegular, ShieldTaskRegular } from "@fluentui/react-icons";
 export const DashboardLayout = () => {
     const auth = useAuth();
     const cookies = new Cookies();
@@ -68,59 +63,126 @@ export const DashboardLayout = () => {
                     title: "Home",
                     path: "/",
                     link: "/",
-                    icon: <DashboardOutlinedIcon key="/" />,
+                    icon: <AppFolderRegular key="/" />,
                     content: <Home />
                 }
             ]
         },
         {
-            menuTitle: "Certification Authorities",
+            menuTitle: "PKI",
             menuItems: [
+                {
+                    title: "KMS",
+                    path: "/kms/*",
+                    link: "/kms",
+                    icon: <KeyRegular key="/1b" />,
+                    content: <CAView />
+                },
                 {
                     title: "CAs",
                     path: "/cas/*",
                     link: "/cas",
-                    icon: <AccountBalanceOutlinedIcon key="/1b" />,
+                    icon: <BuildingBankRegular key="/1b" />,
                     content: <CAView />
                 },
                 {
                     title: "Certificates",
                     path: "/certificates/*",
                     link: "/certificates",
-                    icon: <TbCertificate key="/1c" />,
+                    icon: <CertificateRegular key="/1c" />,
+                    content: <CertificateListView />
+                },
+                {
+                    title: "Registration Authorities",
+                    path: "/ras/*",
+                    link: "/ras",
+                    icon: <CommunicationShieldRegular key="/1c" />,
+                    content: <CertificateListView />
+                },
+                {
+                    title: "Validation Authority",
+                    path: "/vas/*",
+                    link: "/vas",
+                    icon: <CheckRegular key="/1c" />,
+                    content: <CertificateListView />
+                }
+            ]
+        },
+        {
+            menuTitle: "Updates",
+            menuItems: [
+                {
+                    title: "Artifacts",
+                    path: "/cas/*",
+                    link: "/cas",
+                    icon: <BoxArrowUpRegular key="/1b" />,
+                    content: <CAView />
+                },
+                {
+                    title: "Update Manager",
+                    path: "/cas/*",
+                    link: "/cas",
+                    icon: <ArrowSyncCheckmarkRegular key="/1b" />,
+                    content: <CAView />
+                },
+                {
+                    title: "Vulnerabilities",
+                    path: "/certificates/*",
+                    link: "/certificates",
+                    icon: <BugRegular key="/1c" />,
                     content: <CertificateListView />
                 }
 
             ]
         },
         {
-            menuTitle: "Registration Authorities",
+            menuTitle: "Device Management",
             menuItems: [
                 {
-                    title: "Device Manufacturing Systems",
+                    title: "Device Automation",
                     path: "/dms/*",
                     link: "/dms",
-                    icon: <MdOutlinePrecisionManufacturing key="/2" />,
+                    icon: <PipelineRegular key="/2" />,
                     content: <DMSView />
 
                 },
                 {
-                    title: "Device Manager",
+                    title: "Device Groups",
                     path: "/devmanager/*",
                     link: "/devmanager",
-                    icon: <RouterOutlinedIcon key="/3" />,
+                    icon: <ContactCardGroupRegular key="/3" />,
+                    content: <DeviceView />
+                },
+                {
+                    title: "Devices",
+                    path: "/devmanager/*",
+                    link: "/devmanager",
+                    icon: <DeveloperBoardRegular key="/3" />,
                     content: <DeviceView />
                 }
             ]
         },
         {
-            menuTitle: "Alerts",
+            menuTitle: "Events",
             menuItems: [
                 {
                     title: "Alerts",
                     path: "/alerts/*",
                     link: "/alerts",
-                    icon: <MailOutlinedIcon />,
+                    icon: <ChannelAlertRegular />,
+                    content: <AlertsView />
+
+                }
+            ]
+        },
+        {
+            menuTitle: "Security",
+            menuItems: [
+                {
+                    title: "Permissions",
+                    path: "/alerts/*",
+                    link: "/alerts",
+                    icon: <ShieldTaskRegular />,
                     content: <AlertsView />
 
                 }

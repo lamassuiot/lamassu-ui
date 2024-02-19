@@ -4,6 +4,8 @@
   "private": true,
   "dependencies": {
     "@fidm/x509": "^1.2.1",
+    "@fluentui/react-components": "^9.46.4",
+    "@fluentui/react-icons": "^2.0.227",
     "@loadable/component": "5.15.2",
     "@mui/icons-material": "^5.14.16",
     "@mui/lab": "^5.0.0-alpha.153",

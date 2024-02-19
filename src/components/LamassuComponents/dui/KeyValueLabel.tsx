@@ -1,8 +1,8 @@
 
 import React from "react";
 import { Grid, Tooltip, Typography, useTheme } from "@mui/material";
-import Label from "./typographies/Label";
 import HelpOutlinedIcon from "@mui/icons-material/HelpOutlined";
+import { Body1Strong } from "@fluentui/react-text";
 
 interface KeyValueLabelProps {
     label: string
@@ -16,7 +16,7 @@ const KeyValueLabel: React.FC<KeyValueLabelProps> = ({ label, tooltip, value }) 
         <Grid container flexDirection={"column"}>
             <Grid item container alignItems={"center"}>
                 <Grid item xs="auto">
-                    <Label>{label}</Label>
+                    <Body1Strong>{label}</Body1Strong>
                 </Grid>
                 {
                     tooltip && (

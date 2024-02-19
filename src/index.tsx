@@ -3,6 +3,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
+import { FluentProvider, webLightTheme } from "@fluentui/react-components";
 
 declare global {
   interface Window { _env_: any; }
@@ -10,7 +11,9 @@ declare global {
 
 ReactDOM.render(
     <React.StrictMode>
-        <App />
+        <FluentProvider theme={webLightTheme} style={{ height: "100%" }}>
+            <App />
+        </FluentProvider>
     </ React.StrictMode>,
     document.getElementById("root")
 );
