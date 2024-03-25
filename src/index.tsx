@@ -3,6 +3,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
+import "polyfill-object.fromentries";
 
 declare global {
   interface Window { _env_: any; }
