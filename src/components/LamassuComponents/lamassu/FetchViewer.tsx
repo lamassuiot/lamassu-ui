@@ -1,4 +1,5 @@
-import { Skeleton, Box, Paper, Alert } from "@mui/material";
+import { MessageBar, MessageBarBody, MessageBarTitle } from "@fluentui/react-components";
+import { Skeleton, Box } from "@mui/material";
 import { errorToString } from "ducks/services/api";
 import React, { useEffect } from "react";
 
@@ -42,18 +43,20 @@ export const FetchViewer = <T extends object>(props: ComponentProps<T>) => {
     }
 
     return (
-        <Box component={Paper}>
-            <Alert severity="error">
-                {
-                    props.errorPrefix || "Could not fetch"
-                }
-                {
-                    typeof error === "string" && error.length > 1 && (
-                        <>: {error}</>
-                    )
-                }
-
-            </Alert>
+        <Box padding={"30px"}>
+            <MessageBar intent={"error"}>
+                <MessageBarBody>
+                    <MessageBarTitle>Failed to fetch</MessageBarTitle>
+                    {
+                        props.errorPrefix || "Could not fetch"
+                    }
+                    {
+                        typeof error === "string" && error.length > 1 && (
+                            <>: {error}</>
+                        )
+                    }
+                </MessageBarBody>
+            </MessageBar>
         </Box>
     );
 };

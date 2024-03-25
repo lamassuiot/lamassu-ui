@@ -25,10 +25,12 @@ import {
     TableColumnDefinition,
     createTableColumn,
     TableCellLayout,
-    Caption2,
+    Badge,
+    Tag,
     Text
 } from "@fluentui/react-components";
-import { CertificateRegular } from "@fluentui/react-icons";
+import moment from "moment";
+import { LamassuChip } from "components/LamassuComponents/Chip";
 
 export const CertificateListView = () => {
     const theme = useTheme();
@@ -274,33 +276,230 @@ export const CertificateListView = () => {
                     //     <Text block={true}>{item.subject.common_name}</Text>
                     //     <Caption2>{item.serial_number}</Caption2>
                     // </>
-                    <TableCellLayout media={<CertificateRegular />}>
-                        <Text block={true}>{item.subject.common_name}</Text>
-                        <Caption2>{item.serial_number}</Caption2>
+                    <TableCellLayout>
+                        {item.serial_number.replaceAll("-", "")}
+                        {/* <Text block={true}>{item.subject.common_name}</Text>
+                        <Caption2>{item.serial_number}</Caption2> */}
+                    </TableCellLayout>
+                );
+            }
+        }),
+        createTableColumn<Certificate>({
+            columnId: "status",
+            compare: (a, b) => {
+                return a.status.localeCompare(b.status);
+            },
+            renderHeaderCell: () => {
+                return "Status";
+            },
+            renderCell: (item) => {
+                return (
+                    <TableCellLayout>
+                        <Badge appearance="tint" shape="rounded" color={
+                            item.status === CertificateStatus.Active
+                                ? "success"
+                                : (item.status === CertificateStatus.Revoked ? "danger" : "informative")
+                        }>
+                            {item.status}
+                        </Badge>
+                    </TableCellLayout>
+                );
+            }
+        }),
+        createTableColumn<Certificate>({
+            columnId: "cn",
+            compare: (a, b) => {
+                return a.subject.common_name.localeCompare(b.subject.common_name);
+            },
+            renderHeaderCell: () => {
+                return "Common Name";
+            },
+            renderCell: (item) => {
+                return (
+                    <TableCellLayout>
+                        {/* <Text wrap={true} style={{ width: "100%", display: "block", overflow: "hidden" }}> */}
+                        <Text wrap={true} style={{ wordBreak: "break-word" }}>
+                            {item.subject.common_name}
+                        </Text>
+                    </TableCellLayout>
+                );
+            }
+        }),
+        createTableColumn<Certificate>({
+            columnId: "key",
+            compare: (a, b) => {
+                return a.key_metadata.type.localeCompare(a.key_metadata.type);
+            },
+            renderHeaderCell: () => {
+                return "Key";
+            },
+            renderCell: (item) => {
+                return (
+                    <TableCellLayout>
+                        <Tag appearance="brand" size="small">
+                            {`${item.key_metadata.type} ${item.key_metadata.bits} - ${item.key_metadata.strength}`}
+                        </Tag>
+                    </TableCellLayout>
+                );
+            }
+        }),
+        createTableColumn<Certificate>({
+            columnId: "caid",
+            compare: (a, b) => {
+                return a.issuer_metadata.id.localeCompare(b.issuer_metadata.id);
+            },
+            renderHeaderCell: () => {
+                return "CA ID";
+            },
+            renderCell: (item) => {
+                return (
+                    <TableCellLayout>
+                        {item.issuer_metadata.id}
+                    </TableCellLayout>
+                );
+            }
+        }),
+        createTableColumn<Certificate>({
+            columnId: "validfrom",
+            compare: (a, b) => {
+                return a.valid_from.isAfter(b.valid_from) ? 1 : -1;
+            },
+            renderHeaderCell: () => {
+                return "Valid From";
+            },
+            renderCell: (item) => {
+                return (
+                    <TableCellLayout>
+                        <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                            <div>
+                                {moment(item.valid_from).format("DD-MM-YYYY HH:mm")}
+                            </div>
+                            <div>
+                                {moment.duration(moment(item.valid_from).diff(moment())).humanize(true)}
+                            </div>
+                        </div>
+                    </TableCellLayout>
+                );
+            }
+        }),
+        createTableColumn<Certificate>({
+            columnId: "validto",
+            compare: (a, b) => {
+                return a.valid_to.isAfter(b.valid_to) ? 1 : -1;
+            },
+            renderHeaderCell: () => {
+                return "Valid To";
+            },
+            renderCell: (item) => {
+                return (
+                    <TableCellLayout>
+                        <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                            <div>
+                                {moment(item.valid_to).format("DD-MM-YYYY HH:mm")}
+                            </div>
+                            <div>
+                                {moment.duration(moment(item.valid_to).diff(moment())).humanize(true)}
+                            </div>
+                        </div>
+                    </TableCellLayout>
+                );
+            }
+        }),
+        createTableColumn<Certificate>({
+            columnId: "lifespan",
+            compare: (a, b) => {
+                return a.valid_to.isAfter(b.valid_to) ? 1 : -1;
+            },
+            renderHeaderCell: () => {
+                return "Lifespan";
+            },
+            renderCell: (item) => {
+                return (
+                    <TableCellLayout>
+                        {moment.duration(moment(item.valid_to).diff(moment(item.valid_from))).humanize(false)}
+                    </TableCellLayout>
+                );
+            }
+        }),
+        createTableColumn<Certificate>({
+            columnId: "revocation",
+            compare: (a, b) => {
+                return a.revocation_timestamp.isAfter(b.revocation_timestamp) ? 1 : -1;
+            },
+            renderHeaderCell: () => {
+                return "Revocation";
+            },
+            renderCell: (item) => {
+                return (
+                    <TableCellLayout>
+                        {
+                            item.status === CertificateStatus.Revoked
+                                ? (
+                                    <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                                        <div>
+                                            {moment(item.revocation_timestamp).format("DD-MM-YYYY HH:mm")}
+                                        </div>
+                                        <div>
+                                            {moment.duration(moment(item.revocation_timestamp).diff(moment())).humanize(true)}
+                                        </div>
+                                        <div>
+                                            <LamassuChip compact label={item.revocation_reason} />
+                                        </div>
+                                    </div>
+                                )
+                                : (
+                                    <>
+                                        {"-"}
+                                    </>
+                                )
+                        }
+                    </TableCellLayout>
+                );
+            }
+        }),
+        createTableColumn<Certificate>({
+            columnId: "actions",
+            compare: (a, b) => {
+                return a.valid_to.isAfter(b.valid_to) ? 1 : -1;
+            },
+            renderHeaderCell: () => {
+                return "";
+            },
+            renderCell: (item) => {
+                return (
+                    <TableCellLayout>
                     </TableCellLayout>
                 );
             }
         })
-
     ];
+
+    const columnSizingOptions = {
+        serial: {
+            minWidth: 250,
+            defaultWidth: 500
+        },
+        cn: {
+            defaultWidth: 180,
+            minWidth: 120,
+            idealWidth: 180
+        }
+    };
 
     return (
         <Box sx={{ padding: "20px", height: "calc(100% - 40px)" }}>
-            <Box padding={"20px"} component={Paper}>
+            <Box component={Paper}>
                 <DataGrid
+                    size="small"
                     items={certList}
                     columns={columns}
                     sortable
-                    selectionMode="multiselect"
                     getRowId={(item) => item.serial_number}
-                    focusMode="composite"
+                    resizableColumns
+                    columnSizingOptions={columnSizingOptions}
                 >
                     <DataGridHeader>
-                        <DataGridRow
-                            selectionCell={{
-                                checkboxIndicator: { "aria-label": "Select all rows" }
-                            }}
-                        >
+                        <DataGridRow>
                             {({ renderHeaderCell }) => (
                                 <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
                             )}
@@ -308,12 +507,7 @@ export const CertificateListView = () => {
                     </DataGridHeader>
                     <DataGridBody<Certificate>>
                         {({ item, rowId }) => (
-                            <DataGridRow<Certificate>
-                                key={rowId}
-                                selectionCell={{
-                                    checkboxIndicator: { "aria-label": "Select row" }
-                                }}
-                            >
+                            <DataGridRow<Certificate> key={rowId} >
                                 {({ renderCell }) => (
                                     <DataGridCell>{renderCell(item)}</DataGridCell>
                                 )}

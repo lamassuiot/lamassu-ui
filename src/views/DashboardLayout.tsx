@@ -24,6 +24,7 @@ import { useAuth } from "react-oidc-context";
 import { LoggedOutView } from "./LoggedOutView";
 import { CertificateListView } from "./CertificatesView/CertificatesList";
 import { AppFolderRegular, ArrowSyncCheckmarkRegular, BoxArrowUpRegular, BugRegular, BuildingBankRegular, CertificateRegular, ChannelAlertRegular, CheckRegular, CommunicationShieldRegular, ContactCardGroupRegular, DeveloperBoardRegular, KeyRegular, PipelineRegular, ShieldTaskRegular } from "@fluentui/react-icons";
+import { PermissionsView } from "./SecurityView/PermissionsView";
 export const DashboardLayout = () => {
     const auth = useAuth();
     const cookies = new Cookies();
@@ -180,10 +181,10 @@ export const DashboardLayout = () => {
             menuItems: [
                 {
                     title: "Permissions",
-                    path: "/alerts/*",
-                    link: "/alerts",
+                    path: "/security/*",
+                    link: "/security",
                     icon: <ShieldTaskRegular />,
-                    content: <AlertsView />
+                    content: <PermissionsView />
 
                 }
             ]

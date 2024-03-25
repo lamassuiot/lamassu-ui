@@ -364,7 +364,7 @@ export const InfoView = () => {
                                                 shape="square"
                                                 aria-label="square avatar"
                                                 initials=""
-                                                image={{ src: process.env.PUBLIC_URL + "/assets/emqx.svg", style: { } }}
+                                                image={{ src: process.env.PUBLIC_URL + "/assets/emqx.svg", style: {} }}
                                                 color="steel"
                                             />
                                         }
@@ -409,12 +409,16 @@ export const InfoView = () => {
 type UpgradeHelmLamassuDrawerProps = {
     open: boolean;
     setOpen: (open: boolean) => void;
-  };
+};
 
 const UpgradeHelmLamassuDrawer: React.FC<UpgradeHelmLamassuDrawerProps> = ({
     open,
     setOpen
 }) => {
+    const fetchHelmChartVersions = () => {
+
+    };
+
     return (
         <OverlayDrawer position={"end"} size={"medium"} open={open}>
             <DrawerHeader>
@@ -475,11 +479,11 @@ const UpgradeHelmLamassuDrawer: React.FC<UpgradeHelmLamassuDrawerProps> = ({
                         </Grid>
                         <Grid item xs={12}>
                             <Label>Domain</Label>
-                            <Input style={{ width: "100%" }} value="lab.lamassu.io"/>
+                            <Input style={{ width: "100%" }} value="lab.lamassu.io" />
                         </Grid>
                         <Grid item xs={12}>
                             <Label>Certificate monitoring frequency</Label>
-                            <Input style={{ width: "100%" }} value="* * * * *"/>
+                            <Input style={{ width: "100%" }} value="* * * * *" />
                         </Grid>
                         <Grid item xs={12}>
                             <Button appearance="primary">
