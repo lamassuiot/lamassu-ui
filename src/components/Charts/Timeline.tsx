@@ -1,7 +1,6 @@
-import React from "react";
-import { Typography, Box } from "@mui/material";
-import Label from "components/LamassuComponents/dui/typographies/Label";
+import { Box, Typography } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
+import React from "react";
 
 export interface Stage {
     label: string | React.ReactElement,
@@ -43,7 +42,7 @@ export const Timeline: React.FC<Props> = ({ stages, useColumns = true, events = 
                                                         {
                                                             typeof event.label === "string"
                                                                 ? (
-                                                                    <Label>{event.label}</Label>
+                                                                    <Typography>{event.label}</Typography>
                                                                 )
                                                                 : (
                                                                     event.label
@@ -97,7 +96,7 @@ export const Timeline: React.FC<Props> = ({ stages, useColumns = true, events = 
                                                 {
                                                     typeof stage.startLabel === "string"
                                                         ? (
-                                                            <Label>{stage.startLabel}</Label>
+                                                            <Typography>{stage.startLabel}</Typography>
                                                         )
                                                         : (
                                                             stage.startLabel
@@ -117,7 +116,7 @@ export const Timeline: React.FC<Props> = ({ stages, useColumns = true, events = 
                                                 {
                                                     typeof stage.endLabel === "string"
                                                         ? (
-                                                            <Label>{stage.endLabel}</Label>
+                                                            <Typography>{stage.endLabel}</Typography>
                                                         )
                                                         : (
                                                             stage.endLabel
@@ -132,6 +131,6 @@ export const Timeline: React.FC<Props> = ({ stages, useColumns = true, events = 
                     ))
                 }
             </Grid>
-        </Grid >
+        </Grid>
     );
 };

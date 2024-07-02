@@ -1,4 +1,4 @@
-import { apiRequest } from "ducks/services/api";
+import { apiRequest } from "ducks/services/api-client";
 
 export const getESTCACerts = async (dmsName: string, pemFormat: boolean = false): Promise<any> => {
     return apiRequest({

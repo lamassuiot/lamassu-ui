@@ -2,7 +2,6 @@
   "compilerOptions": {
     "baseUrl": "./src",
     "target": "es5",
-    "downlevelIteration": true,
     "lib": [
       "dom",
       "dom.iterable",
@@ -14,6 +13,7 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
+    "downlevelIteration": true,
     "noFallthroughCasesInSwitch": true,
     "module": "esnext",
     "moduleResolution": "node",
@@ -24,10 +24,5 @@
   },
   "include": [
     "src"
-  ],
-    "exclude": [
-    "node_modules",
-    "./node_modules",
-    "./node_modules/*"
-    ]
+  ]
 }

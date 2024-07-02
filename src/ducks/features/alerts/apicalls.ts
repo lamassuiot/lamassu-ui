@@ -1,6 +1,5 @@
-import { apiRequest } from "ducks/services/api";
+import { APIServiceInfo, apiRequest } from "ducks/services/api-client";
 import { Event, SubChannel, Subscription, SubscriptionCondition } from "./models";
-import { APIServiceInfo } from "ducks/models";
 
 export const getApiInfo = async (): Promise<APIServiceInfo> => {
     return apiRequest({
@@ -29,8 +28,8 @@ export const subscribe = async (userId: string, eventType: string, conditions: S
         url: `${window._env_.LAMASSU_ALERTS}/v1/user/${userId}/subscribe`,
         data: {
             event_type: eventType,
-            conditions: conditions,
-            channel: channel
+            conditions,
+            channel
         }
     }) as Promise<Subscription>;
 };

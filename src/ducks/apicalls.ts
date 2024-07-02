@@ -1,13 +1,13 @@
-import * as cas from "./features/cav3/apicalls";
-import * as devices from "./features/devices/apicalls";
-import * as dms from "./features/ra/apicalls";
-import * as alerts from "./features/alerts/apicalls";
-import * as est from "./features/est/apicalls";
+import * as alertsApiCalls from "./features/alerts/apicalls";
+import * as casApiCalls from "./features/cas/apicalls";
+import * as devicesApiCalls from "./features/devices/apicalls";
+import * as dmssApiCalls from "./features/dmss/apicalls";
+import * as estApiCalls from "./features/est/apicalls";
 
-export const apicalls = {
-    alerts: alerts,
-    cas: cas,
-    devices: devices,
-    dms: dms,
-    est: est
+export default {
+    alerts: alertsApiCalls,
+    cas: casApiCalls,
+    devices: devicesApiCalls,
+    dmss: dmssApiCalls,
+    est: estApiCalls
 };
