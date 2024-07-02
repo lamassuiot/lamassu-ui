@@ -1,4 +1,4 @@
-import { Field, FieldType } from "components/FilterInput";
+import { BasicColor } from "components/Label";
 
 export enum DeviceStatus {
     NoIdentity = "NO_IDENTITY",
@@ -10,7 +10,7 @@ export enum DeviceStatus {
     Decommissioned = "DECOMMISSIONED",
 }
 
-export const deviceStatusToColor = (status: DeviceStatus): string | [string, string] => {
+export const deviceStatusToColor = (status: DeviceStatus): BasicColor | [string, string] => {
     switch (status) {
     case DeviceStatus.NoIdentity:
         return ["#ffffff", "#08C2D4"];
@@ -23,11 +23,11 @@ export const deviceStatusToColor = (status: DeviceStatus): string | [string, str
     case DeviceStatus.Expired:
         return ["#ffffff", "#8e8e8e"];
     case DeviceStatus.Revoked:
-        return "red";
+        return ["#ffffff", "#FF0000"];
     case DeviceStatus.Decommissioned:
         return ["#ffffff", "#8F56FE"];
     default:
-        return "gray";
+        return "grey";
     }
 };
 
@@ -67,20 +67,20 @@ export enum SlotStatus {
     Revoke = "REVOKED",
 }
 
-export const slotStatusToColor = (status: SlotStatus): string | [string, string] => {
+export const slotStatusToColor = (status: SlotStatus): "success" | "error" | "grey" | [string, string] => {
     switch (status) {
     case SlotStatus.Active:
-        return "green";
+        return "success";
     case SlotStatus.RenewalWindow:
         return ["#000000", "#F1DB3D"];
     case SlotStatus.AboutToExpire:
         return ["#444444", "#F88B56"];
     case SlotStatus.Expired:
-        return "red";
+        return "error";
     case SlotStatus.Revoke:
-        return "red";
+        return "error";
     default:
-        return "gray";
+        return "grey";
     }
 };
 
@@ -115,11 +115,3 @@ export type CreateDevicePayload = {
     icon: string,
     icon_color: string,
 }
-
-export const deviceFields: Field[] = [
-    { key: "id", label: "ID", type: FieldType.String },
-    { key: "dms_owner", label: "DMS Owner", type: FieldType.String },
-    { key: "status", label: "Status", type: FieldType.Enum, fieldOptions: Object.values(DeviceStatus) },
-    { key: "creation_ts", label: "Expires At", type: FieldType.Date },
-    { key: "tags", label: "Tags", type: FieldType.StringArray }
-];

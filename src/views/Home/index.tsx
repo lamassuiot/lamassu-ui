@@ -1,32 +1,30 @@
-import React from "react";
-import { Box, Grid, Paper, Typography, useTheme } from "@mui/material";
-import ListAltOutlinedIcon from "@mui/icons-material/ListAltOutlined";
-import EqualizerRoundedIcon from "@mui/icons-material/EqualizerRounded";
-import { useNavigate } from "react-router-dom";
+import { Box, Paper, Typography, useTheme } from "@mui/material";
+import { CAStats, CryptoEngine } from "ducks/features/cas/models";
 import { Chart, registerables } from "chart.js";
-import { DeviceStatusChart } from "./charts/DeviceStatus";
-import { useDispatch } from "react-redux";
-
-import { numberToHumanReadableString } from "components/utils/NumberToHumanReadableString";
-import { FetchViewer } from "components/LamassuComponents/lamassu/FetchViewer";
-import { CryptoEngineViewer } from "components/LamassuComponents/lamassu/CryptoEngineViewer";
-import { CAStats, CryptoEngine } from "ducks/features/cav3/models";
-import { apicalls } from "ducks/apicalls";
-import { DMSStats } from "ducks/features/ra/models";
+import { CryptoEngineViewer } from "components/CryptoEngines/CryptoEngineViewer";
+import { DMSStats } from "ducks/features/dmss/models";
 import { DeviceStats } from "ducks/features/devices/models";
+import { DeviceStatusChart } from "./DeviceStatusChart";
+import { FetchViewer } from "components/FetchViewer";
+import { numberToHumanReadableString } from "utils/string-utils";
+import { useNavigate } from "react-router-dom";
+import EqualizerRoundedIcon from "@mui/icons-material/EqualizerRounded";
+import Grid from "@mui/material/Unstable_Grid2";
+import ListAltOutlinedIcon from "@mui/icons-material/ListAltOutlined";
+import React from "react";
+import apicalls from "ducks/apicalls";
 
 Chart.register(...registerables);
 
 export const Home = () => {
     const theme = useTheme();
     const navigate = useNavigate();
-    const dispatch = useDispatch();
 
     return (
         <FetchViewer
             fetcher={() => Promise.all([
                 apicalls.cas.getStats(),
-                apicalls.dms.getStats(),
+                apicalls.dmss.getStats(),
                 apicalls.devices.getStats(),
                 apicalls.cas.getEngines()
             ])}
@@ -48,25 +46,25 @@ export const Home = () => {
                                 justifyContent: "center",
                                 alignItems: "center",
                                 flexDirection: "column",
-                                background: theme.palette.homeCharts.mainCard.primary,
+                                background: theme.palette.primary.main,
                                 cursor: "pointer"
                             }}
                             onClick={() => navigate("/cas")}
                             >
                                 <Box>
                                     <Box style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
-                                        <Box style={{ background: theme.palette.homeCharts.mainCard.text, borderRadius: 50, width: 50, height: 50, display: "flex", justifyContent: "center", alignItems: "center" }}>
-                                            <ListAltOutlinedIcon style={{ fontSize: 30, color: theme.palette.homeCharts.mainCard.primary }} />
+                                        <Box style={{ background: theme.palette.primary.contrastText, borderRadius: 50, width: 50, height: 50, display: "flex", justifyContent: "center", alignItems: "center" }}>
+                                            <ListAltOutlinedIcon style={{ fontSize: 30, color: theme.palette.primary.main }} />
                                         </Box>
                                     </Box>
                                     <Box style={{ marginTop: 20, display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }} >
-                                        <Typography variant="h3" style={{ color: theme.palette.homeCharts.mainCard.text, fontWeight: "bold" }}>{numberToHumanReadableString(caStats.certificates.total, ".")}</Typography>
-                                        <Typography variant="h5" style={{ color: theme.palette.homeCharts.mainCard.text, fontSize: 15 }}>Issued Certificates</Typography>
+                                        <Typography style={{ color: theme.palette.primary.contrastText, fontWeight: "bold", fontSize: "3rem" }}>{numberToHumanReadableString(caStats.certificates.total, ".")}</Typography>
+                                        <Typography style={{ color: theme.palette.primary.contrastText, fontSize: 15 }}>Issued Certificates</Typography>
                                     </Box>
                                 </Box>
                                 <Box style={{ marginTop: 50, display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
                                     <Box component={Paper} style={{
-                                        background: theme.palette.homeCharts.mainCard.secondary,
+                                        background: theme.palette.primary.light,
                                         padding: 15,
                                         width: 250,
                                         display: "flex",
@@ -77,37 +75,37 @@ export const Home = () => {
                                     onClick={(ev: any) => { ev.stopPropagation(); navigate("/cas"); }}
                                     >
                                         <Box>
-                                            <Typography variant="h3" style={{ color: theme.palette.homeCharts.mainCard.text, fontSize: 25 }}>{caStats.cas.total}</Typography>
-                                            <Typography variant="h5" style={{ color: theme.palette.homeCharts.mainCard.text, fontSize: 15 }}>Certificate Authorities</Typography>
+                                            <Typography style={{ color: theme.palette.primary.contrastText, fontSize: 25 }}>{caStats.cas.total}</Typography>
+                                            <Typography style={{ color: theme.palette.primary.contrastText, fontSize: 15 }}>Certificate Authorities</Typography>
                                         </Box>
                                         <Box>
                                             <Box style={{ background: "white", borderRadius: 50, width: 30, height: 30, display: "flex", justifyContent: "center", alignItems: "center" }}>
-                                                <EqualizerRoundedIcon style={{ fontSize: 25, color: theme.palette.homeCharts.mainCard.primary }} />
+                                                <EqualizerRoundedIcon style={{ fontSize: 25, color: theme.palette.primary.main }} />
                                             </Box>
                                         </Box>
                                     </Box>
-                                    <Box component={Paper} style={{ marginTop: 10, background: theme.palette.homeCharts.mainCard.secondary, padding: 15, width: 250, display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                                    <Box component={Paper} style={{ marginTop: 10, background: theme.palette.primary.light, padding: 15, width: 250, display: "flex", justifyContent: "space-between", alignItems: "center" }}
                                         onClick={(ev: any) => { ev.stopPropagation(); navigate("/dms"); }}
                                     >
                                         <Box>
-                                            <Typography variant="h3" style={{ color: theme.palette.homeCharts.mainCard.text, fontSize: 25 }}>{numberToHumanReadableString(dmsStats.total, ".")}</Typography>
-                                            <Typography variant="h5" style={{ color: theme.palette.homeCharts.mainCard.text, fontSize: 15 }}>Device Manufacturing Systems</Typography>
+                                            <Typography style={{ color: theme.palette.primary.contrastText, fontSize: 25 }}>{numberToHumanReadableString(dmsStats.total, ".")}</Typography>
+                                            <Typography style={{ color: theme.palette.primary.contrastText, fontSize: 15 }}>Device Manufacturing Systems</Typography>
                                         </Box>
                                         <Box>
-                                            <Box style={{ background: theme.palette.homeCharts.mainCard.text, borderRadius: 50, width: 30, height: 30, display: "flex", justifyContent: "center", alignItems: "center" }}>
-                                                <EqualizerRoundedIcon style={{ fontSize: 25, color: theme.palette.homeCharts.mainCard.primary }} />
+                                            <Box style={{ background: theme.palette.primary.contrastText, borderRadius: 50, width: 30, height: 30, display: "flex", justifyContent: "center", alignItems: "center" }}>
+                                                <EqualizerRoundedIcon style={{ fontSize: 25, color: theme.palette.primary.main }} />
                                             </Box>
                                         </Box>
                                     </Box>
-                                    <Box component={Paper} style={{ marginTop: 10, background: theme.palette.homeCharts.mainCard.secondary, padding: 15, width: 250, display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                                    <Box component={Paper} style={{ marginTop: 10, background: theme.palette.primary.light, padding: 15, width: 250, display: "flex", justifyContent: "space-between", alignItems: "center" }}
                                         onClick={(ev: any) => { ev.stopPropagation(); navigate("/devmanager"); }}>
                                         <Box>
-                                            <Typography variant="h3" style={{ color: theme.palette.homeCharts.mainCard.text, fontSize: 25 }}>{numberToHumanReadableString(deviceStats.total, ".")}</Typography>
-                                            <Typography variant="h5" style={{ color: theme.palette.homeCharts.mainCard.text, fontSize: 15 }}>Devices</Typography>
+                                            <Typography style={{ color: theme.palette.primary.contrastText, fontSize: 25 }}>{numberToHumanReadableString(deviceStats.total, ".")}</Typography>
+                                            <Typography style={{ color: theme.palette.primary.contrastText, fontSize: 15 }}>Devices</Typography>
                                         </Box>
                                         <Box>
                                             <Box style={{ background: "white", borderRadius: 50, width: 30, height: 30, display: "flex", justifyContent: "center", alignItems: "center" }}>
-                                                <EqualizerRoundedIcon style={{ fontSize: 25, color: theme.palette.homeCharts.mainCard.primary }} />
+                                                <EqualizerRoundedIcon style={{ fontSize: 25, color: theme.palette.primary.main }} />
                                             </Box>
                                         </Box>
                                     </Box>
@@ -126,11 +124,11 @@ export const Home = () => {
                                 height: "fit-content"
                             }}
                             >
-                                <Typography variant="button" fontWeight="bold" sx={{ color: theme.palette.homeCharts.deviceStatusCard.text }}>Crypto Engines</Typography>
+                                <Typography variant="button" fontWeight="bold" sx={{ color: theme.palette.primary.contrastText }}>Crypto Engines</Typography>
                                 <Grid container spacing={2} sx={{ marginTop: "5px" }}>
                                     {
                                         engines.map((engine, idx) => (
-                                            <Grid item xs={12} key={idx}>
+                                            <Grid xs={12} key={idx}>
                                                 <CryptoEngineViewer engine={engine} style={{ color: "#fff" }} />
                                             </Grid>
                                         ))
@@ -139,7 +137,7 @@ export const Home = () => {
                             </Box>
                         </Box>
                         <DeviceStatusChart deviceStats={deviceStats} style={{ marginLeft: "20px" }} />
-                    </Box>
+                    </Box >
                 );
             }} />
     );

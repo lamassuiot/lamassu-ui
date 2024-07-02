@@ -11,13 +11,3 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
-
-
-textarea {
-  outline: none;
-  min-height: 100px;
-}
-textarea > pre {
-  outline: none;
-  min-height: 100px;
-}

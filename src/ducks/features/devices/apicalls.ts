@@ -1,5 +1,4 @@
-import { APIServiceInfo, ListResponse, QueryParameters } from "ducks/models";
-import { apiRequest, queryParametersToURL } from "ducks/services/api";
+import { APIServiceInfo, ListResponse, QueryParameters, apiRequest, queryParametersToURL } from "ducks/services/api-client";
 import { CreateDevicePayload, Device, DeviceStats, Slot } from "./models";
 
 export const getApiInfo = async (): Promise<APIServiceInfo> => {
@@ -16,7 +15,7 @@ export const getStats = async (): Promise<DeviceStats> => {
     }) as Promise<DeviceStats>;
 };
 
-export const getDevices = async (params: QueryParameters): Promise<ListResponse<Device>> => {
+export const getDevices = async (params?: QueryParameters): Promise<ListResponse<Device>> => {
     return apiRequest({
         method: "GET",
         url: `${window._env_.LAMASSU_DEVMANAGER}/v1/devices${queryParametersToURL(params)}`
