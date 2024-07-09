@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import moment from "moment";
 import { } from "@mui/system";
+import { useForm } from "react-hook-form";
 import { Grid, Skeleton, useTheme } from "@mui/material";
 import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
 import { TextField } from "components/LamassuComponents/dui/TextField";
@@ -9,11 +10,18 @@ import { CryptoEngineViewer } from "components/LamassuComponents/lamassu/CryptoE
 import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/models";
 import CAFetchViewer from "components/LamassuComponents/lamassu/CAFetchViewer";
 import { CATimeline } from "views/CertificateAuthoritiesView/components/CATimeline";
+import { FormTextField } from "components/LamassuComponents/dui/form/TextField";
 
 interface Props {
     caData: CertificateAuthority
     engines: CryptoEngine[]
 }
+type FormData = {
+    caDefinition: {
+        caID: string;
+        issuanceExpiration: string;
+    }
+};
 
 export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
     const theme = useTheme();
@@ -36,6 +44,15 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
         common_name: "Common Name"
     };
 
+    const { control, setValue, reset, getValues, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
+        defaultValues: {
+            caDefinition: {
+                caID: caData.id,
+                issuanceExpiration: caData.issuance_expiration.type + ": " + (caData.issuance_expiration.type === "Duration" ? caData.issuance_expiration.duration : moment(caData.issuance_expiration.time).format("D MMMM YYYY HH:mm"))
+            }
+        }
+    });
+
     const certificateProperties: any = {
         serialNumber: {
             title: "Serial Number",
@@ -48,10 +65,6 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
         validTo: {
             title: "Valid To",
             value: moment(caData.valid_to).format("D MMMM YYYY")
-        },
-        issuanceDuration: {
-            title: "Issuance Expiration",
-            value: caData.issuance_expiration.type + ": " + (caData.issuance_expiration.type === "Duration" ? caData.issuance_expiration.duration : moment(caData.issuance_expiration.time).format("D MMMM YYYY HH:mm"))
         }
     };
 
@@ -115,10 +128,17 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
                 </Grid>
                 <Grid item container flexDirection={"column"} spacing={1}>
                     {
+                        <Grid item >
+                            <FormTextField control={control} name="id" helperText="ID" label="Issuance Expiration" value={caData.issuance_expiration.type + ": " + (caData.issuance_expiration.type === "Duration" ? caData.issuance_expiration.duration : moment(caData.issuance_expiration.time).format("D MMMM YYYY HH:mm")) } disabled />
+                        </Grid>
+                    }
+                </Grid>
+                <Grid item container flexDirection={"column"} spacing={1}>
+                    {
                         Object.keys(certificateSubject).map(key => (
                             <Grid key={key} item>
                                 {/* @ts-ignore} */}
-                                <TextField label={certificateSubject[key]} value={caData.subject[key]} disabled />
+                                <TextField label={certificateSubject[key]} value={caData.subject[key]} />
                             </Grid>
                         ))
                     }
