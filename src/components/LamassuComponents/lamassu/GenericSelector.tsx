@@ -1,9 +1,9 @@
-import { Autocomplete, AutocompleteCloseReason, Box, ClickAwayListener, Grid, Paper, Popper, TextField, autocompleteClasses, styled, useTheme } from "@mui/material";
+import { Autocomplete, AutocompleteCloseReason, Box, ClickAwayListener, Grid, LinearProgress, Paper, Popper, TextField, autocompleteClasses, styled, useTheme } from "@mui/material";
 import React from "react";
 import { KeyValueLabel } from "../dui/KeyValueLabel";
 import { MonoChromaticButton } from "../dui/MonoChromaticButton";
 import deepEqual from "fast-deep-equal/es6";
-import { FieldType, Filter, Filters, Field } from "components/FilterInput";
+import { Filter, Filters, Field } from "components/FilterInput";
 
 interface WrapperProps<T> {
     fetcher: (filters: Filter[]) => Promise<T[]>
@@ -79,20 +79,19 @@ export const GenericSelector = <T extends object>(props: GenericSelectorProps<T>
             setLoading(true);
             try {
                 const filtersSearch = [...filters];
-                console.log(inputValue);
 
-                if (inputValue !== "") {
-                    filtersSearch.push({
-                        propertyField: {
-                            key: props.searchBarFilterKey,
-                            label: "",
-                            type: FieldType.String,
-                            fieldOptions: undefined
-                        },
-                        propertyOperator: "contains",
-                        propertyValue: inputValue
-                    });
-                }
+                // if (inputValue !== "") {
+                //     filtersSearch.push({
+                //         propertyField: {
+                //             key: props.searchBarFilterKey,
+                //             label: "",
+                //             type: FieldType.String,
+                //             fieldOptions: undefined
+                //         },
+                //         propertyOperator: "contains",
+                //         propertyValue: inputValue
+                //     });
+                // }
                 const opts = await props.fetcher(filtersSearch);
                 setOptions([...opts]);
             } catch (err) {
@@ -198,11 +197,22 @@ export const GenericSelector = <T extends object>(props: GenericSelectorProps<T>
                                     getOptionLabel={(option: T) => props.optionID(option)}
                                     renderTags={() => null}
                                     renderInput={(params) => (
-                                        <TextField
-                                            {...params}
-                                            inputProps={{ ...params.inputProps, style: { padding: "0px" } }}
-                                            InputProps={{ ...params.InputProps, style: { padding: "10px" } }}
-                                        />
+                                        <Grid container>
+                                            <Grid item xs={12}>
+                                                <TextField
+                                                    {...params}
+                                                    inputProps={{ ...params.inputProps, style: { padding: "0px" } }}
+                                                    InputProps={{ ...params.InputProps, style: { padding: "10px" } }}
+                                                />
+                                            </Grid>
+                                            {
+                                                loading && (
+                                                    <Grid item xs={12}>
+                                                        <LinearProgress />
+                                                    </Grid>
+                                                )
+                                            }
+                                        </Grid>
                                     )}
                                     multiple={props.multiple}
                                     renderOption={(lProps, option, { selected }) => (

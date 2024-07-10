@@ -171,6 +171,7 @@ export type ExpirationFormat = {
 
 export const casFilters: Field[] = [
     { key: "id", label: "CA ID", type: FieldType.String },
+    { key: "subject.common_name", label: "Common Name", type: FieldType.String },
     { key: "level", label: "Level", type: FieldType.Number },
     { key: "type", label: "Type", type: FieldType.Enum, fieldOptions: ["MANAGED", "IMPORTED", "EXTERNAL"] },
     { key: "serial_number", label: "Serial Number", type: FieldType.String },
