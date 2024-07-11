@@ -9,14 +9,14 @@ import { CryptoEngineViewer } from "components/LamassuComponents/lamassu/CryptoE
 import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/models";
 import CAFetchViewer from "components/LamassuComponents/lamassu/CAFetchViewer";
 import { CATimeline } from "views/CertificateAuthoritiesView/components/CATimeline";
-import { CertificateSettings } from "./CertificateSettings";
+import { CASettings } from "./CASettings";
 
 interface Props {
     caData: CertificateAuthority
     engines: CryptoEngine[]
 }
 
-export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
+export const CAOverview: React.FC<Props> = ({ caData, engines }) => {
     const [parsedCertificate, setParsedCertificate] = useState<X509Certificate | undefined>();
     useEffect(() => {
         const run = async () => {
@@ -106,7 +106,7 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
                 )
             }
             <Grid item xs={12}>
-                <CertificateSettings caData={caData} />
+                <CASettings caData={caData} />
             </Grid>
             <Grid item xs={6} container flexDirection={"column"}>
                 <Grid item>

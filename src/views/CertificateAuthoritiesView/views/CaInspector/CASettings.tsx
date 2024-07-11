@@ -25,7 +25,7 @@ type FormData = {
     },
 };
 
-export const CertificateSettings: React.FC<Props> = ({ caData }) => {
+export const CASettings: React.FC<Props> = ({ caData }) => {
     const [editMode, setEditMode] = useState(false);
     const [error, setError] = useState<string | undefined>();
 
