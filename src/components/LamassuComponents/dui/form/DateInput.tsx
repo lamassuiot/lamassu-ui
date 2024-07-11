@@ -6,6 +6,7 @@ import { Control, Controller } from "react-hook-form";
 interface FormDateInputProps extends Omit<DateInputProps, "onChange" | "value"> {
     control: Control<any, any>,
     name: string
+    label: string
 }
 
 export const FormDateInput: React.FC<FormDateInputProps> = (props) => {

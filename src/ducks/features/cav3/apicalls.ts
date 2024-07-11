@@ -200,3 +200,11 @@ export const updateCAStatus = async (caID: string, status: models.CertificateSta
         data: body
     });
 };
+
+export const updateCAIssuanceExpiration = async (caID: string, issuanceExpiration: models.ExpirationFormat): Promise<models.CertificateAuthority> => {
+    return apiRequest({
+        method: "PUT",
+        url: `${window._env_.LAMASSU_CA_API}/v1/cas/${caID}/issuanceExpiration`,
+        data: issuanceExpiration
+    });
+};
