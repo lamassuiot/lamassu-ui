@@ -8,6 +8,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import ThemeProviderWrapper from "./theme/ThemeProvider";
 import reportWebVitals from "./reportWebVitals";
+import { FluentProvider, webLightTheme } from "@fluentui/react-components";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -33,25 +34,27 @@ declare global {
 }
 
 root.render(
-    <ThemeProviderWrapper>
-        <AuthProvider
-            authority={window._env_.AUTH_OIDC_AUTHORITY}
-            client_id={window._env_.AUTH_OIDC_CLIENT_ID}
-            redirect_uri={window.location.origin}
-            post_logout_redirect_uri={`${window.location.origin}`}
-            /*
+    <FluentProvider theme={webLightTheme} style={{ height: "100%" }}>
+        <ThemeProviderWrapper>
+            <AuthProvider
+                authority={window._env_.AUTH_OIDC_AUTHORITY}
+                client_id={window._env_.AUTH_OIDC_CLIENT_ID}
+                redirect_uri={window.location.origin}
+                post_logout_redirect_uri={`${window.location.origin}`}
+                /*
         localStorage persists until explicitly deleted. Changes made are saved and available for all current and future visits to the site.
         sessionStorage, changes are only available per tab. Changes made are saved and available for the current page in that tab until it is closed. Once it is closed, the stored data is deleted.
       */
-            userStore={new oidc.WebStorageStateStore({ store: window.localStorage })}
-        >
-            <Router>
-                <SnackbarProvider maxSnack={3}>
-                    <App />
-                </SnackbarProvider >
-            </Router>
-        </AuthProvider>
-    </ThemeProviderWrapper >
+                userStore={new oidc.WebStorageStateStore({ store: window.localStorage })}
+            >
+                <Router>
+                    <SnackbarProvider maxSnack={3}>
+                        <App />
+                    </SnackbarProvider>
+                </Router>
+            </AuthProvider>
+        </ThemeProviderWrapper>
+    </FluentProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function
