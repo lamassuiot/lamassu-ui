@@ -6,8 +6,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import moment from "moment";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useTheme } from "@mui/system";
-import { CertificateOverview } from "./CertificateOverview";
 import { CAMetadata } from "./CAMetadata";
+import { CAOverview } from "./CAOverview";
 import { CertificateView } from "./CertificateView";
 import CertificateDecoder from "components/LamassuComponents/composed/Certificates/CertificateDecoder";
 import { IssuedCertificates } from "./IssuedCertificates";
@@ -104,7 +104,7 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                 path: "",
                 goto: "",
                 element: <div style={{ margin: "0 35px" }}>
-                    <CertificateOverview caData={caData} engines={engines} />
+                    <CAOverview caData={caData} engines={engines} />
                 </div>
             },
             {

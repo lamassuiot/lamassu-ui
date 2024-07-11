@@ -4,8 +4,9 @@ import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
 import moment from "moment";
 import { KeyValueLabel } from "./KeyValueLabel";
 import "moment/locale/es";
+import { DatePickerProps } from "@mui/lab";
 
-export interface DateInputProps {
+export interface DateInputProps extends DatePickerProps<moment.Moment> {
     value: moment.Moment
     onChange: (ev: moment.Moment) => void,
     label: string

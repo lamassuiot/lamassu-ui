@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import moment from "moment";
 import { } from "@mui/system";
-import { Grid, Skeleton, useTheme } from "@mui/material";
+import { Grid, Skeleton } from "@mui/material";
 import { SubsectionTitle } from "components/LamassuComponents/dui/typographies";
 import { TextField } from "components/LamassuComponents/dui/TextField";
 import { X509Certificate, parseCRT } from "components/utils/cryptoUtils/crt";
@@ -9,14 +9,14 @@ import { CryptoEngineViewer } from "components/LamassuComponents/lamassu/CryptoE
 import { CertificateAuthority, CryptoEngine } from "ducks/features/cav3/models";
 import CAFetchViewer from "components/LamassuComponents/lamassu/CAFetchViewer";
 import { CATimeline } from "views/CertificateAuthoritiesView/components/CATimeline";
+import { CASettings } from "./CASettings";
 
 interface Props {
     caData: CertificateAuthority
     engines: CryptoEngine[]
 }
 
-export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
-    const theme = useTheme();
+export const CAOverview: React.FC<Props> = ({ caData, engines }) => {
     const [parsedCertificate, setParsedCertificate] = useState<X509Certificate | undefined>();
     useEffect(() => {
         const run = async () => {
@@ -48,10 +48,6 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
         validTo: {
             title: "Valid To",
             value: moment(caData.valid_to).format("D MMMM YYYY")
-        },
-        issuanceDuration: {
-            title: "Issuance Expiration",
-            value: caData.issuance_expiration.type + ": " + (caData.issuance_expiration.type === "Duration" ? caData.issuance_expiration.duration : moment(caData.issuance_expiration.time).format("D MMMM YYYY HH:mm"))
         }
     };
 
@@ -109,6 +105,9 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
                     </Grid>
                 )
             }
+            <Grid item xs={12}>
+                <CASettings caData={caData} />
+            </Grid>
             <Grid item xs={6} container flexDirection={"column"}>
                 <Grid item>
                     <SubsectionTitle>Subject</SubsectionTitle>
@@ -118,7 +117,7 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
                         Object.keys(certificateSubject).map(key => (
                             <Grid key={key} item>
                                 {/* @ts-ignore} */}
-                                <TextField label={certificateSubject[key]} value={caData.subject[key]} disabled />
+                                <TextField label={certificateSubject[key]} value={caData.subject[key]} />
                             </Grid>
                         ))
                     }
