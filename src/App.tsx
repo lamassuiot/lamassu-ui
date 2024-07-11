@@ -17,6 +17,8 @@ import Grid from "@mui/material/Unstable_Grid2";
 import KeyboardArrowLeftOutlinedIcon from "@mui/icons-material/KeyboardArrowLeftOutlined";
 import LogoutIcon from "@mui/icons-material/Logout";
 import RouterOutlinedIcon from "@mui/icons-material/RouterOutlined";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { InfoView } from "views/Info/info";
 
 type SidebarSection = {
     sectionTitle: string, sectionItems: Array<SidebarItem>
@@ -115,8 +117,20 @@ export default function Dashboard () {
                     content: <DevicesView />
                 }
             ]
+        },
+        {
+            sectionTitle: "",
+            sectionItems: [
+                {
+                    kind: "navigation",
+                    title: "Info",
+                    basePath: "/info/*",
+                    goTo: "/info",
+                    icon: <InfoOutlinedIcon />,
+                    content: <InfoView />
+                }
+            ]
         }
-
     ];
 
     const sidebarItems = sidebarContent.map(section => section.sectionItems).flat();
