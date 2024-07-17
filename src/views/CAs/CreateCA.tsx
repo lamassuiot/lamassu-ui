@@ -176,14 +176,14 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                     <Grid xs={12} xl={4}>
                         <FormTextField label="CA Name" control={control} name="subject.commonName" helperText="Common Name can not be empty" error={watchSubject.commonName === ""} />
                     </Grid>
-                    <Grid xs={6} xl={4}>
+                    <Grid xs={6} md={6}>
                         <FormSelect control={control} name="privateKey.type" label="Key Type">
                             {
                                 watchAll.cryptoEngine.supported_key_types.map((keyFam, idx) => <MenuItem key={idx} value={keyFam.type}>{keyFam.type}</MenuItem>)
                             }
                         </FormSelect>
                     </Grid>
-                    <Grid xs={6} xl={4}>
+                    <Grid xs={6} md={6}>
                         <FormSelect control={control} name="privateKey.size" label="Key Size">
                             {
                                 watchAll.cryptoEngine.supported_key_types.find(keyFam => keyFam.type === watchKeyType)!.sizes.map((keySize, idx) => (
@@ -202,22 +202,22 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                     <Grid xs={12}>
                         <Typography variant="h4">Subject</Typography>
                     </Grid>
-                    <Grid xs={6} xl={4}>
+                    <Grid xs={12} md={6}>
                         <FormTextField label="Country" control={control} name="subject.country" />
                     </Grid>
-                    <Grid xs={6} xl={4}>
+                    <Grid xs={12} md={6}>
                         <FormTextField label="State / Province" control={control} name="subject.state" />
                     </Grid>
-                    <Grid xs={6} xl={4}>
+                    <Grid xs={12} md={6}>
                         <FormTextField label="Locality" control={control} name="subject.locality" />
                     </Grid>
-                    <Grid xs={6} xl={4}>
+                    <Grid xs={12} md={6}>
                         <FormTextField label="Organization" control={control} name="subject.organization" />
                     </Grid>
-                    <Grid xs={6} xl={4}>
+                    <Grid xs={12} md={6}>
                         <FormTextField label="Organization Unit" control={control} name="subject.organizationUnit" />
                     </Grid>
-                    <Grid xs={6} xl={4}>
+                    <Grid xs={12} md={6}>
                         <FormTextField label="Common Name" control={control} name="subject.commonName" disabled />
                     </Grid>
                 </Grid>
@@ -227,7 +227,7 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                 </Grid>
 
                 <Grid xs={12} container spacing={2}>
-                    <Grid xs={6} container spacing={2} flexDirection={"column"}>
+                    <Grid xs={12} md={6} container spacing={2} flexDirection={"column"}>
                         <Grid>
                             <Typography variant="h4">CA Expiration Settings</Typography>
                         </Grid>
@@ -254,7 +254,7 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                         }
                     </Grid>
 
-                    <Grid xs={6} container spacing={2} flexDirection={"column"}>
+                    <Grid xs={12} md={6} container spacing={2} flexDirection={"column"}>
                         <Grid>
                             <Typography variant="h4">Issuance Expiration Settings</Typography>
                         </Grid>

@@ -184,7 +184,7 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
 
     return (
         <Grid container spacing={"40px"}>
-            <Grid xs>
+            <Grid xs={12} md>
                 <form onSubmit={handleSignSubmit}>
                     <Grid container flexDirection={"column"} spacing={2}>
                         <Grid xs>

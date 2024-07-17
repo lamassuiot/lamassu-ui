@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Box, ListItem, Paper, Typography, useTheme } from "@mui/material";
+import { Box, ListItem, Paper, Typography, useTheme, useMediaQuery } from "@mui/material";
 import { CAView } from "views/CAs";
 import { CertificatesView } from "views/Certificates";
 import { DMSView } from "views/DMS";
@@ -49,7 +49,18 @@ export default function Dashboard () {
     const navigate = useNavigate();
     const auth = useAuth();
     const theme = useTheme();
+    const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
     const [collapsed, setCollapsed] = useState(false);
+
+    React.useEffect(() => {
+        setCollapsed(!isMdUp);
+    }, [isMdUp]);
+
+    const handleCollapseClick = () => {
+        if (isMdUp) {
+            setCollapsed(!collapsed);
+        }
+    };
 
     const sidebarContent: Array<SidebarSection> = [
         {
@@ -58,7 +69,7 @@ export default function Dashboard () {
                 {
                     kind: "button",
                     title: "Collapse",
-                    onClick: () => { setCollapsed(!collapsed); },
+                    onClick: handleCollapseClick,
                     icon: <KeyboardArrowLeftOutlinedIcon />
                 }
             ]
@@ -72,7 +83,7 @@ export default function Dashboard () {
                     goTo: "/",
                     basePath: "/",
                     icon: <DashboardOutlinedIcon />,
-                    content: <Home/>
+                    content: <Home />
                 }
             ]
         },
@@ -85,7 +96,7 @@ export default function Dashboard () {
                     basePath: "/cas/*",
                     goTo: "/cas",
                     icon: <AccountBalanceOutlinedIcon />,
-                    content: <CAView/>
+                    content: <CAView />
                 },
                 {
                     kind: "navigation",
@@ -241,7 +252,7 @@ export default function Dashboard () {
                             {
                                 sidebarNavigator.map((route: SidebarItemNavigation, idx) => {
                                     return (
-                                        <Route path={route.basePath} element={<MainWrapper component={route.content}/>} key={`main-route-${idx}`} />
+                                        <Route path={route.basePath} element={<MainWrapper component={route.content} />} key={`main-route-${idx}`} />
                                     );
                                 })
                             }

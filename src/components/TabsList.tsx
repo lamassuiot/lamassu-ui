@@ -33,7 +33,7 @@ const TabsList: React.FC<TabsListProps> = ({ tabs, headerStyle = {}, contentStyl
                     }
                 </Tabs>
             </Grid>
-            <Grid flex={1} sx={contentStyle}>
+            <Grid xs={12} flex={1} sx={contentStyle}>
                 {
                     tabs.map((elem, idx) => {
                         return (

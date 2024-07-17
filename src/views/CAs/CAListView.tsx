@@ -46,7 +46,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
     const [rootChain, setRootChain] = useState<CertificateAuthority[]>([]);
 
     const [query, setQuery] = React.useState<{ value: string, field: string, operator: string }>({ value: "", field: "", operator: "" });
-    const filters :string[] = [];
+    const filters: string[] = [];
     if (query.field !== "" && query.value !== "") {
         filters.push(`${query.field}[${query.operator}]${query.value}`);
     }
@@ -87,7 +87,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                     <Box sx={{ padding: "20px" }}>
                         <Grid container flexDirection={"column"} spacing={1}>
                             <Grid container>
-                                <Grid xs>
+                                <Grid xs={12} sm={9}>
                                     <Box style={{ borderRadius: 8 }}>
                                         <ToggleButtonGroup
                                             value={viewMode}
@@ -136,7 +136,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                                 <QuerySearchbarInput sx={{ width: "100%" }} onChange={({ query, field }) => {
                                     setQuery({ value: query, field, operator: queryableFields.find((f) => f.key === field)!.operator || "contains" });
                                 }}
-                                fieldSelector={queryableFields}
+                                    fieldSelector={queryableFields}
                                 />
                             </Grid>
                             <Grid style={{ paddingTop: "10px" }} container alignItems={"center"}>
@@ -325,13 +325,13 @@ export const CertificateCard: React.FC<CertificateCardProps> = ({ ca, engine, el
                                     )
                                 }
 
-                                <Grid xs>
+                                <Grid xs={12} lg>
                                     <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>{`${ca.key_metadata.type} ${ca.key_metadata.bits} - ${ca.key_metadata.strength}`}</Typography>
                                     <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 20, lineHeight: "24px", wordBreak: "break-word" }}>{ca.subject.common_name}</Typography>
                                     <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 12 }}>{ca.id}</Typography>
                                 </Grid>
 
-                                <Grid xs="auto" container direction="column" justifyContent="center" alignItems="center">
+                                <Grid xs={12} lg="auto" container direction="column" justifyContent="center" alignItems="center">
                                     <Grid>
                                         <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>Hierarchy Level</Typography>
                                     </Grid>

@@ -92,7 +92,7 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
                             <Typography variant="h4">Parent CA</Typography>
                         </Grid>
                         <Grid flexDirection={"column"} spacing={1}>
-                            <CAFetchViewer id={caData.issuer_metadata.id}/>
+                            <CAFetchViewer id={caData.issuer_metadata.id} />
                         </Grid>
                     </Grid>
                 )
@@ -109,7 +109,7 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
                     </Grid>
                 )
             }
-            <Grid xs={6} container flexDirection={"column"}>
+            <Grid xs={12} md={6} container flexDirection={"column"}>
                 <Grid xs={12}>
                     <Typography variant="h4">Subject</Typography>
                 </Grid>
@@ -118,13 +118,13 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
                         Object.keys(certificateSubject).map(key => (
                             <Grid key={key}>
                                 {/* @ts-ignore} */}
-                                <TextField label={certificateSubject[key]} value={caData.subject[key]} disabled />
+                                <TextField label={certificateSubject[key]} value={caData.subject[key]} fullWidth disabled />
                             </Grid>
                         ))
                     }
                 </Grid>
             </Grid>
-            <Grid xs={6} container>
+            <Grid xs={12} md={6} container>
                 <Grid xs={12}>
                     <Typography variant="h4">Other Properties</Typography>
                 </Grid>
@@ -132,7 +132,7 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
                     {
                         Object.keys(certificateProperties).map(key => (
                             <Grid key={key}>
-                                <TextField label={certificateProperties[key].title} value={certificateProperties[key].value} disabled />
+                                <TextField label={certificateProperties[key].title} value={certificateProperties[key].value} fullWidth disabled />
                             </Grid>
                         ))
                     }
