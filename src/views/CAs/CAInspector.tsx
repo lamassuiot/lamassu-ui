@@ -74,10 +74,10 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                         element: (
                             <div style={{ margin: "0 35px" }}>
                                 <Grid container padding={"20px 0px"}>
-                                    <Grid xs={6}>
+                                    <Grid xs={12} md={6}>
                                         <CertificateView certificate={caData} />
                                     </Grid>
-                                    <Grid xs={6}>
+                                    <Grid xs={12} md={6}>
                                         <CertificateDecoder crtPem={window.window.atob(caData.certificate)} />
                                     </Grid>
                                 </Grid>

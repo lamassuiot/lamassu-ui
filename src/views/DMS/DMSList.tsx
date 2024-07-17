@@ -115,7 +115,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                 <Grid container flexDirection={"column"} spacing={1}>
                     <Grid container spacing={1} flexDirection={"column"}>
                         <Grid container spacing={1}>
-                            <Grid xs container spacing={1}>
+                            <Grid xs="auto" container spacing={1}>
                                 <Grid>
                                     <IconInput readonly label="" size={35} value={{ bg: iconBG, fg: iconFG, name: dms.settings.enrollment_settings.device_provisioning_profile.icon }} />
                                 </Grid>
@@ -234,7 +234,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                         </Grid>
 
                                         <Grid container spacing={2}>
-                                            <Grid xs>
+                                            <Grid xs={6} md>
                                                 <KeyValueLabel
                                                     label="Authentication Mode"
                                                     value={
@@ -243,7 +243,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                                 />
                                             </Grid>
 
-                                            <Grid xs>
+                                            <Grid xs={6} md>
                                                 <KeyValueLabel
                                                     label="Registration Mode"
                                                     value={
@@ -252,7 +252,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                                 />
                                             </Grid>
 
-                                            <Grid xs>
+                                            <Grid xs={6} md>
                                                 <KeyValueLabel
                                                     label="Allow Override Enrollment"
                                                     value={
@@ -277,7 +277,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                                 />
                                             </Grid>
 
-                                            <Grid xs>
+                                            <Grid xs={6} md>
                                                 <KeyValueLabel
                                                     label="Chain Validation"
                                                     value={

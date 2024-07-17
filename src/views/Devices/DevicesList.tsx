@@ -47,11 +47,11 @@ export const DevicesListView = () => {
         <Box padding={"30px 30px"}>
             <Grid container flexDirection={"column"} spacing={"20px"}>
                 <Grid container>
-                    <Grid xs>
+                    <Grid xs={"auto"} md>
                         <QuerySearchbarInput onChange={({ query, field }) => {
                             setQuery({ value: query, field, operator: queryableFields.find((f) => f.key === field)?.operator || "contains" });
                         }}
-                        fieldSelector={queryableFields}
+                            fieldSelector={queryableFields}
                         />
                     </Grid>
                     <Grid xs="auto">
@@ -71,7 +71,7 @@ export const DevicesListView = () => {
                 </Grid>
                 <Grid xs >
                     <Box component={Paper} borderRadius={"15px"}>
-                        <DevicesTable ref={tableRef} query={query} filter={filter}/>
+                        <DevicesTable ref={tableRef} query={query} filter={filter} />
                     </Box>
                 </Grid>
             </Grid>
