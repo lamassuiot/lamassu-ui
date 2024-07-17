@@ -46,15 +46,13 @@ export const DevicesListView = () => {
     return (
         <Box padding={"30px 30px"}>
             <Grid container flexDirection={"column"} spacing={"20px"}>
-                <Grid xs container>
-                    <Grid xs={12} md>
-                        <Grid container>
-                            <QuerySearchbarInput onChange={({ query, field }) => {
-                                setQuery({ value: query, field, operator: queryableFields.find((f) => f.key === field)?.operator || "contains" });
-                            }}
-                                fieldSelector={queryableFields}
-                            />
-                        </Grid>
+                <Grid container>
+                    <Grid xs={"auto"} md>
+                        <QuerySearchbarInput onChange={({ query, field }) => {
+                            setQuery({ value: query, field, operator: queryableFields.find((f) => f.key === field)?.operator || "contains" });
+                        }}
+                            fieldSelector={queryableFields}
+                        />
                     </Grid>
                     <Grid xs="auto">
                         <Tooltip title="Refresh Device List">
@@ -73,6 +71,7 @@ export const DevicesListView = () => {
                 </Grid>
                 <Grid xs >
                     <Box component={Paper} borderRadius={"15px"}>
+                        <DevicesTable ref={tableRef} query={query} filter={filter} />
                         <DevicesTable ref={tableRef} query={query} filter={filter} />
                     </Box>
                 </Grid>

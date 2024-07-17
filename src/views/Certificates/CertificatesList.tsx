@@ -22,13 +22,11 @@ export const CertificateListView = () => {
             <Grid container flexDirection={"column"} spacing={"20px"}>
                 <Grid xs container>
                     <Grid xs={12} md>
-                        <Grid container>
-                            <QuerySearchbarInput onChange={({ query, field }) => {
-                                setQuery({ value: query, field, operator: queryableFields.find((f) => f.key === field)!.operator || "contains" });
-                            }}
-                                fieldSelector={queryableFields}
-                            />
-                        </Grid>
+                        <QuerySearchbarInput onChange={({ query, field }) => {
+                            setQuery({ value: query, field, operator: queryableFields.find((f) => f.key === field)!.operator || "contains" });
+                        }}
+                            fieldSelector={queryableFields}
+                        />
                     </Grid>
                     <Grid xs="auto">
                         <Tooltip title="Reload Certificate List">
