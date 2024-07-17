@@ -21,11 +21,11 @@ export const CertificateListView = () => {
         <Box padding={"30px 30px"}>
             <Grid container flexDirection={"column"} spacing={"20px"}>
                 <Grid xs container>
-                    <Grid xs>
+                    <Grid xs={12} md>
                         <QuerySearchbarInput onChange={({ query, field }) => {
                             setQuery({ value: query, field, operator: queryableFields.find((f) => f.key === field)!.operator || "contains" });
                         }}
-                        fieldSelector={queryableFields}
+                            fieldSelector={queryableFields}
                         />
                     </Grid>
                     <Grid xs="auto">

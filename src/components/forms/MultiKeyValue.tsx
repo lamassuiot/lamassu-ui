@@ -48,10 +48,10 @@ const MultiKeyValueInput: React.FC<MultiKeyValueInputProps> = ({ label, value = 
                         }
                         return (
                             <Grid key={key} container spacing={2} alignItems={"center"}>
-                                <Grid xs>
+                                <Grid xs={12} md>
                                     <TextField label="" value={key} disabled={disable} fullWidth sx={{}} />
                                 </Grid>
-                                <Grid xs>
+                                <Grid xs={12} md>
                                     <TextField label="" value={strValue} disabled={disable} fullWidth />
                                 </Grid>
                                 {
@@ -76,10 +76,10 @@ const MultiKeyValueInput: React.FC<MultiKeyValueInputProps> = ({ label, value = 
                 {
                     !disable && (
                         <Grid container spacing={2} alignItems={"center"}>
-                            <Grid xs>
+                            <Grid xs={12} md>
                                 <TextField placeholder="Clave" fullWidth value={newKey} onChange={ev => setNewKey(ev.target.value)} label={""} />
                             </Grid>
-                            <Grid xs>
+                            <Grid xs={12} md>
                                 <TextField placeholder="Valor" fullWidth label={""} value={newVal} onChange={ev => setNewVal(ev.target.value)} />
                             </Grid>
                             <Grid xs="auto">
