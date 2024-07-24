@@ -152,13 +152,11 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                             params={{ filters }}
                             renderer={(cas) => {
                                 if (viewMode === "list") {
-                                    //  cambiar entre column y row dependiendo del tamaño
                                     return <Grid container flexDirection={"column"} sx={{ padding: 1 }} >
                                         {
                                             rootChain.length > 0 && (
                                                 <>
                                                     <Grid xs>
-                                                        {/* Cambiar estilos para afectar al CA de root (width: "100%", height: "100%" en tamaños pequeños) */}
                                                         <Box component={Paper} sx={{ padding: "10px 5px", borderRadius: 0, borderRight: `1px solid ${theme.palette.divider}`, width: "100%" }}>
                                                             {/* <CAViewer elevation={false} caData={selectedParentCA} engine={engines.find(engine => selectedParentCA.engine_id === engine.id)!}/> */}
                                                             <Breadcrumbs aria-label="breadcrumb" maxItems={2}>
