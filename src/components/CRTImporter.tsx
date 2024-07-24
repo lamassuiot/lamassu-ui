@@ -61,21 +61,23 @@ const CertificateImporter: React.FC<CertificateImporterProps> = ({ onChange }) =
     return (
         <Grid xs container spacing={1}>
             <Grid xs={12}>
-                <TextField error={!crt} helperText="Certificate can not be empty" spellCheck={false} label="x509 PEM Certificate" value={crt} onChange={(ev) => setCrt(ev.target.value)} multiline placeholder={crtPlaceHolder} sx={{ fontFamily: "monospace", fontSize: "0.7rem", minWidth: "500px", width: "100%" }} />
+                <Grid xs={12}>
+                    <TextField error={!crt} helperText="Certificate can not be empty" spellCheck={false} label="x509 PEM Certificate" value={crt} onChange={(ev) => setCrt(ev.target.value)} multiline placeholder={crtPlaceHolder} sx={{ fontFamily: "monospace", fontSize: "0.7rem", minWidth: "500px", width: "100%" }} />
+                </Grid>
+                {
+                    crt && (
+                        <>
+                            <Grid xs={12}>
+                                <Divider />
+                            </Grid>
+                            <Grid xs={12}>
+                                <CertificateDecoder crtPem={crt} />
+                            </Grid>
+                        </>
+                    )
+                }
             </Grid>
-            {
-                crt && (
-                    <>
-                        <Grid xs={12}>
-                            <Divider />
-                        </Grid>
-                        <Grid xs={12}>
-                            <CertificateDecoder crtPem={crt} />
-                        </Grid>
-                    </>
-                )
-            }
-        </Grid>
+        </Grid >
     );
 };
 

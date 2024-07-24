@@ -37,7 +37,7 @@ export const Home = () => {
                 return (
                     <Box sx={{ display: "flex", padding: "20px" }}>
                         <Grid container rowSpacing={2}>
-                            <Grid xs={"auto"}>
+                            <Grid xs="auto">
                                 <Box sx={{ display: "flex", marginLeft: "20px" }}>
                                     <Box component={Paper} style={{
                                         borderRadius: 10,
@@ -115,7 +115,7 @@ export const Home = () => {
                                     </Box>
                                 </Box>
                             </Grid>
-                            <Grid xs={"auto"}>
+                            <Grid xs="auto">
                                 <Box sx={{ display: "flex", marginLeft: "20px" }}>
                                     <Box component={Paper} style={{
                                         borderRadius: 10,
@@ -140,7 +140,7 @@ export const Home = () => {
                                     </Box>
                                 </Box>
                             </Grid>
-                            <Grid xs={"auto"}>
+                            <Grid xs="auto">
                                 <DeviceStatusChart deviceStats={deviceStats} style={{ marginLeft: "20px" }} />
                             </Grid>
                         </Grid>
