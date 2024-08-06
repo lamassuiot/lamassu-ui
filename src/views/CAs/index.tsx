@@ -6,13 +6,16 @@ import { CreateCA } from "./CreateCA";
 import { CryptoEngine } from "ducks/features/cas/models";
 import { FetchViewer } from "components/FetchViewer";
 import { FormattedView } from "components/FormattedView";
-import { Route, Routes, useLocation, useParams } from "react-router-dom";
+import { Route, Routes, useParams } from "react-router-dom";
 import { TabsList } from "components/TabsList";
 import { getEngines } from "ducks/features/cas/apicalls";
 import React from "react";
 import { UpdateCA } from "./UpdateCA";
+import { useTheme } from "@mui/material";
 
 export const CAView = () => {
+    const theme = useTheme();
+
     return (
         <FetchViewer fetcher={() => getEngines()} renderer={engines => {
             return (
@@ -24,14 +27,14 @@ export const CAView = () => {
                     </Route>
                 </Routes>
             );
-        }}
+        }
+        }
         />
     );
 };
 
 const RoutedCAList = ({ engines }: { engines: CryptoEngine[] }) => {
     const params = useParams();
-    const location = useLocation();
     return (
         <CAListView preSelectedCaID={params.caName} engines={engines} />
     );
@@ -65,7 +68,7 @@ const CaCreationActionsWrapper = ({ engines }: { engines: CryptoEngine[] }) => {
                     label: "Read-Only Import",
                     element: <CAReadonlyImporter />
                 }
-            ]}/>
+            ]} />
         </FormattedView>
     );
 };

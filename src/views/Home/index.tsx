@@ -37,7 +37,7 @@ export const Home = () => {
                 return (
                     <Box sx={{ display: "flex", padding: "20px" }}>
                         <Grid container rowSpacing={2}>
-                            <Grid xs={"auto"}>
+                            <Grid xs="auto">
                                 <Box sx={{ display: "flex", marginLeft: "20px" }}>
                                     <Box component={Paper} style={{
                                         borderRadius: 10,
@@ -51,7 +51,7 @@ export const Home = () => {
                                         background: theme.palette.primary.main,
                                         cursor: "pointer"
                                     }}
-                                        onClick={() => navigate("/cas")}
+                                    onClick={() => navigate("/cas")}
                                     >
                                         <Box>
                                             <Box style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
@@ -74,7 +74,7 @@ export const Home = () => {
                                                 alignItems: "center",
                                                 cursor: "pointer"
                                             }}
-                                                onClick={(ev: any) => { ev.stopPropagation(); navigate("/cas"); }}
+                                            onClick={(ev: any) => { ev.stopPropagation(); navigate("/cas"); }}
                                             >
                                                 <Box>
                                                     <Typography style={{ color: theme.palette.primary.contrastText, fontSize: 25 }}>{caStats.cas.total}</Typography>
@@ -115,7 +115,7 @@ export const Home = () => {
                                     </Box>
                                 </Box>
                             </Grid>
-                            <Grid xs={"auto"}>
+                            <Grid xs="auto">
                                 <Box sx={{ display: "flex", marginLeft: "20px" }}>
                                     <Box component={Paper} style={{
                                         borderRadius: 10,
@@ -140,7 +140,7 @@ export const Home = () => {
                                     </Box>
                                 </Box>
                             </Grid>
-                            <Grid xs={"auto"}>
+                            <Grid xs="auto">
                                 <DeviceStatusChart deviceStats={deviceStats} style={{ marginLeft: "20px" }} />
                             </Grid>
                         </Grid>
