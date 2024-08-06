@@ -146,7 +146,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                         </Grid>
                     </Box>
 
-                    <Box flexDirection={"column"} style={{ overflowY: "auto", height: 300, flexGrow: 1 }}>
+                    <Box flexDirection={"column"} style={{ overflowY: "auto", height: "100%", flexGrow: 1 }}>
                         <CAListFetchViewer
                             ref={caListRef}
                             params={{ filters }}
