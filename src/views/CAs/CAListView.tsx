@@ -294,18 +294,20 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                     </Box>
                 </Box>
             </Grid>
-            {
-                viewMode === "list" && (
-                    <Grid xs xl style={{ height: "100%", background: theme.palette.background.paper }} ref={containerRef}>
-                        <Slide direction="left" in={isMainModalOpen} container={containerRef.current} style={{ height: "100%" }}>
-                            <Box>
-                                <Outlet context={[rootChain.length > 0 ? rootChain[rootChain.length - 1] : undefined]} />
-                            </Box>
-                        </Slide>
-                    </Grid>
-                )
-            }
-        </Grid>
+            <Grid xs={12} style={{ height: "100%" }}>
+                {
+                    viewMode === "list" && (
+                        <Grid xs style={{ height: "100%", overflow: "hidden", background: theme.palette.background.paper }} ref={containerRef}>
+                            <Slide direction="left" in={isMainModalOpen} container={containerRef.current} style={{ height: "100%" }}>
+                                <Box>
+                                    <Outlet context={[rootChain.length > 0 ? rootChain[rootChain.length - 1] : undefined]} />
+                                </Box>
+                            </Slide>
+                        </Grid>
+                    )
+                }
+            </Grid>
+        </Box>
     );
 };
 
