@@ -118,8 +118,8 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
     }
 
     return (
-        <Grid xs container style={{ height: "100%" }}>
-            <Grid xs={viewMode === "list" ? 4 : 12} xl={viewMode === "list" ? 3 : 12} container direction="column">
+        <Box display="flex" flexDirection={isMediumScreen ? "column" : "row"} height="100vh">
+            <Grid xs={viewMode === "list" ? 12 : 12} md={viewMode === "list" ? 6 : 12} container direction="column">
                 <Box style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
                     <Box sx={{ padding: "20px" }}>
                         <Grid container flexDirection={"column"} spacing={1}>
@@ -176,19 +176,19 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                                 fieldSelector={queryableFields}
                                 />
                             </Grid>
-                            <Grid style={{ paddingTop: "10px" }} container alignItems={"center"}>
+                            <Grid style={{ paddingTop: "5px" }} container alignItems={"center"}>
                                 {/* <Filters fields={casFilters} filters={filters} onChange={(filters) => setFilters([...filters])} /> */}
                             </Grid>
                         </Grid>
                     </Box>
 
-                    <Box style={{ overflowY: "auto", height: 300, flexGrow: 1 }}>
+                    <Box flexDirection={"column"} style={{ overflowY: "auto", height: "100%", flexGrow: 1 }}>
                         <CAListFetchViewer
                             ref={caListRef}
                             params={{ filters }}
                             renderer={(cas) => {
                                 if (viewMode === "list") {
-                                    return <Grid container flexDirection={"column"} sx={{ padding: 0 }}>
+                                    return <Grid container flexDirection={"column"} sx={{ padding: 1 }} >
                                         {
                                             rootChain.length > 0 && (
                                                 <>
@@ -237,7 +237,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                                                 </>
                                             )
                                         }
-                                        <Grid container padding={"20px"} spacing={"10px"} flexDirection={"column"}>
+                                        <Box display="flex" flexDirection={isMediumScreen ? "row" : "column"} flexWrap={"nowrap"}>
                                             {
                                                 cas.list.filter(ca => {
                                                     if (rootChain.length === 0) {
@@ -245,7 +245,8 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                                                     }
                                                     return ca.level === rootChain.length && ca.issuer_metadata.id === rootChain[rootChain.length - 1].id;
                                                 }).map((caItem) => (
-                                                    <Grid key={caItem.id}>
+                                                    <Box sx={isMediumScreen ? { flex: "0 0 300px", padding: 1, boxSizing: "border-box" } : { flex: "0 0 100%", padding: 1, boxSizing: "border-box" }}
+                                                        key={caItem.id}>
                                                         <CertificateCard
                                                             onClick={() => {
                                                                 setIsMainModalOpen(true);
@@ -256,10 +257,10 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                                                             engine={engines.find(engine => caItem.engine_id === engine.id)!}
                                                             selected={selectedCa !== undefined ? caItem.id === selectedCa : false}
                                                         />
-                                                    </Grid>
+                                                    </Box>
                                                 ))
                                             }
-                                        </Grid>
+                                        </Box>
                                     </Grid>;
                                 }
                                 return (
@@ -293,18 +294,20 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                     </Box>
                 </Box>
             </Grid>
-            {
-                viewMode === "list" && (
-                    <Grid xs xl style={{ height: "100%", background: theme.palette.background.paper }} ref={containerRef}>
-                        <Slide direction="left" in={isMainModalOpen} container={containerRef.current} style={{ height: "100%" }}>
-                            <Box>
-                                <Outlet context={[rootChain.length > 0 ? rootChain[rootChain.length - 1] : undefined]} />
-                            </Box>
-                        </Slide>
-                    </Grid>
-                )
-            }
-        </Grid>
+            <Grid xs={12} style={{ height: "100%" }}>
+                {
+                    viewMode === "list" && (
+                        <Grid xs style={{ height: "100%", overflow: "hidden", background: theme.palette.background.paper }} ref={containerRef}>
+                            <Slide direction="left" in={isMainModalOpen} container={containerRef.current} style={{ height: "100%" }}>
+                                <Box>
+                                    <Outlet context={[rootChain.length > 0 ? rootChain[rootChain.length - 1] : undefined]} />
+                                </Box>
+                            </Slide>
+                        </Grid>
+                    )
+                }
+            </Grid>
+        </Box>
     );
 };
 
@@ -346,7 +349,7 @@ export const CertificateCard: React.FC<CertificateCardProps> = ({ ca, engine, el
             <Grid container sx={{}}>
                 <Grid xs="auto" container>
                     <Grid>
-                        <Box style={{ width: "10px", height: "60%", borderTopRightRadius: 10, borderBottomRightRadius: 10, background: selected ? theme.palette.primary.main : "transparent", position: "relative", top: "20%" }} />
+                        <Box style={{ width: "20px", height: "60%", borderTopRightRadius: 10, borderBottomRightRadius: 10, background: selected ? theme.palette.primary.main : "transparent", position: "relative", top: "20%" }} />
                     </Grid>
                 </Grid>
 

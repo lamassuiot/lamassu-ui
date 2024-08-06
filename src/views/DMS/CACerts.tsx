@@ -37,7 +37,7 @@ export const DMSCACertificates: React.FC<Props> = ({ dmsID }) => {
 
     return (
         <Grid container spacing={"40px"}>
-            <Grid xs flexDirection={"column"} container spacing={2}>
+            <Grid xs={12} sm={6} lg flexDirection={"column"} container spacing={2}>
                 <Grid>
                     <Typography variant="h4">RAW PKCS7 CA CERTS</Typography>
                 </Grid>
@@ -63,7 +63,7 @@ export const DMSCACertificates: React.FC<Props> = ({ dmsID }) => {
                     }
                 </Grid>
             </Grid>
-            <Grid xs flexDirection={"column"} container spacing={2}>
+            <Grid xs={12} sm={6} lg flexDirection={"column"} container spacing={2}>
                 <Grid>
                     <Typography variant="h4">PEM FORMAT CA CERTS</Typography>
                 </Grid>
@@ -89,7 +89,7 @@ export const DMSCACertificates: React.FC<Props> = ({ dmsID }) => {
                     }
                 </Grid>
             </Grid>
-            <Grid xs={3} flexDirection={"column"} container spacing={2}>
+            <Grid xs lg={3} flexDirection={"column"} container spacing={2}>
                 <Grid>
                     <Typography variant="h4">PARSED CAs</Typography>
                 </Grid>
@@ -108,7 +108,7 @@ export const DMSCACertificates: React.FC<Props> = ({ dmsID }) => {
                                     {
                                         decodedCerts.map((cert, idx) => (
                                             <Grid key={idx}>
-                                                <CertificateDecoder crtPem={cert}/>
+                                                <CertificateDecoder crtPem={cert} />
                                             </Grid>
                                         ))
                                     }
