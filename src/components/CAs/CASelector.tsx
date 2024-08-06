@@ -4,6 +4,7 @@ import { GenericSelector } from "../GenericSelector";
 import CAViewer from "./CAViewer";
 import React from "react";
 import apicalls from "ducks/apicalls";
+import { QueryParameters } from "ducks/services/api-client";
 
 type Props = {
     limitSelection?: string[] // IDs
@@ -20,7 +21,14 @@ export const CASelector: React.FC<Props> = (props: Props) => {
             renderer={(engines) => {
                 return <GenericSelector
                     fetcher={async (query, controller) => {
-                        const resp = await apicalls.cas.getCAs();
+                        let params: QueryParameters |undefined;
+                        if (query !== "") {
+                            params = {
+                                filters: [`id=[contains]${query}`]
+                            };
+                        }
+
+                        const resp = await apicalls.cas.getCAs(params);
 
                         let list: CertificateAuthority[] = resp.list;
                         if (props.limitSelection !== undefined) {

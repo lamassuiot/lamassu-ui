@@ -1,4 +1,4 @@
-import { Box, Button, IconButton, MenuItem, Paper, Typography, lighten, useTheme } from "@mui/material";
+import { Alert, Box, Button, IconButton, MenuItem, Paper, Typography, lighten, useTheme } from "@mui/material";
 import { CertificateSelector } from "components/Certificates/CertificateSelector";
 import { Device, DeviceStatus, deviceStatusToColor } from "ducks/features/devices/models";
 import { DeviceTimeline } from "./StatusTimeline";
@@ -56,7 +56,7 @@ export const ViewDevice: React.FC<Props> = () => {
         }
 
         deviceActions.push({
-            disabled: device.status === DeviceStatus.NoIdentity || device.status === DeviceStatus.Decommissioned || connectorID === "",
+            disabled: device.status === DeviceStatus.NoIdentity || device.status === DeviceStatus.Decommissioned,
             label: "Force Update",
             onClick: () => {
                 setForceUpdate({
@@ -222,7 +222,17 @@ export const ViewDevice: React.FC<Props> = () => {
                         maxWidth="md"
                         content={
                             <Grid container flexDirection={"column"} spacing={2}>
-                                <Grid >
+                                {
+                                    Object.keys(device.metadata).find(mKey => mKey.includes(forceUpdate.connectorID)) === undefined && (
+                                        <Grid marginTop={"10px"}>
+                                            <Alert severity="warning">
+                                                {"The selected cloud connector is not associated with this device. Selecting an action may not have any effect on the device."}
+                                            </Alert>
+                                        </Grid>
+                                    )
+                                }
+
+                                <Grid>
                                     <Select label="Cloud Connector" onChange={(ev: any) => setForceUpdate({ ...forceUpdate, connectorID: ev.target.value })} value={forceUpdate.connectorID}>
                                         {
                                             window._env_.CLOUD_CONNECTORS.map((id: string, idx: number) => {

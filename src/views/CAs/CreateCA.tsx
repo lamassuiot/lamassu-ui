@@ -2,7 +2,6 @@ import { Alert, Divider, MenuItem, Typography, useTheme } from "@mui/material";
 import { CASelector } from "components/CAs/CASelector";
 import { CATimeline } from "./CATimeline";
 import { CertificateAuthority, CryptoEngine } from "ducks/features/cas/models";
-import { FormDateInput } from "components/forms/DateInput";
 import { FormSelect } from "components/forms/Select";
 import { FormTextField } from "components/forms/Textfield";
 import { LoadingButton } from "@mui/lab";
@@ -15,6 +14,7 @@ import Grid from "@mui/material/Unstable_Grid2";
 import React, { useEffect, useState } from "react";
 import apicalls from "ducks/apicalls";
 import moment, { Moment } from "moment";
+import { FormExpirationInput } from "components/forms/Expiration";
 
 type FormData = {
     cryptoEngine: CryptoEngine
@@ -232,26 +232,8 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                             <Typography variant="h4">CA Expiration Settings</Typography>
                         </Grid>
                         <Grid>
-                            <FormSelect control={control} name="caExpiration.type" label="Expiration By">
-                                <MenuItem value={"duration"}>Duration</MenuItem>
-                                <MenuItem value={"date"}>End Date</MenuItem>
-                                <MenuItem value={"date-infinity"}>Indefinite Validity</MenuItem>
-                            </FormSelect>
+                            <FormExpirationInput control={control} name="caExpiration" enableInfiniteDate/>
                         </Grid>
-                        {
-                            watchCAExpiration.type === "duration" && (
-                                <Grid>
-                                    <FormTextField label="Duration (valid units y/w/d/h/m/s)" helperText="Not a valid expression. Valid units are y/w/d/h/m/s" control={control} name="caExpiration.duration" error={!validDurationRegex(watchCAExpiration.duration)} />
-                                </Grid>
-                            )
-                        }
-                        {
-                            watchCAExpiration.type === "date" && (
-                                <Grid>
-                                    <FormDateInput label="Expiration Date" control={control} name="caExpiration.date" />
-                                </Grid>
-                            )
-                        }
                     </Grid>
 
                     <Grid xs={12} md={6} container spacing={2} flexDirection={"column"}>
@@ -259,26 +241,8 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                             <Typography variant="h4">Issuance Expiration Settings</Typography>
                         </Grid>
                         <Grid>
-                            <FormSelect control={control} name="issuerExpiration.type" label="Issuance By">
-                                <MenuItem value={"duration"}>Duration</MenuItem>
-                                <MenuItem value={"date"}>End Date</MenuItem>
-                                <MenuItem value={"date-infinity"}>Indefinite Validity</MenuItem>
-                            </FormSelect>
+                            <FormExpirationInput control={control} name="issuerExpiration" enableInfiniteDate/>
                         </Grid>
-                        {
-                            watchIssuanceExpiration.type === "duration" && (
-                                <Grid>
-                                    <FormTextField label="Duration (valid units y/w/d/h/m/s)" helperText="Not a valid expression. Valid units are y/w/d/h/m/s" control={control} name="issuerExpiration.duration" error={!validDurationRegex(watchIssuanceExpiration.duration)} />
-                                </Grid>
-                            )
-                        }
-                        {
-                            watchIssuanceExpiration.type === "date" && (
-                                <Grid>
-                                    <FormDateInput label="Expiration Date" control={control} name="issuerExpiration.date" />
-                                </Grid>
-                            )
-                        }
                     </Grid>
                 </Grid>
 
@@ -286,11 +250,11 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                     <Divider />
                 </Grid>
 
-                <Grid container spacing={2} flexDirection={"column"}>
-                    <Grid>
+                <Grid container spacing={2} sx={{ width: "100%" }}>
+                    <Grid xs={12}>
                         <Typography variant="h4">Timeline</Typography>
                     </Grid>
-                    <Grid>
+                    <Grid xs={12}>
                         <CATimeline
                             caIssuedAt={moment()}
                             caExpiration={watchCAExpiration.type === "duration" ? watchCAExpiration.duration : (watchCAExpiration.type === "date" ? watchCAExpiration.date : "")}

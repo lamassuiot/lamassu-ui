@@ -10,6 +10,7 @@ import { Route, Routes, useLocation, useParams } from "react-router-dom";
 import { TabsList } from "components/TabsList";
 import { getEngines } from "ducks/features/cas/apicalls";
 import React from "react";
+import { UpdateCA } from "./UpdateCA";
 
 export const CAView = () => {
     return (
@@ -19,6 +20,7 @@ export const CAView = () => {
                     <Route path="/" element={<RoutedCAList engines={engines} />}>
                         <Route path="create" element={<CaCreationActionsWrapper engines={engines} />} />
                         <Route path=":caName/*" element={<RoutedCaInspector engines={engines} />} />
+                        <Route path="edit/:caName" element={<UpdateCA/>} />
                     </Route>
                 </Routes>
             );
