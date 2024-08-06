@@ -144,7 +144,7 @@ export const InfoView = () => {
                                             <Avatar
                                                 shape="square"
                                                 aria-label="square avatar"
-                                                image={{ src: process.env.PUBLIC_URL + "/favicon.ico" }}
+                                                image={{ src: process.env.PUBLIC_URL + "/assets/square-lamassu.svg" }}
                                                 color="blue"
                                             />
                                         }
@@ -606,26 +606,26 @@ const ViewHelmConfigDrawer: React.FC<ViewHelmConfigDrawerProps> = ({
                             <Body1Strong>Helm Chart</Body1Strong>
                         </Grid>
                         <Grid item xs={12}>
-                            <Label>Helm Chart Version</Label>
                             <Grid container spacing={1}>
-                                <Grid item xs>
-                                    <Select>
-                                        <option>v2.5.0</option>
-                                        <option>v2.4.9</option>
-                                        <option>v2.4.8</option>
-                                    </Select>
+                                <Grid item xs={2}>
+                                    <Body1>Helm Chart Version</Body1>
                                 </Grid>
-                                <Grid item xs="auto">
-                                    <Button icon={<ArrowSyncRegular />} iconPosition="after">
-                                        Check Updates
-                                    </Button>
+                                <Grid item xs={10}>
+                                    <Body1>v2.6.1</Body1>
+                                </Grid>
+                                <Grid item xs={2}>
+                                    <Body1>App Version</Body1>
+                                </Grid>
+                                <Grid item xs={10}>
+                                    <Body1>v2.5.1</Body1>
+                                </Grid>
+                                <Grid item xs={2}>
+                                    <Body1>Release Number</Body1>
+                                </Grid>
+                                <Grid item xs={10}>
+                                    <Body1>52</Body1>
                                 </Grid>
                             </Grid>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Button appearance="primary">
-                                Apply & Update
-                            </Button>
                         </Grid>
                     </Grid>
                     <Grid item container spacing={1}>
@@ -633,7 +633,6 @@ const ViewHelmConfigDrawer: React.FC<ViewHelmConfigDrawerProps> = ({
                             <Body1Strong>Values</Body1Strong>
                         </Grid>
                         <Grid item xs={12}>
-                            <Label>Domain</Label>
                             <Editor
                                 theme="vs-dark"
                                 defaultLanguage="yaml"

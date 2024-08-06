@@ -3,12 +3,14 @@ import { CAFetchViewer } from "components/CAs/CAStandardFetchViewer";
 import { CATimeline } from "./CATimeline";
 import { CertificateAuthority, CryptoEngine } from "ducks/features/cas/models";
 import { CryptoEngineViewer } from "components/CryptoEngines/CryptoEngineViewer";
-import { Skeleton, Typography, useTheme } from "@mui/material";
+import { IconButton, Skeleton, Typography, useTheme } from "@mui/material";
 import { TextField } from "components/TextField";
 import { X509Certificate, parseCRT } from "utils/crypto/crt";
 import Grid from "@mui/material/Unstable_Grid2";
 import React, { useEffect, useState } from "react";
 import moment from "moment";
+import EditIcon from "@mui/icons-material/Edit";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
     caData: CertificateAuthority
@@ -17,7 +19,9 @@ interface Props {
 
 export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
     const theme = useTheme();
+    const navigate = useNavigate();
     const [parsedCertificate, setParsedCertificate] = useState<X509Certificate | undefined>();
+
     useEffect(() => {
         const run = async () => {
             const crt = await parseCRT(window.atob(caData.certificate));
@@ -26,7 +30,6 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
         run();
     }, []);
 
-    const pars = window.window.atob(caData.certificate);
     const certificateSubject = {
         country: "Country",
         state: "State / Province",
@@ -48,10 +51,6 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
         validTo: {
             title: "Valid To",
             value: moment(caData.valid_to).format("D MMMM YYYY")
-        },
-        issuanceDuration: {
-            title: "Issuance Expiration",
-            value: caData.issuance_expiration.type + ": " + (caData.issuance_expiration.type === "Duration" ? caData.issuance_expiration.duration : moment(caData.issuance_expiration.time).format("D MMMM YYYY HH:mm"))
         }
     };
 
@@ -71,7 +70,7 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
     }
 
     return (
-        <Grid container columns={12} spacing={2}>
+        <Grid container columns={12} spacing={2} sx={{ width: "100%" }}>
             {
                 caData.type !== "EXTERNAL" && (
                     <>
@@ -109,6 +108,27 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
                     </Grid>
                 )
             }
+
+            <Grid xs={12} container flexDirection={"column"}>
+                <Grid xs={12}>
+                    <Typography variant="h4">CA Settings</Typography>
+                </Grid>
+                <Grid xs={12} container spacing={1}>
+                    <Grid container xs={12} spacing={1} alignItems={"end"}>
+                        <Grid xs>
+                            <TextField label="Issuance Expiration" value={caData.issuance_expiration.type + ": " + (caData.issuance_expiration.type === "Duration" ? caData.issuance_expiration.duration : moment(caData.issuance_expiration.time).format("D MMMM YYYY HH:mm"))} fullWidth disabled />
+                        </Grid>
+                        <Grid xs={"auto"}>
+                            <IconButton onClick={() => {
+                                navigate("/cas/edit/" + caData.id);
+                            }}>
+                                <EditIcon/>
+                            </IconButton>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Grid>
+
             <Grid xs={12} md={6} container flexDirection={"column"}>
                 <Grid xs={12}>
                     <Typography variant="h4">Subject</Typography>
