@@ -119,7 +119,7 @@ const CSRFormGenerator: React.FC<CSRFormGeneratorProps> = ({ onCreate }) => {
                         setLoadingCryptoMaterial(true);
                         const keyPair = await createPrivateKey(x509FromValue.keyMetadata.type, x509FromValue.keyMetadata.size, "SHA-256");
                         const csr = await createCSR(keyPair, "SHA-256", x509FromValue.subject, { dnss: x509FromValue.sanDNSs });
-                        const { privateKey } = await keyPairToPEM(keyPair, x509FromValue.keyMetadata.type);
+                        const { privateKey } = await keyPairToPEM(keyPair);
                         onCreate(privateKey, csr);
                         setLoadingCryptoMaterial(false);
                     }}>Generate Private Key and CSR</Button>

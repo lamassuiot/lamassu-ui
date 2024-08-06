@@ -2,25 +2,24 @@ import { Alert, Typography, useTheme } from "@mui/material";
 import { CASelector } from "components/CAs/CASelector";
 import { CATimeline } from "./CATimeline";
 import { CertificateAuthority, CryptoEngine, ExpirationFormat } from "ducks/features/cas/models";
-import { FormDateInput } from "components/forms/DateInput";
 import { FormTextField } from "components/forms/Textfield";
 import { LoadingButton } from "@mui/lab";
 import { X509Certificate, parseCRT } from "utils/crypto/crt";
 import { useForm } from "react-hook-form";
 import { useNavigate, useOutletContext } from "react-router-dom";
-import { validDurationRegex } from "utils/duration";
 import CertificateImporter from "components/CRTImporter";
 import CryptoEngineSelector from "components/CryptoEngines/CryptoEngineSelector";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import React, { useState } from "react";
 import apicalls from "ducks/apicalls";
 import moment, { Moment } from "moment";
+import { FormExpirationInput } from "components/forms/Expiration";
 
-const keyPlaceHolder = `-----BEGIN EC PRIVATE KEY-----
+const keyPlaceHolder = `-----BEGIN PRIVATE KEY-----
 MHcCAQEEIOUXa254YMYXWksCADpHFdJ+ly+nrQFsa0ozEuTZXmP5oAoGCCqGSM49
 AwEHoUQDQgAEuLp+SvdUZJTXqCHivs3BpwfkKSAZl9ug9590zn7Hec2dLZj1tPG6
 uywNx1FjrBpX2j6DBnyp1owBUY0Y1RVWpw==
------END EC PRIVATE KEY-----
+-----END PRIVATE KEY-----
 `;
 
 type FormData = {
@@ -95,7 +94,7 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
     });
 
     return (
-        <Grid container spacing={2}>
+        <Grid container spacing={2}padding={"10px 0"}>
             <Grid xs={12}>
                 <CryptoEngineSelector value={watchAll.cryptoEngine} onSelect={engine => {
                     if (Array.isArray(engine)) {
@@ -140,29 +139,18 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
 
             <Grid xs={12} container spacing={1}>
                 <Grid xs={12}>
-                    <Typography>Issuance Expiration Settings</Typography>
+                    <Typography variant="h4">Issuance Expiration Settings</Typography>
                 </Grid>
-                {
-                    watchIssuanceExpiration.type === "duration" && (
-                        <Grid xs={12} xl={4}>
-                            <FormTextField label="Duration (valid units y/w/d/h/m/s)" helperText="Not a valid expression. Valid units are y/w/d/h/m/s" control={control} name="issuerExpiration.duration" error={!validDurationRegex(watchIssuanceExpiration.duration)} />
-                        </Grid>
-                    )
-                }
-                {
-                    watchIssuanceExpiration.type === "date" && (
-                        <Grid xs={12} xl={4}>
-                            <FormDateInput label="Expiration Date" control={control} name="issuerExpiration.date" />
-                        </Grid>
-                    )
-                }
+                <Grid xs={12}>
+                    <FormExpirationInput control={control} name="issuerExpiration"/>
+                </Grid>
             </Grid>
 
-            <Grid container spacing={2} flexDirection={"column"}>
-                <Grid>
-                    <Typography>Timeline</Typography>
+            <Grid container spacing={2} sx={{ width: "100%" }}>
+                <Grid xs={12}>
+                    <Typography variant="h4">Timeline</Typography>
                 </Grid>
-                <Grid>
+                <Grid xs={12}>
                     {
                         watchAll.parsedCertificate && (
                             <CATimeline

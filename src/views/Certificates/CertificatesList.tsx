@@ -38,7 +38,7 @@ export const CertificateListView = () => {
                         </Tooltip>
                     </Grid>
                 </Grid>
-                <Grid xs >
+                <Grid>
                     <Box component={Paper} borderRadius={"15px"}>
                         <CertificatesTable ref={tableRef} query={{ field: query.field, value: query.value, operator: query.operator }} />
                     </Box>

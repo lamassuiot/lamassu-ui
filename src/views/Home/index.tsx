@@ -51,7 +51,7 @@ export const Home = () => {
                                         background: theme.palette.primary.main,
                                         cursor: "pointer"
                                     }}
-                                        onClick={() => navigate("/cas")}
+                                    onClick={() => navigate("/cas")}
                                     >
                                         <Box>
                                             <Box style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
@@ -74,7 +74,7 @@ export const Home = () => {
                                                 alignItems: "center",
                                                 cursor: "pointer"
                                             }}
-                                                onClick={(ev: any) => { ev.stopPropagation(); navigate("/cas"); }}
+                                            onClick={(ev: any) => { ev.stopPropagation(); navigate("/cas"); }}
                                             >
                                                 <Box>
                                                     <Typography style={{ color: theme.palette.primary.contrastText, fontSize: 25 }}>{caStats.cas.total}</Typography>

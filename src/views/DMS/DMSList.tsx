@@ -115,7 +115,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                 <Grid container flexDirection={"column"} spacing={1}>
                     <Grid container spacing={1} flexDirection={"column"}>
                         <Grid container spacing={1}>
-                            <Grid xs="auto" container spacing={1}>
+                            <Grid xs container spacing={1}>
                                 <Grid>
                                     <IconInput readonly label="" size={35} value={{ bg: iconBG, fg: iconFG, name: dms.settings.enrollment_settings.device_provisioning_profile.icon }} />
                                 </Grid>
@@ -126,6 +126,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                     </Grid>
                                 </Grid>
                             </Grid>
+
                             <Grid xs="auto" container spacing={"20px"}>
                                 <Grid xs="auto" container spacing={1}>
                                     <Grid xs="auto">
@@ -485,7 +486,7 @@ const BootstrapGenerator: React.FC<BootstrapGeneratorProps> = ({ cn, ca }) => {
             try {
                 const keyPair = await createPrivateKey("RSA", 2048, "SHA-256");
                 const csr = await createCSR(keyPair, "SHA-256", { cn }, { dnss: undefined });
-                const { privateKey } = await keyPairToPEM(keyPair, "RSA");
+                const { privateKey } = await keyPairToPEM(keyPair);
 
                 const cert = await apicalls.cas.signCertificateRequest(ca.id, window.window.btoa(csr));
 

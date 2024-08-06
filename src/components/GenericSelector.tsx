@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { Autocomplete, TextField, useTheme } from "@mui/material";
+import { Autocomplete, LinearProgress, TextField, useTheme } from "@mui/material";
 import { KeyValueLabel } from "./KeyValue";
 import Grid from "@mui/material/Unstable_Grid2";
 import React from "react";
@@ -48,8 +48,6 @@ export const GenericSelector = <T extends object>(props: GenericSelectorProps<T>
     }, [props.value]);
 
     React.useEffect(() => {
-        console.log(selectedOptions, selectedOption);
-
         if (props.multiple) {
             props.onSelect(selectedOptions);
         } else {
@@ -73,8 +71,6 @@ export const GenericSelector = <T extends object>(props: GenericSelectorProps<T>
         run();
         return () => controller.abort();
     }, [inputValue]);
-
-    console.log(props.value, props.renderOption !== undefined);
 
     return (
         <Grid container spacing={2}>
@@ -107,18 +103,24 @@ export const GenericSelector = <T extends object>(props: GenericSelectorProps<T>
                     renderInput={(params) => (
                         <div ref={params.InputProps.ref}>
                             <KeyValueLabel label={props.label} value={
-                                <TextField
-                                    {...params}
-                                    sx={{ padding: "0px 0px 5px 0px" }}
-                                    inputProps={{
-                                        ...params.inputProps,
-                                        style: { padding: "0px 0px 5px 0px" }
-                                    }}
-                                    label={""}
-                                    placeholder=""
-                                />
+                                <>
+                                    <TextField
+                                        {...params}
+                                        sx={{ padding: "0px 0px 5px 0px" }}
+                                        inputProps={{
+                                            ...params.inputProps,
+                                            style: { padding: "0px 0px 5px 0px" }
+                                        }}
+                                        label={""}
+                                        placeholder=""
+                                    />
+                                    {
+                                        loading && (
+                                            <LinearProgress />
+                                        )
+                                    }
+                                </>
                             } />
-
                         </div>
                     )}
                     filterOptions={(x) => x}
@@ -127,7 +129,7 @@ export const GenericSelector = <T extends object>(props: GenericSelectorProps<T>
             </Grid>
             {
                 props.value && props.renderOption !== undefined && (
-                // check if is array
+                    // check if is array
                     props.value instanceof Array
                         ? (
                             props.value.map((item, index) => (

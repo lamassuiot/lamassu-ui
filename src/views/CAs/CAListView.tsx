@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import { AiOutlineSafetyCertificate } from "react-icons/ai";
-import { Box, Breadcrumbs, Divider, IconButton, Paper, Slide, ToggleButton, ToggleButtonGroup, Tooltip, Typography, useTheme, useMediaQuery } from "@mui/material";
+import { Box, Breadcrumbs, Divider, IconButton, Paper, Slide, ToggleButton, ToggleButtonGroup, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { CAListFetchViewer } from "components/CAs/CAListFetchViewer";
 import { CertificateAuthority, CertificateStatus, CryptoEngine } from "ducks/features/cas/models";
 import { CryptoEngineViewer, EnginesIcons } from "components/CryptoEngines/CryptoEngineViewer";
@@ -20,6 +20,7 @@ import Label from "components/Label";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import ViewListIcon from "@mui/icons-material/ViewList";
 import moment from "moment";
+import { CASelector } from "components/CAs/CASelector";
 
 interface Props {
     preSelectedCaID?: string
@@ -34,7 +35,7 @@ const queryableFields = [
 export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
     const theme = useTheme();
     const navigate = useNavigate();
-    const isMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
+    const isMediumScreen = useMediaQuery(theme.breakpoints.up("md"));
 
     const [viewMode, setViewMode] = React.useState<"list" | "graph">("list");
 
@@ -55,6 +56,10 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
     useEffect(() => {
         setSelectedCa(preSelectedCaID);
     }, [preSelectedCaID]);
+
+    useEffect(() => {
+        setViewMode("list");
+    }, [isMediumScreen]);
 
     const renderCAHierarchy = (caList: CertificateAuthority[], parentChain: CertificateAuthority[], ca: CertificateAuthority) => {
         return (
@@ -80,6 +85,37 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
             </TreeNode>
         );
     };
+
+    if (!isMediumScreen) {
+        return (
+            <Grid container flexDirection={"column"} sx={{ height: "100%" }}>
+                <Grid container spacing={2} padding={2} >
+                    <Grid xs>
+                        <CASelector multiple={false} label="" onSelect={(ca) => {
+                            if (!Array.isArray(ca) && ca) {
+                                setIsMainModalOpen(true);
+                                navigate(ca.id);
+                            }
+                        }} />
+                    </Grid>
+                    <Grid xs={"auto"}>
+                        <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.divider, width: 40, height: 40 }}>
+                            <Tooltip title="Create New CA">
+                                <IconButton style={{ background: lighten(theme.palette.primary.main, 0.7) }} onClick={() => { setViewMode("list"); setIsMainModalOpen(true); navigate("create"); }}>
+                                    <AddIcon style={{ color: theme.palette.primary.main }} />
+                                </IconButton>
+                            </Tooltip>
+                        </Box>
+                    </Grid>
+                </Grid>
+                <Grid flex={1}>
+                    <Box component={Paper} borderRadius={0} sx={{ height: "100%" }}>
+                        <Outlet context={[undefined]} />
+                    </Box>
+                </Grid>
+            </Grid>
+        );
+    }
 
     return (
         <Box display="flex" flexDirection={isMediumScreen ? "column" : "row"} height="100vh">
@@ -137,7 +173,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                                 <QuerySearchbarInput sx={{ width: "100%" }} onChange={({ query, field }) => {
                                     setQuery({ value: query, field, operator: queryableFields.find((f) => f.key === field)!.operator || "contains" });
                                 }}
-                                    fieldSelector={queryableFields}
+                                fieldSelector={queryableFields}
                                 />
                             </Grid>
                             <Grid style={{ paddingTop: "5px" }} container alignItems={"center"}>
