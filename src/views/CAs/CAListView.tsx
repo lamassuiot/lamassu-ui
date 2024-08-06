@@ -35,7 +35,7 @@ const queryableFields = [
 export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
     const theme = useTheme();
     const navigate = useNavigate();
-    const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
+    const isMediumScreen = useMediaQuery(theme.breakpoints.up("md"));
 
     const [viewMode, setViewMode] = React.useState<"list" | "graph">("list");
 
@@ -59,7 +59,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
 
     useEffect(() => {
         setViewMode("list");
-    }, [isMdUp]);
+    }, [isMediumScreen]);
 
     const renderCAHierarchy = (caList: CertificateAuthority[], parentChain: CertificateAuthority[], ca: CertificateAuthority) => {
         return (
@@ -86,7 +86,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
         );
     };
 
-    if (!isMdUp) {
+    if (!isMediumScreen) {
         return (
             <Grid container flexDirection={"column"} sx={{ height: "100%" }}>
                 <Grid container spacing={2} padding={2} >

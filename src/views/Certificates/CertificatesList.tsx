@@ -20,12 +20,12 @@ export const CertificateListView = () => {
     return (
         <Box padding={"30px 30px"}>
             <Grid container flexDirection={"column"} spacing={"20px"}>
-                <Grid xs container>
-                    <Grid xs={12} md>
+                <Grid container>
+                    <Grid xs>
                         <QuerySearchbarInput onChange={({ query, field }) => {
                             setQuery({ value: query, field, operator: queryableFields.find((f) => f.key === field)!.operator || "contains" });
                         }}
-                            fieldSelector={queryableFields}
+                        fieldSelector={queryableFields}
                         />
                     </Grid>
                     <Grid xs="auto">
@@ -36,7 +36,7 @@ export const CertificateListView = () => {
                         </Tooltip>
                     </Grid>
                 </Grid>
-                <Grid xs >
+                <Grid>
                     <Box component={Paper} borderRadius={"15px"}>
                         <CertificatesTable ref={tableRef} query={{ field: query.field, value: query.value, operator: query.operator }} />
                     </Box>

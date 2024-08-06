@@ -121,7 +121,6 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
                     multiple={false} label="Parent CA"
                 />
             </Grid>
-
             <Grid xs={12}>
                 <CertificateImporter onChange={async (crt) => {
                     if (crt !== undefined) {
@@ -134,7 +133,6 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
                     }
                 }} />
             </Grid>
-
             <Grid xs={12}>
                 <FormTextField fullWidth label="Private Key" name={"privateKey"} control={control} multiline placeholder={keyPlaceHolder} sx={{ fontFamily: "monospace", fontSize: "0.7rem", minWidth: "450px", width: "100%" }} />
             </Grid>
