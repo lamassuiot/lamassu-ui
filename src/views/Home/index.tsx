@@ -100,7 +100,7 @@ export const Home = () => {
                                                 </Box>
                                             </Box>
                                             <Box component={Paper} style={{ marginTop: 10, background: theme.palette.primary.light, padding: 15, width: 250, display: "flex", justifyContent: "space-between", alignItems: "center" }}
-                                                onClick={(ev: any) => { ev.stopPropagation(); navigate("/devmanager"); }}>
+                                                onClick={(ev: any) => { ev.stopPropagation(); navigate("/devices"); }}>
                                                 <Box>
                                                     <Typography style={{ color: theme.palette.primary.contrastText, fontSize: 25 }}>{numberToHumanReadableString(deviceStats.total, ".")}</Typography>
                                                     <Typography style={{ color: theme.palette.primary.contrastText, fontSize: 15 }}>Devices</Typography>

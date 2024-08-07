@@ -39,8 +39,8 @@ root.render(
             <AuthProvider
                 authority={window._env_.AUTH_OIDC_AUTHORITY}
                 client_id={window._env_.AUTH_OIDC_CLIENT_ID}
-                redirect_uri={window.location.origin}
-                post_logout_redirect_uri={`${window.location.origin}`}
+                redirect_uri={window.location.href}
+                post_logout_redirect_uri={`${window.location.href}`}
                 /*
         localStorage persists until explicitly deleted. Changes made are saved and available for all current and future visits to the site.
         sessionStorage, changes are only available per tab. Changes made are saved and available for the current page in that tab until it is closed. Once it is closed, the stored data is deleted.
