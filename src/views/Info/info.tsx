@@ -161,26 +161,26 @@ export const InfoView = () => {
                                     <Grid container>
                                         <Grid xs container flexDirection={"column"}>
                                             <Grid item container>
-                                                <Grid item xs={2}>
+                                                <Grid item xs={6} md={2}>
                                                     <Body1 className={styles.caption}>Helm Chart Version</Body1>
                                                 </Grid>
-                                                <Grid item xs>
+                                                <Grid item xs md>
                                                     <Caption1 className={styles.caption}>2.6.1</Caption1>
                                                 </Grid>
                                             </Grid>
                                             <Grid item container>
-                                                <Grid item xs={2}>
+                                                <Grid item xs={6} md={2}>
                                                     <Body1 className={styles.caption}>App Version</Body1>
                                                 </Grid>
-                                                <Grid item xs>
+                                                <Grid item xs md>
                                                     <Caption1 className={styles.caption}>2.5.2</Caption1>
                                                 </Grid>
                                             </Grid>
                                             <Grid item container>
-                                                <Grid item xs={2}>
+                                                <Grid item xs={6} md={2}>
                                                     <Body1 className={styles.caption}>Release Number</Body1>
                                                 </Grid>
-                                                <Grid item xs>
+                                                <Grid item xs md>
                                                     <Caption1 className={styles.caption}>{52}</Caption1>
                                                 </Grid>
                                             </Grid>
@@ -195,7 +195,7 @@ export const InfoView = () => {
                                     </Grid>
                                 </Card>
                             </Grid>
-                            <Grid item xs={6}>
+                            <Grid item xs={12} md={6}>
                                 <Card
                                     className={mergeClasses(styles.card)}
                                     onClick={() => { }}
@@ -215,18 +215,18 @@ export const InfoView = () => {
 
                                     <Grid container flexDirection={"column"}>
                                         <Grid item container>
-                                            <Grid item xs={4}>
+                                            <Grid item xs={4} md={4}>
                                                 <Body1 className={styles.caption}>Build ID</Body1>
                                             </Grid>
-                                            <Grid item xs>
+                                            <Grid item xs md>
                                                 <Caption1 className={styles.caption}>{window._env_.INFO.BUILD_ID}</Caption1>
                                             </Grid>
                                         </Grid>
                                         <Grid item container>
-                                            <Grid item xs={4}>
+                                            <Grid item xs md>
                                                 <Body1 className={styles.caption}>Build Timestamp</Body1>
                                             </Grid>
-                                            <Grid item xs>
+                                            <Grid item xs md>
                                                 <Caption1 className={styles.caption}>
                                                     {moment(window._env_.INFO.BUILD_TIME).format("DD-MM-YYYY HH:mm")}
                                                 </Caption1>
@@ -237,7 +237,7 @@ export const InfoView = () => {
                             </Grid>
                             {
                                 servicesInfo.map((si, idx) => (
-                                    <Grid item key={idx} xs={6}>
+                                    <Grid item key={idx} xs={12} md={6}>
                                         <Card
                                             className={mergeClasses(styles.card)}
                                             onClick={() => { }}
@@ -258,18 +258,18 @@ export const InfoView = () => {
 
                                             <Grid container flexDirection={"column"}>
                                                 <Grid item container>
-                                                    <Grid item xs={4}>
+                                                    <Grid item xs={4} md={4}>
                                                         <Body1 className={styles.caption}>Build ID</Body1>
                                                     </Grid>
-                                                    <Grid item xs>
+                                                    <Grid item xs md>
                                                         <Caption1 className={styles.caption}>{si.build}</Caption1>
                                                     </Grid>
                                                 </Grid>
                                                 <Grid item container>
-                                                    <Grid item xs={4}>
+                                                    <Grid item xs={4} md={4}>
                                                         <Body1 className={styles.caption}>Build Timestamp</Body1>
                                                     </Grid>
-                                                    <Grid item xs>
+                                                    <Grid item xs md>
                                                         <Caption1 className={styles.caption}>
                                                             {moment(si.build_time).format("DD-MM-YYYY HH:mm")}
                                                         </Caption1>

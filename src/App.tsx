@@ -155,12 +155,13 @@ export default function Dashboard () {
 
     React.useEffect(() => {
         if (!auth.isLoading && !auth.isAuthenticated) {
-            // auto refresh every 3s
-
-            interval.current = window.setInterval(() => {
+            if (auth.error === undefined) {
                 auth.signinRedirect();
-            }, 3000);
-            return () => window.clearInterval(interval.current);
+            } else {
+                interval.current = window.setTimeout(() => {
+                    auth.signinRedirect();
+                }, 3000);
+            }
         }
 
         return () => { };

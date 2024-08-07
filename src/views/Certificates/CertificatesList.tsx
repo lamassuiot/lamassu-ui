@@ -26,7 +26,7 @@ export const CertificateListView = () => {
                             <QuerySearchbarInput onChange={({ query, field }) => {
                                 setQuery({ value: query, field, operator: queryableFields.find((f) => f.key === field)!.operator || "contains" });
                             }}
-                                fieldSelector={queryableFields}
+                            fieldSelector={queryableFields}
                             />
                         </Grid>
                     </Grid>
