@@ -16,6 +16,7 @@ interface Props {
     filter?: GridFilterItem | undefined;
     query?: { field: string, value: string, operator: string}
     ref?: Ref<FetchHandle>
+    onRowClick?: (row: Device) => void
 }
 
 const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
@@ -167,6 +168,7 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
             filter={props.filter}
             density="compact"
             sortField={{ field: "creation_timestamp", sort: "desc" }}
+            onRowClick={props.onRowClick}
         />
     );
 });

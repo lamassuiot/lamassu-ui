@@ -1,4 +1,4 @@
-import { Button, Divider, IconButton, MenuItem, Typography } from "@mui/material";
+import { Button, Divider, IconButton, Typography } from "@mui/material";
 import { Select } from "components/Select";
 import { TextField } from "./TextField";
 import CloseIcon from "@mui/icons-material/Close";
@@ -58,10 +58,11 @@ const X509Form: React.FC<X509FormProps> = ({ value, onChange }) => {
                             onChange({ ...value, keyMetadata: { ...value.keyMetadata, type: "RSA" } });
                             break;
                         }
-                    }}>
-                        <MenuItem value="RSA">RSA</MenuItem>
-                        <MenuItem value="ECDSA">ECDSA</MenuItem>
-                    </Select>
+                    }}
+                    options={[
+                        { value: "RSA", render: "RSA" },
+                        { value: "ECDSA", render: "ECDSA" }
+                    ]} />
                 </Grid>
                 <Grid xs={6}>
                     <Select label="Key Size" value={value.keyMetadata.size} onChange={(ev) => {
@@ -74,14 +75,11 @@ const X509Form: React.FC<X509FormProps> = ({ value, onChange }) => {
                             onChange({ ...value, keyMetadata: { ...value.keyMetadata, size: 4096 } });
                             break;
                         }
-                    }}>
-                        {
-                            keySizesOptions.map((kSize, idx) => {
-                                return <MenuItem key={idx} value={kSize}>{kSize}</MenuItem>;
-                            })
-                        }
-
-                    </Select>
+                    }} options={
+                        keySizesOptions.map((kSize, idx) => {
+                            return { value: kSize.toString(), render: kSize.toString() };
+                        })
+                    } />
                 </Grid>
             </Grid>
             <Grid xs={12}>

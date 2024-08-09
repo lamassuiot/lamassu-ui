@@ -70,7 +70,7 @@ export const CreateDevice: React.FC<Props> = ({ onSubmit }) => {
         >
             <form onSubmit={submit} style={{ width: "100%" }}>
                 <Grid container sx={{ width: "100%" }}>
-                    <Grid xs={6} container spacing={2}>
+                    <Grid md={6} xs={12} container spacing={2}>
                         <Grid xs={12}>
                             <FormTextField label="Device ID" control={control} name="deviceReg.id" disabled={editMode} />
                         </Grid>

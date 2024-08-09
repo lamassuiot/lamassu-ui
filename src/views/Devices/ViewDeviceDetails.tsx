@@ -1,7 +1,7 @@
 import { Box } from "@mui/system";
 import { Certificate, CertificateAuthority, CertificateStatus } from "ducks/features/cas/models";
 import { Device, DeviceEvent, DeviceEventType, Slot, slotStatusToColor } from "ducks/features/devices/models";
-import { Divider, IconButton, Paper, Tooltip, Typography, lighten, useTheme } from "@mui/material";
+import { Divider, IconButton, Paper, Tooltip, Typography, lighten, useTheme, useMediaQuery } from "@mui/material";
 import { FetchHandle, TableFetchViewer } from "components/TableFetcherView";
 import { GridColDef } from "@mui/x-data-grid";
 import { ListResponse } from "ducks/services/api-client";
@@ -46,6 +46,8 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
 
     const [devEvents, setDevEvents] = useState<DeviceLog[]>([]);
     const [includeIDSlotLogs, setIncludeIDSlotLogs] = useState(false);
+
+    const isMobileScreen = useMediaQuery(theme.breakpoints.down("md"));
 
     const slot: Slot<string> = filteredSlot;
 
@@ -206,32 +208,35 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
 
     return (
         <Grid container flexDirection={"column"} height={"100%"}>
-            <Grid component={Paper} container borderRadius={0} padding={"10px 20px"} zIndex={5}>
-                <Grid xs={12} container spacing={6} alignItems="center">
-                    <Grid xs="auto">
-                        <Tooltip title="Back to Device List">
-                            <IconButton style={{ background: lighten(theme.palette.primary.main, 0.7) }} onClick={() => {
-                                const url = location.pathname;
-                                navigate(url.substring(0, url.lastIndexOf("/")));
-                            }}>
-                                <ArrowBackIcon style={{ color: theme.palette.primary.main }} />
-                            </IconButton>
-                        </Tooltip>
-                    </Grid>
-                    <Grid xs="auto">
+            {
+                !isMobileScreen && (
+                    <Grid component={Paper} container borderRadius={0} padding={"10px 20px"} zIndex={5}>
+                        <Grid xs={12} container spacing={6} alignItems="center">
+                            <Grid xs="auto">
+                                <Tooltip title="Back to Device List">
+                                    <IconButton style={{ background: lighten(theme.palette.primary.main, 0.7) }} onClick={() => {
+                                        const url = location.pathname;
+                                        navigate(url.substring(0, url.lastIndexOf("/")));
+                                    }}>
+                                        <ArrowBackIcon style={{ color: theme.palette.primary.main }} />
+                                    </IconButton>
+                                </Tooltip>
+                            </Grid>
+
+                            {/* <Grid xs="auto">
                         <Typography variant="h5" fontWeight="500" fontSize="15px" textAlign={"center"}
                             sx={{ display: "inline", padding: "5px 10px", borderRadius: "5px" }}
                         >
                             Identity Slot
                         </Typography>
-                    </Grid>
-                    <Grid xs="auto">
-                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Slot Active Version: {slot.active_version}</Typography>
-                        <Label color={slotStatusToColor(slot.status)}>{slot.status}</Label>
-                    </Grid>
-                    <Grid xs container flexDirection="column">
-                        <Grid container columnSpacing={8} rowSpacing={0}>
-                            {/* <Grid xs="auto">
+                    </Grid> */}
+                            <Grid xs="auto">
+                                <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Slot Active Version: {slot.active_version}</Typography>
+                                <Label color={slotStatusToColor(slot.status)}>{slot.status}</Label>
+                            </Grid>
+                            <Grid xs container flexDirection="column">
+                                <Grid container columnSpacing={8} rowSpacing={0}>
+                                    {/* <Grid xs="auto">
                                 <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Expiration Date</Typography>
                                 <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>{moment(slot!.active_certificate.valid_to).format("DD-MM-YYYY HH:mm")}</Typography>
                             </Grid>
@@ -239,11 +244,11 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
                                 <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>CA Name</Typography>
                                 <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>{slot!.active_certificate.ca_name}</Typography>
                             </Grid> */}
-                            <Grid xs="auto">
-                                <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Serial Number</Typography>
-                                <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>{slot.versions[slot.active_version]}</Typography>
-                            </Grid>
-                            {/* <Grid xs="auto">
+                                    <Grid xs="auto">
+                                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Serial Number</Typography>
+                                        <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>{slot.versions[slot.active_version]}</Typography>
+                                    </Grid>
+                                    {/* <Grid xs="auto">
                                 <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Key Properties</Typography>
                                 <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>{`${slot!.active_certificate!.key_metadata.type.toUpperCase()} ${slot!.active_certificate!.key_metadata.bits}`}</Typography>
                             </Grid>
@@ -257,10 +262,10 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
                                     {decodedCertificateSubject}
                                 </Typography>
                             </Grid> */}
-                        </Grid>
-                    </Grid>
-                    <Grid xs="auto">
-                        {/* {
+                                </Grid>
+                            </Grid>
+                            <Grid xs="auto">
+                                {/* {
                             slot.status && (
                                 <Grid xs container alignItems={"center"} justifyContent={"flex-end"}>
                                     <Button variant="outlined" size="small" onClick={() => { setShowCertificate(true); }}>View Certificate</Button>
@@ -284,13 +289,14 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
 
                             )
                         } */}
+                            </Grid>
+                        </Grid>
                     </Grid>
-                </Grid>
-            </Grid>
-
+                )
+            }
             <Grid container sx={{ flexGrow: 1 }} columns={13}>
-                <Grid xs={10} columns={12} sx={{ padding: "30px", height: "100%" }} container>
-                    <Grid xs={12} container component={Paper} spacing={2}>
+                <Grid xs md={10} columns={12} sx={{ padding: "30px", height: "100%" }} container>
+                    <Grid md={12} container component={Paper} spacing={2}>
                         <Grid xs={12} sx={{ padding: "15px" }}>
                             <Typography variant="h4">Certificates</Typography>
                         </Grid>
@@ -337,94 +343,97 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
                         </Grid>
                     </Grid>
                 </Grid>
-
-                <Grid xs={3} container flexDirection={"column"} component={Paper} borderRadius={0} >
-                    <Grid sx={{ flexGrow: 1, overflowY: "auto", overflowX: "hidden", height: "0px", padding: "20px" }}>
-                        <Timeline position="right" sx={{
-                            [`& .${timelineContentClasses.root}`]: {
-                            }
-                        }}>
-                            {
-                                devEvents.map((ev, idx) => {
-                                    let eventColor: "success" | "error" | "grey" | "warning" | [string, string] = "grey";
-                                    switch (ev.event.type) {
-                                    case DeviceEventType.Created:
-                                        eventColor = "success";
-                                        break;
-
-                                    case DeviceEventType.Provisioned:
-                                        eventColor = "success";
-                                        break;
-
-                                    case DeviceEventType.ReProvisioned:
-                                        eventColor = "warning";
-                                        break;
-
-                                    case DeviceEventType.ShadowUpdated:
-                                        eventColor = "warning";
-                                        break;
-
-                                    case DeviceEventType.Renewed:
-                                        eventColor = "success";
-                                        break;
-
-                                    case DeviceEventType.Decommissioned:
-                                        eventColor = "error";
-                                        break;
-                                    case DeviceEventType.StatusUpdated:
-                                        if (ev.event.description.includes("to 'REVOKED'")) {
-                                            eventColor = "error";
-                                        } else if (ev.event.description.includes("to 'ACTIVE'")) {
-                                            eventColor = "success";
-                                        } else if (ev.event.description.includes("to 'REQUIRES_ACTION'")) {
-                                            eventColor = "error";
-                                        } else if (ev.event.description.includes("to 'ACTIVE_WITH_WARNS'")) {
-                                            eventColor = ["#000000", "#F1DB3D"];
-                                        } else if (ev.event.description.includes("to 'WARN'")) {
-                                            eventColor = ["#000000", "#F1DB3D"];
-                                        } else if (ev.event.description.includes("to 'ACTIVE_WITH_CRITICAL'")) {
-                                            eventColor = ["#444444", "#F88B56"];
-                                        } else if (ev.event.description.includes("to 'CRITICAL'")) {
-                                            eventColor = ["#444444", "#F88B56"];
-                                        } else {
-                                            eventColor = "grey";
-                                        }
-                                        break;
-
-                                    default:
-                                        break;
+                {
+                    !isMobileScreen && (
+                        <Grid md={3} container flexDirection={"column"} component={Paper} borderRadius={0} >
+                            <Grid sx={{ flexGrow: 1, overflowY: "auto", overflowX: "hidden", height: "0px", padding: "20px" }}>
+                                <Timeline position="right" sx={{
+                                    [`& .${timelineContentClasses.root}`]: {
                                     }
-                                    return (
-                                        <TimelineItem key={idx}>
-                                            <TimelineOppositeContent flex={"0.5!important"}>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    <Typography sx={{ color: theme.palette.text.secondary }} fontSize="13px">{ev.ts.format("DD-MM-YYYY HH:mm")}</Typography>
-                                                    <Typography sx={{ color: theme.palette.text.secondary, marginRight: "5px" }} fontSize="13px">{ev.ts.fromNow()}</Typography>
-                                                </Typography>
-                                            </TimelineOppositeContent>
-                                            <TimelineSeparator >
-                                                <TimelineDot />
-                                                {
-                                                    idx !== devEvents.length - 1 && (
-                                                        <TimelineConnector />
-                                                    )
+                                }}>
+                                    {
+                                        devEvents.map((ev, idx) => {
+                                            let eventColor: "success" | "error" | "grey" | "warning" | [string, string] = "grey";
+                                            switch (ev.event.type) {
+                                            case DeviceEventType.Created:
+                                                eventColor = "success";
+                                                break;
+
+                                            case DeviceEventType.Provisioned:
+                                                eventColor = "success";
+                                                break;
+
+                                            case DeviceEventType.ReProvisioned:
+                                                eventColor = "warning";
+                                                break;
+
+                                            case DeviceEventType.ShadowUpdated:
+                                                eventColor = "warning";
+                                                break;
+
+                                            case DeviceEventType.Renewed:
+                                                eventColor = "success";
+                                                break;
+
+                                            case DeviceEventType.Decommissioned:
+                                                eventColor = "error";
+                                                break;
+                                            case DeviceEventType.StatusUpdated:
+                                                if (ev.event.description.includes("to 'REVOKED'")) {
+                                                    eventColor = "error";
+                                                } else if (ev.event.description.includes("to 'ACTIVE'")) {
+                                                    eventColor = "success";
+                                                } else if (ev.event.description.includes("to 'REQUIRES_ACTION'")) {
+                                                    eventColor = "error";
+                                                } else if (ev.event.description.includes("to 'ACTIVE_WITH_WARNS'")) {
+                                                    eventColor = ["#000000", "#F1DB3D"];
+                                                } else if (ev.event.description.includes("to 'WARN'")) {
+                                                    eventColor = ["#000000", "#F1DB3D"];
+                                                } else if (ev.event.description.includes("to 'ACTIVE_WITH_CRITICAL'")) {
+                                                    eventColor = ["#444444", "#F88B56"];
+                                                } else if (ev.event.description.includes("to 'CRITICAL'")) {
+                                                    eventColor = ["#444444", "#F88B56"];
+                                                } else {
+                                                    eventColor = "grey";
                                                 }
-                                            </TimelineSeparator>
-                                            <TimelineContent sx={{ marginTop: "-5px" }}>
-                                                <Label color={"primary"}>{ev.event.type}</Label>
-                                                <Box sx={{ marginTop: "10px" }}>
-                                                    <Typography fontSize="12px">
-                                                        {ev.event.description}
-                                                    </Typography>
-                                                </Box>
-                                            </TimelineContent>
-                                        </TimelineItem>
-                                    );
-                                })
-                            }
-                        </Timeline>
-                    </Grid>
-                </Grid>
+                                                break;
+
+                                            default:
+                                                break;
+                                            }
+                                            return (
+                                                <TimelineItem key={idx}>
+                                                    <TimelineOppositeContent flex={"0.5!important"}>
+                                                        <Typography variant="body2" color="text.secondary">
+                                                            <Typography sx={{ color: theme.palette.text.secondary }} fontSize="13px">{ev.ts.format("DD-MM-YYYY HH:mm")}</Typography>
+                                                            <Typography sx={{ color: theme.palette.text.secondary, marginRight: "5px" }} fontSize="13px">{ev.ts.fromNow()}</Typography>
+                                                        </Typography>
+                                                    </TimelineOppositeContent>
+                                                    <TimelineSeparator >
+                                                        <TimelineDot />
+                                                        {
+                                                            idx !== devEvents.length - 1 && (
+                                                                <TimelineConnector />
+                                                            )
+                                                        }
+                                                    </TimelineSeparator>
+                                                    <TimelineContent sx={{ marginTop: "-5px" }}>
+                                                        <Label color={"primary"}>{ev.event.type}</Label>
+                                                        <Box sx={{ marginTop: "10px" }}>
+                                                            <Typography fontSize="12px">
+                                                                {ev.event.description}
+                                                            </Typography>
+                                                        </Box>
+                                                    </TimelineContent>
+                                                </TimelineItem>
+                                            );
+                                        })
+                                    }
+                                </Timeline>
+                            </Grid>
+                        </Grid>
+                    )
+                }
             </Grid>
         </Grid>
     );

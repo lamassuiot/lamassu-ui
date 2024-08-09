@@ -1,6 +1,6 @@
 /* eslint-disable no-template-curly-in-string */
 import { AWSIoTDMSMetadata, AWSIoTDMSMetadataRegistrationMode, AWSIoTPolicy, CreateUpdateDMSPayload, DMS, ESTAuthMode, EnrollmentProtocols, EnrollmentRegistrationMode } from "ducks/features/dmss/models";
-import { Alert, Button, Chip, Divider, MenuItem, Paper, Skeleton, Typography, useTheme } from "@mui/material";
+import { Alert, Button, Chip, Divider, Paper, Skeleton, Typography, useTheme } from "@mui/material";
 import { CASelector } from "components/CAs/CASelector";
 import { CertificateAuthority } from "ducks/features/cas/models";
 import { Editor } from "@monaco-editor/react";
@@ -409,10 +409,10 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                             <Typography variant="h4">Enrollment Device Registration</Typography>
                                         </Grid>
                                         <Grid xs={12}>
-                                            <FormSelect control={control} name="enrollProtocol.registrationMode" label="Registration Mode">
-                                                <MenuItem value={EnrollmentRegistrationMode.JITP}>JITP</MenuItem>
-                                                <MenuItem value={EnrollmentRegistrationMode.PreRegistration}>Pre Registration</MenuItem>
-                                            </FormSelect>
+                                            <FormSelect control={control} name="enrollProtocol.registrationMode" label="Registration Mode" options={[
+                                                { value: EnrollmentRegistrationMode.JITP, render: "JITP" },
+                                                { value: EnrollmentRegistrationMode.PreRegistration, render: "Pre Registration" }
+                                            ]} />
                                         </Grid>
                                         <Grid xs="auto">
                                             <FormIconInput control={control} name="enrollDeviceRegistration.icon" label="Icon" />
@@ -431,16 +431,16 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                             <Typography variant="h4">Enrollment Settings</Typography>
                                         </Grid>
                                         <Grid xs={12}>
-                                            <FormSelect control={control} name="enrollProtocol.protocol" label="Protocol">
-                                                <MenuItem value={EnrollmentProtocols.EST}>Enrollment Over Secure Transport</MenuItem>
-                                            </FormSelect>
+                                            <FormSelect control={control} name="enrollProtocol.protocol" label="Protocol" options={[
+                                                { value: EnrollmentProtocols.EST, render: "EST" }
+                                            ]}/>
                                         </Grid>
 
                                         <Grid xs={12}>
-                                            <FormSelect control={control} name="enrollProtocol.estAuthMode" label="Authentication Mode">
-                                                <MenuItem value={ESTAuthMode.ClientCertificate}>Client Certificate</MenuItem>
-                                                <MenuItem disabled value={ESTAuthMode.NoAuth}>No Auth</MenuItem>
-                                            </FormSelect>
+                                            <FormSelect control={control} name="enrollProtocol.estAuthMode" label="Authentication Mode" options={[
+                                                { value: ESTAuthMode.ClientCertificate, render: "Client Certificate" },
+                                                { value: ESTAuthMode.NoAuth, render: "No Auth" }
+                                            ]}/>
                                         </Grid>
                                         <Grid xs={12}>
                                             <CASelector value={getValues("enrollProtocol.enrollmentCA")} onSelect={(elems) => {
@@ -477,16 +477,16 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                         <Grid xs={12}>
                                             <FormSwitch control={control} name="reEnroll.allowExpired" label="Allow Expired Renewal" />
                                         </Grid>
-                                        <Grid xs={3}>
+                                        <Grid xs={12} md={3}>
                                             <TextField value={watchEnrollmentCA?.issuance_expiration.type === "Duration" ? watchEnrollmentCA?.issuance_expiration.duration : watchEnrollmentCA?.issuance_expiration.time} label="Certificate Lifespan" disabled />
                                         </Grid>
-                                        <Grid xs={3}>
+                                        <Grid xs={12} md={3}>
                                             <FormTextField control={control} name="reEnroll.allowedRenewalDelta" label="Allowed Renewal Delta" tooltip="Duration from the certificate's expiration time backwards that enables ReEnrolling. For instance, if the certificate being renew has 150 days left and the 'Allowed Renewal Delta' field is set to 100 days, the ReEnroll request will be denied. If instead the certificate will expire in 99 days, the ReEnroll request will be allowed." />
                                         </Grid>
-                                        <Grid xs={3}>
+                                        <Grid xs={12} md={3}>
                                             <FormTextField control={control} name="reEnroll.preventiveDelta" label="Preventive Renewal Delta" tooltip="Duration from the certificate's expiration time backwards that is used to flag the certificate as about to expire. Will trigger cloud remediation action (i.e. Update AWS Thing Shadow if exists) " />
                                         </Grid>
-                                        <Grid xs={3}>
+                                        <Grid xs={12} md={3}>
                                             <FormTextField control={control} name="reEnroll.criticalDelta" label="Critical Renewal Delta" tooltip="Duration from the certificate's expiration time backwards. Trigger event when this state is reached and no renewal was performed. Not used by Lamassu's services." />
                                         </Grid>
                                         <Grid xs={12}>
@@ -537,26 +537,24 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                     </Grid>
 
                                     <Grid xs={12}>
-                                        <FormSelect control={control} name="awsIotIntegration.id" label="AWS IoT Manager Instance">
-                                            {
-                                                window._env_.CLOUD_CONNECTORS.filter(item => item.startsWith("aws.")).map((id: string, idx: number) => {
-                                                    return (
-                                                        <MenuItem key={idx} value={id}>{id}</MenuItem>
-                                                    );
-                                                })
-                                            }
-                                        </FormSelect>
+                                        <FormSelect control={control} name="awsIotIntegration.id" label="AWS IoT Manager Instance" options={
+                                            window._env_.CLOUD_CONNECTORS.filter(item => item.startsWith("aws.")).map((id: string, idx: number) => {
+                                                return {
+                                                    value: id,
+                                                    render: () => <>{id}</>
+                                                };
+                                            })
+                                        } />
                                     </Grid>
-
                                     {
                                         watchAwsIotIntegration.id !== "" && (
                                             <>
                                                 <Grid xs={12} >
-                                                    <FormSelect control={control} name="awsIotIntegration.mode" label="Thing Provisioning">
-                                                        <MenuItem value={"auto"}>Automatic Registration on Enrollment</MenuItem>
-                                                        <MenuItem value={"jitp"}>JITP Template</MenuItem>
-                                                        <MenuItem value={"none"}>None</MenuItem>
-                                                    </FormSelect>
+                                                    <FormSelect control={control} name="awsIotIntegration.mode" label="Thing Provisioning" options={[
+                                                        { value: "auto", render: "Automatic Registration on Enrollment" },
+                                                        { value: "jitp", render: "JITP Template" },
+                                                        { value: "none", render: "None" }
+                                                    ]} />
                                                 </Grid>
 
                                                 {
@@ -571,7 +569,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                                                                     awsSync === AWSSync.RequiresSync && (
                                                                                         <>
                                                                                             <Grid>
-                                                                                                The selected Enrollment CA is not registered in AWS. Make sure to synchronize it first.
+                                                                                The selected Enrollment CA is not registered in AWS. Make sure to synchronize it first.
                                                                                             </Grid>
                                                                                             <Grid>
                                                                                                 <Button onClick={async () => {
@@ -591,13 +589,13 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                                                                     awsSync === AWSSync.SyncInProgress && (
                                                                                         <Grid>
                                                                                             <Grid>
-                                                                                                Registering process underway. CA should be registered soon, click on &apos;Reload & Check&apos; periodically.
+                                                                                Registering process underway. CA should be registered soon, click on &apos;Reload & Check&apos; periodically.
                                                                                             </Grid>
                                                                                             <Button onClick={async () => {
                                                                                                 const ca = await apicalls.cas.getCA(watchEnrollmentCA.id);
                                                                                                 setValue("enrollProtocol.enrollmentCA", ca);
                                                                                             }}>
-                                                                                                Reload & Check
+                                                                                Reload & Check
                                                                                             </Button>
                                                                                         </Grid>
                                                                                     )
@@ -613,14 +611,14 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                                                         <FullAlert severity="success">
                                                                             <Grid container flexDirection={"column"} spacing={2} sx={{ width: "100%" }}>
                                                                                 <Grid>
-                                                                                    The selected Enrollment CA is correctly registered in AWS:
+                                                                    The selected Enrollment CA is correctly registered in AWS:
                                                                                 </Grid>
                                                                                 <Grid>
                                                                                     <Button onClick={async () => {
                                                                                         const ca = await apicalls.cas.getCA(watchEnrollmentCA!.id);
                                                                                         setValue("enrollProtocol.enrollmentCA", ca);
                                                                                     }}>
-                                                                                        Reload & Check
+                                                                        Reload & Check
                                                                                     </Button>
                                                                                 </Grid>
 
@@ -696,10 +694,10 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                                 {
                                                     watchAwsIotIntegration.enableShadow && (
                                                         <Grid xs={12} >
-                                                            <FormSelect control={control} name="awsIotIntegration.shadowType" label="Shadow Type">
-                                                                <MenuItem value={"classic"}>Classic</MenuItem>
-                                                                <MenuItem value={"named"}>Named</MenuItem>
-                                                            </FormSelect>
+                                                            <FormSelect control={control} name="awsIotIntegration.shadowType" label="Shadow Type" options={[
+                                                                { value: "classic", render: () => <>Classic</> },
+                                                                { value: "named", render: () => <>Named</> }
+                                                            ]} />
                                                         </Grid>
                                                     )
                                                 }
@@ -716,7 +714,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                                             <Alert severity="warning">
                                                                 <Grid container spacing={2} width={"100%"}>
                                                                     <Grid xs={12}>
-                                                                        Make sure to add a policy allowing access to shadow topics
+                                                        Make sure to add a policy allowing access to shadow topics
                                                                     </Grid>
                                                                     <Grid xs={12} container spacing={1} flexDirection={"column"}>
                                                                         <Grid>
@@ -755,15 +753,14 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                     </Grid>
 
                                     <Grid xs={12}>
-                                        <FormSelect control={control} name="emqxIntegration.id" label="EMQX Instance ID">
-                                            {
-                                                window._env_.CLOUD_CONNECTORS.filter(item => item.startsWith("emqx.")).map((id: string, idx: number) => {
-                                                    return (
-                                                        <MenuItem key={idx} value={id}>{id}</MenuItem>
-                                                    );
-                                                })
-                                            }
-                                        </FormSelect>
+                                        <FormSelect control={control} name="emqxIntegration.id" label="EMQX Instance ID" options={
+                                            window._env_.CLOUD_CONNECTORS.filter(item => item.startsWith("emqx.")).map((id: string, idx: number) => {
+                                                return {
+                                                    value: id,
+                                                    render: () => <>{id}</>
+                                                };
+                                            })
+                                        } />
                                     </Grid>
 
                                     <Grid xs={12}>
@@ -818,7 +815,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                     </Grid>
                 </Grid>
             </Grid>
-        </form>
+        </form >
     );
 };
 
@@ -869,12 +866,9 @@ const AWSPolicyBuilder: React.FC<AWSPolicyBuilderProps> = ({ value, onChange }) 
                                 </Grid>
                             }
                             actions={
-                                <Grid container>
-                                    <Grid xs>
-                                        <Button variant="text" onClick={() => close()}>Cancel</Button>
-                                    </Grid>
-                                    <Grid xs="auto">
-                                        <Button variant="contained" onClick={() => {
+                                <Grid container spacing={2}>
+                                    <Grid xs md="auto">
+                                        <Button variant="contained" fullWidth onClick={() => {
                                             const newP = [...value];
                                             const index = newP.findIndex(it => it.policy_name === newPolicyName);
                                             const item = { policy_name: newPolicyName, policy_document: JSON.stringify(JSON.parse(newPolicyDoc), null, 4) };
@@ -888,6 +882,9 @@ const AWSPolicyBuilder: React.FC<AWSPolicyBuilderProps> = ({ value, onChange }) 
 
                                             close();
                                         }}>Add</Button>
+                                    </Grid>
+                                    <Grid xs="auto" md="auto">
+                                        <Button variant="text" onClick={() => close()}>Cancel</Button>
                                     </Grid>
                                 </Grid>
                             }

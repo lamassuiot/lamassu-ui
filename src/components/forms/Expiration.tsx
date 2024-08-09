@@ -1,5 +1,4 @@
 import { Control, Controller, FieldPath, FieldValues, useForm } from "react-hook-form";
-import { MenuItem } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
 import React, { useEffect } from "react";
 import { FormSelect } from "./Select";
@@ -26,9 +25,9 @@ export const FormExpirationInput = <T extends FieldValues>(props: FormExpiration
 };
 
 type FormData = {
-        type: "duration" | "date" | "date-infinity",
-        date: Moment,
-        duration: string
+    type: "duration" | "date" | "date-infinity",
+    date: Moment,
+    duration: string
 };
 
 interface ExpirationInputProps {
@@ -55,15 +54,11 @@ export const ExpirationInput = (props: ExpirationInputProps) => {
     return (
         <Grid container spacing={2} alignItems={"end"}>
             <Grid xs={4}>
-                <FormSelect control={control} name="type" label="">
-                    <MenuItem value={"duration"}>Duration</MenuItem>
-                    <MenuItem value={"date"}>End Date</MenuItem>
-                    {
-                        props.enableInfiniteDate && (
-                            <MenuItem value={"date-infinity"}>Indefinite Validity</MenuItem>
-                        )
-                    }
-                </FormSelect>
+                <FormSelect control={control} name="type" label="" options={[
+                    { value: "duration", render: "Duration" },
+                    { value: "date", render: "End Date" },
+                    ...(props.enableInfiniteDate ? [{ value: "date-infinity", render: "Indefinite Validity" }] : [])
+                ]} />
             </Grid>
             {
                 watchAll.type === "duration" && (

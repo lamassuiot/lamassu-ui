@@ -1,4 +1,4 @@
-import { Box, Button, IconButton, MenuItem, Tooltip, Typography, lighten } from "@mui/material";
+import { Box, Button, IconButton, Tooltip, Typography, lighten } from "@mui/material";
 import { CACustomFetchViewer } from "components/CAs/CACustomFetchViewer";
 import { CAMetadata } from "./CAMetadata";
 import { CertificateAuthority, CertificateStatus, CryptoEngine, RevocationReason, getRevocationReasonDescription } from "ducks/features/cas/models";
@@ -10,7 +10,6 @@ import { IssuedCertificates } from "./IssuedCertificates";
 import { Modal } from "../../components/Modal";
 import { Select } from "components/Select";
 import { SignVerifyView } from "./SignVerify";
-import { SingleStatDoughnut } from "components/Charts/SingleStatDouhbnut";
 import { TabsListWithRouter } from "components/TabsListWithRouter";
 import { TextField } from "components/TextField";
 import { enqueueSnackbar } from "notistack";
@@ -24,6 +23,7 @@ import React, { useState } from "react";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import apicalls from "ducks/apicalls";
 import moment from "moment";
+import { SingleStatDoughnut } from "components/Charts/SingleStatDouhbnut";
 
 interface Props {
     caName: string
@@ -114,27 +114,72 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                 return (
                     <Box style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                         <Box style={{ padding: "30px 40px 0 40px" }}>
-                            <Grid container spacing={2} justifyContent="flex-start">
-                                <Grid xs container flexDirection={{ xs: "column", xl: "row" }}>
-                                    <Grid container xs="auto" flexDirection={"column"}>
-                                        <Grid xs="auto" container spacing={1}>
-                                            {
-                                                <Grid xs="auto">
-                                                    <Label color={"primary"}>{caData.type}</Label>
-                                                </Grid>
-                                            }
+                            <Grid container spacing={2}>
+                                <Grid xs container>
+                                    <Grid xs="auto" container spacing={1} flex={"auto"}>
+                                        {
                                             <Grid xs="auto">
-                                                <Label>{`Key Strength: ${caData.key_metadata.strength}`}</Label>
+                                                <Label color={"primary"}>{caData.type}</Label>
                                             </Grid>
-                                            <Grid xs="auto">
-                                                <Label color={caData.status !== CertificateStatus.Active ? "error" : "grey"}>{caData.status}</Label>
-                                            </Grid>
-                                        </Grid>
+                                        }
                                         <Grid xs="auto">
-                                            <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 26, lineHeight: "24px", marginRight: "10px", marginBottom: "5px" }}>{caData.subject.common_name}</Typography>
-                                            <Label>{caData.id}</Label>
+                                            <Label color={caData.status !== CertificateStatus.Active ? "error" : "grey"}>{caData.status}</Label>
                                         </Grid>
                                     </Grid>
+                                </Grid>
+                                <Grid xs="auto" container>
+                                    <Grid xs="auto">
+                                        <Tooltip title="Reload CA data">
+                                            <IconButton style={{ background: lighten(theme.palette.primary.main, 0.7) }} onClick={() => { refreshAction(); }}>
+                                                <RefreshIcon style={{ color: theme.palette.primary.main }} />
+                                            </IconButton>
+                                        </Tooltip >
+                                    </Grid>
+                                    {
+                                        (caData.type !== "EXTERNAL" && caData.status !== CertificateStatus.Revoked) && (
+                                            <Grid xs="auto">
+                                                <Tooltip title="Revoke CA">
+                                                    <IconButton onClick={() => setRevokeDialog(caData)} style={{ background: lighten(theme.palette.error.main, 0.7) }}>
+                                                        <DeleteIcon style={{ color: theme.palette.error.main }} />
+                                                    </IconButton>
+                                                </Tooltip >
+                                            </Grid>
+                                        )
+                                    }
+                                    {
+                                        ((caData.type !== "EXTERNAL" && caData.status === CertificateStatus.Revoked) || (caData.type === "EXTERNAL")) && (
+                                            <Grid xs="auto">
+                                                <Button variant="contained" color="error" onClick={async () => {
+                                                    try {
+                                                        await apicalls.cas.deleteCA(caData.id);
+                                                        navigate("/cas");
+                                                        enqueueSnackbar(`CA with ID ${caData.id} and CN ${caData.subject.common_name} deleted`, { variant: "success" });
+                                                    } catch (e) {
+                                                        enqueueSnackbar(`Error while deleting CA with ID ${caData.id} and CN ${caData.subject.common_name}: ${e}`, { variant: "error" });
+                                                    }
+                                                }}>Permanently Delete</Button>
+                                            </Grid>
+                                        )
+                                    }
+                                </Grid>
+                            </Grid>
+                            <Grid container spacing={2} style={{ marginTop: 0 }}>
+                                <Grid xs="auto">
+                                    <Grid xs={12}>
+                                        <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 26, lineHeight: "24px", marginRight: "10px", marginBottom: "5px" }}>{caData.subject.common_name}</Typography>
+                                        <Label>{caData.id}</Label>
+                                    </Grid>
+                                    <Grid style={{ paddingTop: 0 }}>
+                                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 13 }}>{`${caData.key_metadata.type} ${caData.key_metadata.bits} - ${caData.key_metadata.strength}`}</Typography>
+                                    </Grid>
+                                    <Grid style={{ paddingTop: 0 }}>
+                                        <Box style={{ display: "flex", alignItems: "center" }}>
+                                            <AccessTimeIcon style={{ color: theme.palette.text.secondary, fontSize: 15, marginRight: 5 }} />
+                                            <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>{`Expiration date: ${moment(caData.valid_to).format("DD/MM/YYYY")}`}</Typography>
+                                        </Box>
+                                    </Grid>
+                                </Grid>
+                                <Grid xs="auto">
                                     {
                                         caData.type !== "EXTERNAL" && (
                                             <FetchViewer
@@ -173,52 +218,6 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                                         )
                                     }
                                 </Grid>
-                                <Grid xs="auto" container justifyContent="flex-end" spacing={2}>
-                                    <Grid xs="auto">
-                                        <Tooltip title="Reload CA data">
-                                            <IconButton style={{ background: lighten(theme.palette.primary.main, 0.7) }} onClick={() => { refreshAction(); }}>
-                                                <RefreshIcon style={{ color: theme.palette.primary.main }} />
-                                            </IconButton>
-                                        </Tooltip >
-                                    </Grid>
-                                    {
-                                        (caData.type !== "EXTERNAL" && caData.status === CertificateStatus.Revoked) && (
-                                            <Grid xs="auto">
-                                                <Tooltip title="Revoke CA">
-                                                    <IconButton onClick={() => setRevokeDialog(caData)} style={{ background: lighten(theme.palette.error.main, 0.7) }}>
-                                                        <DeleteIcon style={{ color: theme.palette.error.main }} />
-                                                    </IconButton>
-                                                </Tooltip >
-                                            </Grid>
-                                        )
-                                    }
-                                    {
-                                        ((caData.type !== "EXTERNAL" && caData.status === CertificateStatus.Revoked) || (caData.type === "EXTERNAL")) && (
-                                            <Grid xs="auto">
-                                                <Button variant="contained" color="error" onClick={async () => {
-                                                    try {
-                                                        await apicalls.cas.deleteCA(caData.id);
-                                                        navigate("/cas");
-                                                        enqueueSnackbar(`CA with ID ${caData.id} and CN ${caData.subject.common_name} deleted`, { variant: "success" });
-                                                    } catch (e) {
-                                                        enqueueSnackbar(`Error while deleting CA with ID ${caData.id} and CN ${caData.subject.common_name}: ${e}`, { variant: "error" });
-                                                    }
-                                                }}>Permanently Delete</Button>
-                                            </Grid>
-                                        )
-                                    }
-                                </Grid>
-                            </Grid>
-                            <Grid container spacing={2} justifyContent="flex-start" style={{ marginTop: 0 }}>
-                                <Grid style={{ paddingTop: 0 }}>
-                                    <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 13 }}>{`${caData.key_metadata.type} ${caData.key_metadata.bits} - ${caData.key_metadata.strength}`}</Typography>
-                                </Grid>
-                                <Grid style={{ paddingTop: 0 }}>
-                                    <Box style={{ display: "flex", alignItems: "center" }}>
-                                        <AccessTimeIcon style={{ color: theme.palette.text.secondary, fontSize: 15, marginRight: 5 }} />
-                                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>{`Expiration date: ${moment(caData.valid_to).format("DD/MM/YYYY")}`}</Typography>
-                                    </Box>
-                                </Grid>
                             </Grid>
                         </Box>
                         <div style={{ height: "1px", flex: 1 }}>
@@ -256,10 +255,11 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                                             </Grid>
                                             <Grid container flexDirection={"column"} spacing={2}>
                                                 <Grid>
-                                                    <Select label="Select Revocation Reason" value={revokeReason} onChange={(ev: any) => setRevokeReason(ev.target.value!)}>
-                                                        {
-                                                            Object.values(RevocationReason).map((rCode, idx) => (
-                                                                <MenuItem key={idx} value={rCode} >
+                                                    <Select label="Select Revocation Reason" value={revokeReason} onChange={(ev: any) => setRevokeReason(ev.target.value!)} options={
+                                                        Object.values(RevocationReason).map((rCode, idx) => {
+                                                            return {
+                                                                value: rCode,
+                                                                render: () => (
                                                                     <Grid container spacing={1}>
                                                                         <Grid xs={12}>
                                                                             <Typography variant="body1" fontWeight={"bold"}>{rCode}</Typography>
@@ -268,10 +268,10 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                                                                             <Typography variant="body2">{getRevocationReasonDescription(rCode)}</Typography>
                                                                         </Grid>
                                                                     </Grid>
-                                                                </MenuItem>
-                                                            ))
-                                                        }
-                                                    </Select>
+                                                                )
+                                                            };
+                                                        })
+                                                    } />
                                                 </Grid>
                                             </Grid>
                                         </Grid>
@@ -281,19 +281,23 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                                     )
                             }
                             actions={
-                                <Box>
-                                    <Button variant="text" onClick={() => { setRevokeDialog(undefined); }}>Close</Button>
-                                    <Button variant="contained" onClick={async () => {
-                                        try {
-                                            apicalls.cas.updateCAStatus(revokeDialog!.id, CertificateStatus.Revoked, revokeReason);
-                                            refreshAction();
-                                            enqueueSnackbar(`CA with ID ${revokeDialog?.id} and CN ${revokeDialog?.subject.common_name} revoked`, { variant: "success" });
-                                            setRevokeDialog(undefined);
-                                        } catch (err) {
-                                            enqueueSnackbar(`Error while revoking CA with ID ${revokeDialog?.id} and CN ${revokeDialog?.subject.common_name}: ${err}`, { variant: "error" });
-                                        }
-                                    }}>Revoke Certificate</Button>
-                                </Box >
+                                < Grid container spacing={2} >
+                                    <Grid xs md="auto">
+                                        <Button fullWidth variant="contained" onClick={async () => {
+                                            try {
+                                                apicalls.cas.updateCAStatus(revokeDialog!.id, CertificateStatus.Revoked, revokeReason);
+                                                refreshAction();
+                                                enqueueSnackbar(`CA with ID ${revokeDialog?.id} and CN ${revokeDialog?.subject.common_name} revoked`, { variant: "success" });
+                                                setRevokeDialog(undefined);
+                                            } catch (err) {
+                                                enqueueSnackbar(`Error while revoking CA with ID ${revokeDialog?.id} and CN ${revokeDialog?.subject.common_name}: ${err}`, { variant: "error" });
+                                            }
+                                        }}>Revoke Certificate</Button>
+                                    </Grid>
+                                    <Grid xs="auto" md="auto">
+                                        <Button variant="text" onClick={() => { setRevokeDialog(undefined); }}>Close</Button>
+                                    </Grid>
+                                </Grid >
                             }
                         />
                     </Box >

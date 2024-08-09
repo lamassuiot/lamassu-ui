@@ -20,7 +20,8 @@ interface WrapperComponentProps<T extends GridValidRowModel> {
     density?: GridDensity
     sortField?: GridSortItem
     pageSize?: number,
-    filter?: GridFilterItem
+    filter?: GridFilterItem,
+    onRowClick?: (row: T) => void
 }
 
 export type FetchHandle = {
@@ -157,6 +158,17 @@ const Fetcher = <T extends GridValidRowModel>(props: ComponentProps<T>, ref: Ref
                     errorMsg: error || undefined
                 }
             }}
+            {...props.onRowClick !== undefined && {
+                onRowClick: (row) => {
+                    props.onRowClick!(row.row as T);
+                }
+            }}
+            autosizeOptions={{
+                columns: ["status"],
+                includeOutliers: false,
+                includeHeaders: true
+            }}
+            autosizeOnMount
             paginationModel={paginationModel}
             onPaginationModelChange={handlePaginationChange}
             paginationMode="server"

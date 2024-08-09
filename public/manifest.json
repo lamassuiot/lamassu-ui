@@ -1,25 +1,50 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Lamassu",
+  "name": "Lamassu IoT PKI",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "assets/pwa/manifest-icon-192.maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "logo192.png",
+      "src": "assets/pwa/manifest-icon-192.maskable.png",
+      "sizes": "192x192",
       "type": "image/png",
-      "sizes": "192x192"
+      "purpose": "maskable"
     },
     {
-      "src": "logo512.png",
+      "src": "assets/pwa/manifest-icon-512.maskable.png",
+      "sizes": "512x512",
       "type": "image/png",
-      "sizes": "512x512"
+      "purpose": "any"
+    },
+    {
+      "src": "assets/pwa/manifest-icon-512.maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/pwa/screenshot/desktop.png",
+      "sizes": "1918x903",
+      "type": "image/gif",
+      "form_factor": "wide",
+      "label": "Application"
+    },
+    {
+      "src": "/assets/pwa/screenshot/mobile.png",
+      "sizes": "491x579",
+      "type": "image/gif",
+      "form_factor": "wide",
+      "label": "Application"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#0100f8",
+  "background_color": "#0100f8"
 }

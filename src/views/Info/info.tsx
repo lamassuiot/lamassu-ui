@@ -144,7 +144,7 @@ export const InfoView = () => {
                                             <Avatar
                                                 shape="square"
                                                 aria-label="square avatar"
-                                                image={{ src: process.env.PUBLIC_URL + "/assets/square-lamassu.svg" }}
+                                                image={{ src: process.env.PUBLIC_URL + "/assets/lamassu/lamassu-logo-square.svg" }}
                                                 color="blue"
                                             />
                                         }

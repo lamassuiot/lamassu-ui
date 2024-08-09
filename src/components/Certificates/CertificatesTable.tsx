@@ -1,4 +1,4 @@
-import { Box, Button, IconButton, MenuItem, Paper, Tooltip, Typography, lighten, useTheme } from "@mui/material";
+import { Box, Button, IconButton, Paper, Tooltip, Typography, lighten, useTheme } from "@mui/material";
 import { Certificate, CertificateAuthority, CertificateStatus, RevocationReason, getRevocationReasonDescription } from "ducks/features/cas/models";
 import { CodeCopier } from "components/CodeCopier";
 import { FetchHandle, TableFetchViewer } from "components/TableFetcherView";
@@ -53,7 +53,7 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
         {
             field: "serial_number",
             headerName: "Serial Number",
-            minWidth: 250,
+            minWidth: 150,
             flex: 0.2
             // renderCell: ({ value, row, id }) => {
             //     return <Typography fontWeight={"500"}>{value}</Typography>;
@@ -294,7 +294,7 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
                 onClose={() => { setShowDialog(undefined); }}
                 actions={
                     <Box>
-                        <Button onClick={() => { setShowDialog(undefined); }}>Close</Button>
+                        <Button fullWidth onClick={() => { setShowDialog(undefined); }}>Close</Button>
                     </Box>
                 }
                 content={
@@ -340,10 +340,11 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
                                 </Grid>
                                 <Grid container flexDirection={"column"} spacing={2}>
                                     <Grid>
-                                        <Select label="Select Revocation Reason" value={revokeReason} onChange={(ev: any) => setRevokeReason(ev.target.value!)}>
-                                            {
-                                                Object.values(RevocationReason).map((rCode, idx) => (
-                                                    <MenuItem key={idx} value={rCode} >
+                                        <Select label="Select Revocation Reason" value={revokeReason} onChange={(ev: any) => setRevokeReason(ev.target.value!)} options={
+                                            Object.values(RevocationReason).map((rCode, idx) => {
+                                                return {
+                                                    value: rCode,
+                                                    render: () => (
                                                         <Grid container spacing={1}>
                                                             <Grid xs={12}>
                                                                 <Typography variant="body1" fontWeight={"bold"}>{rCode}</Typography>
@@ -352,10 +353,10 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
                                                                 <Typography variant="body2">{getRevocationReasonDescription(rCode)}</Typography>
                                                             </Grid>
                                                         </Grid>
-                                                    </MenuItem>
-                                                ))
-                                            }
-                                        </Select>
+                                                    )
+                                                };
+                                            })
+                                        } />
                                     </Grid>
                                 </Grid>
                             </Grid>
@@ -365,19 +366,23 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
                         )
                 }
                 actions={
-                    <Box>
-                        <Button variant="text" onClick={() => { setRevokeDialog(undefined); }}>Close</Button>
-                        <Button variant="contained" onClick={async () => {
-                            try {
-                                await apicalls.cas.updateCertificateStatus(revokeDialog!.serial_number, CertificateStatus.Revoked, revokeReason);
-                                tableRef.current?.refresh();
-                                enqueueSnackbar(`Certificate with Serial Number ${revokeDialog?.serial_number} and CN ${revokeDialog?.subject.common_name} revoked`, { variant: "success" });
-                                setRevokeDialog(undefined);
-                            } catch (err) {
-                                enqueueSnackbar(`Error while revoking Certificate with Serial Number ${revokeDialog?.serial_number} and CN ${revokeDialog?.subject.common_name}: ${err}`, { variant: "error" });
-                            }
-                        }}>Revoke Certificate</Button>
-                    </Box >
+                    <Grid container spacing={2}>
+                        <Grid xs md="auto">
+                            <Button variant="contained" fullWidth onClick={async () => {
+                                try {
+                                    await apicalls.cas.updateCertificateStatus(revokeDialog!.serial_number, CertificateStatus.Revoked, revokeReason);
+                                    tableRef.current?.refresh();
+                                    enqueueSnackbar(`Certificate with Serial Number ${revokeDialog?.serial_number} and CN ${revokeDialog?.subject.common_name} revoked`, { variant: "success" });
+                                    setRevokeDialog(undefined);
+                                } catch (err) {
+                                    enqueueSnackbar(`Error while revoking Certificate with Serial Number ${revokeDialog?.serial_number} and CN ${revokeDialog?.subject.common_name}: ${err}`, { variant: "error" });
+                                }
+                            }}>Revoke Certificate</Button>
+                        </Grid>
+                        <Grid xs="auto" md="auto">
+                            <Button variant="text" onClick={() => { setRevokeDialog(undefined); }}>Close</Button>
+                        </Grid>
+                    </Grid>
                 }
             />
         </>

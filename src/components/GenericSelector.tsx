@@ -1,9 +1,13 @@
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { Autocomplete, LinearProgress, TextField, useTheme } from "@mui/material";
+import { Autocomplete, LinearProgress, Popper, TextField, styled, useTheme } from "@mui/material";
 import { KeyValueLabel } from "./KeyValue";
 import Grid from "@mui/material/Unstable_Grid2";
 import React from "react";
 import deepEqual from "fast-deep-equal/es6";
+
+const StyledPopper = styled(Popper)(({ theme }) => ({
+    zIndex: "9999999!important"
+}));
 
 interface WrapperProps<T> {
     fetcher: (query: string, controller: AbortController) => Promise<T[]>
@@ -99,6 +103,7 @@ export const GenericSelector = <T extends object>(props: GenericSelectorProps<T>
                             </li>
                         )
                     })}
+                    PopperComponent={StyledPopper}
                     multiple={props.multiple}
                     renderInput={(params) => (
                         <div ref={params.InputProps.ref}>
