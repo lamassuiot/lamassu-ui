@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { Alert, MenuItem, Typography, useTheme } from "@mui/material";
+import { Alert, Typography, useTheme } from "@mui/material";
 import { CertificateAuthority } from "ducks/features/cas/models";
 import { CodeCopier } from "components/CodeCopier";
 import { FormSelect } from "components/forms/Select";
@@ -191,29 +191,29 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
                             <Typography variant="h4">Sign</Typography>
                         </Grid>
                         <Grid xs>
-                            <FormSelect control={control} name="sign.algorithm" label="Algorithm">
-                                <MenuItem value={"RSASSA_PSS_SHA_256"}>RSASSA_PSS_SHA_256</MenuItem>
-                                <MenuItem value={"RSASSA_PSS_SHA_384"}>RSASSA_PSS_SHA_384</MenuItem>
-                                <MenuItem value={"RSASSA_PSS_SHA_512"}>RSASSA_PSS_SHA_512</MenuItem>
-                                <MenuItem value={"RSASSA_PKCS1_V1_5_SHA_256"}>RSASSA_PKCS1_V1_5_SHA_256</MenuItem>
-                                <MenuItem value={"RSASSA_PKCS1_V1_5_SHA_384"}>RSASSA_PKCS1_V1_5_SHA_384</MenuItem>
-                                <MenuItem value={"RSASSA_PKCS1_V1_5_SHA_512"}>RSASSA_PKCS1_V1_5_SHA_512</MenuItem>
-                                <MenuItem value={"ECDSA_SHA_256"}>ECDSA_SHA_256</MenuItem>
-                                <MenuItem value={"ECDSA_SHA_384"}>ECDSA_SHA_384</MenuItem>
-                                <MenuItem value={"ECDSA_SHA_512"}>ECDSA_SHA_512</MenuItem>
-                            </FormSelect>
+                            <FormSelect control={control} name="sign.algorithm" label="Algorithm" options={[
+                                { value: "RSASSA_PSS_SHA_256", render: "RSASSA_PSS_SHA_256" },
+                                { value: "RSASSA_PSS_SHA_384", render: "RSASSA_PSS_SHA_384" },
+                                { value: "RSASSA_PSS_SHA_512", render: "RSASSA_PSS_SHA_512" },
+                                { value: "RSASSA_PKCS1_V1_5_SHA_256", render: "RSASSA_PKCS1_V1_5_SHA_256" },
+                                { value: "RSASSA_PKCS1_V1_5_SHA_384", render: "RSASSA_PKCS1_V1_5_SHA_384" },
+                                { value: "RSASSA_PKCS1_V1_5_SHA_512", render: "RSASSA_PKCS1_V1_5_SHA_512" },
+                                { value: "ECDSA_SHA_256", render: "ECDSA_SHA_256" },
+                                { value: "ECDSA_SHA_384", render: "ECDSA_SHA_384" },
+                                { value: "ECDSA_SHA_512", render: "ECDSA_SHA_512" }
+                            ]}/>
                         </Grid>
                         <Grid xs>
-                            <FormSelect control={control} name="sign.messageType" label="Message Type">
-                                <MenuItem value={"hash"}>Hash</MenuItem>
-                                <MenuItem value={"raw"}>Raw</MenuItem>
-                            </FormSelect>
+                            <FormSelect control={control} name="sign.messageType" label="Message Type"options={[
+                                { value: "hash", render: "Hash" },
+                                { value: "raw", render: "Raw" }
+                            ]}/>
                         </Grid>
                         <Grid xs>
-                            <FormSelect control={control} name="sign.messageTypeEncoding" label="Payload Encoding Format">
-                                <MenuItem value={"PlainText"}>Plain text</MenuItem>
-                                <MenuItem value={"Base64"}>Base64</MenuItem>
-                            </FormSelect>
+                            <FormSelect control={control} name="sign.messageTypeEncoding" label="Payload Encoding Format" options={[
+                                { value: "PlainText", render: "Plain text" },
+                                { value: "Base64", render: "Base64" }
+                            ]}/>
                         </Grid>
                         <Grid xs>
                             <FormTextField label="Payload to Sign" control={control} name="sign.message" multiline rows={3} maxRows={5} />
@@ -264,29 +264,29 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
                             <Typography variant="h4">Verify</Typography>
                         </Grid>
                         <Grid xs>
-                            <FormSelect control={control} name="verify.algorithm" label="Algorithm">
-                                <MenuItem value={"RSASSA_PSS_SHA_256"}>RSASSA_PSS_SHA_256</MenuItem>
-                                <MenuItem value={"RSASSA_PSS_SHA_384"}>RSASSA_PSS_SHA_384</MenuItem>
-                                <MenuItem value={"RSASSA_PSS_SHA_512"}>RSASSA_PSS_SHA_512</MenuItem>
-                                <MenuItem value={"RSASSA_PKCS1_V1_5_SHA_256"}>RSASSA_PKCS1_V1_5_SHA_256</MenuItem>
-                                <MenuItem value={"RSASSA_PKCS1_V1_5_SHA_384"}>RSASSA_PKCS1_V1_5_SHA_384</MenuItem>
-                                <MenuItem value={"RSASSA_PKCS1_V1_5_SHA_512"}>RSASSA_PKCS1_V1_5_SHA_512</MenuItem>
-                                <MenuItem value={"ECDSA_SHA_256"}>ECDSA_SHA_256</MenuItem>
-                                <MenuItem value={"ECDSA_SHA_384"}>ECDSA_SHA_384</MenuItem>
-                                <MenuItem value={"ECDSA_SHA_512"}>ECDSA_SHA_512</MenuItem>
-                            </FormSelect>
+                            <FormSelect control={control} name="verify.algorithm" label="Algorithm" options={[
+                                { value: "RSASSA_PSS_SHA_256", render: "RSASSA_PSS_SHA_256" },
+                                { value: "RSASSA_PSS_SHA_384", render: "RSASSA_PSS_SHA_384" },
+                                { value: "RSASSA_PSS_SHA_512", render: "RSASSA_PSS_SHA_512" },
+                                { value: "RSASSA_PKCS1_V1_5_SHA_256", render: "RSASSA_PKCS1_V1_5_SHA_256" },
+                                { value: "RSASSA_PKCS1_V1_5_SHA_384", render: "RSASSA_PKCS1_V1_5_SHA_384" },
+                                { value: "RSASSA_PKCS1_V1_5_SHA_512", render: "RSASSA_PKCS1_V1_5_SHA_512" },
+                                { value: "ECDSA_SHA_256", render: "ECDSA_SHA_256" },
+                                { value: "ECDSA_SHA_384", render: "ECDSA_SHA_384" },
+                                { value: "ECDSA_SHA_512", render: "ECDSA_SHA_512" }
+                            ]}/>
                         </Grid>
                         <Grid xs>
-                            <FormSelect control={control} name="verify.messageType" label="Message Type">
-                                <MenuItem value={"hash"}>Hash</MenuItem>
-                                <MenuItem value={"raw"}>Raw</MenuItem>
-                            </FormSelect>
+                            <FormSelect control={control} name="verify.messageType" label="Message Type" options={[
+                                { value: "hash", render: "Hash" },
+                                { value: "raw", render: "Raw" }
+                            ]}/>
                         </Grid>
                         <Grid xs>
-                            <FormSelect control={control} name="verify.messageTypeEncoding" label="Unsigned Payload Encoding Format">
-                                <MenuItem value={"PlainText"}>Plain text</MenuItem>
-                                <MenuItem value={"Base64"}>Base64</MenuItem>
-                            </FormSelect>
+                            <FormSelect control={control} name="verify.messageTypeEncoding" label="Unsigned Payload Encoding Format" options={[
+                                { value: "PlainText", render: "Plain text" },
+                                { value: "Base64", render: "Base64" }
+                            ]}/>
                         </Grid>
                         <Grid xs>
                             <FormTextField label="Unsigned Payload" control={control} name="verify.message" multiline rows={3} maxRows={5} />
@@ -331,7 +331,6 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
                                 )
                             }
                         </Grid>
-
                     </Grid>
                 </form>
             </Grid>

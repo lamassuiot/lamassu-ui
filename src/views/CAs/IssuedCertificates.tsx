@@ -1,4 +1,4 @@
-import { Alert, Box, Breadcrumbs, Button, Divider, IconButton, Link, MenuItem, Paper, Skeleton, Slide, Tooltip, Typography, lighten, useTheme } from "@mui/material";
+import { Alert, Box, Breadcrumbs, Button, Divider, IconButton, Link, Paper, Skeleton, Slide, Tooltip, Typography, lighten, useTheme } from "@mui/material";
 import { Certificate, CertificateAuthority, CertificateStatus, RevocationReason, getRevocationReasonDescription } from "ducks/features/cas/models";
 import { CertificatesTable } from "components/Certificates/CertificatesTable";
 import { CodeCopier } from "components/CodeCopier";
@@ -157,10 +157,11 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
                                         />
                                     </Grid>
                                     <Grid>
-                                        <Select label="Select Revocation Reason" value={revokeReason} onChange={(ev: any) => setRevokeReason(ev.target.value!)}>
-                                            {
-                                                Object.values(RevocationReason).map((rCode, idx) => (
-                                                    <MenuItem key={idx} value={rCode} >
+                                        <Select label="Select Revocation Reason" value={revokeReason} onChange={(ev: any) => setRevokeReason(ev.target.value!)} options={
+                                            Object.values(RevocationReason).map((rCode, idx) => {
+                                                return {
+                                                    value: rCode as string,
+                                                    render: () => (
                                                         <Grid container spacing={2}>
                                                             <Grid xs={2}>
                                                                 <Typography>{rCode}</Typography>
@@ -169,22 +170,26 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
                                                                 <Typography fontSize={"12px"}>{getRevocationReasonDescription(rCode)}</Typography>
                                                             </Grid>
                                                         </Grid>
-                                                    </MenuItem>
-                                                ))
-                                            }
-                                        </Select>
+                                                    )
+                                                };
+                                            })
+                                        } />
                                     </Grid>
                                 </Grid>
                             </Grid>
                         )}
                         actions={
-                            <Box>
-                                <Button onClick={() => { setIsRevokeDialogOpen({ isOpen: false, serialNumber: "" }); }}>Close</Button>
-                                <Button onClick={async () => {
-                                    apicalls.cas.updateCertificateStatus(isRevokeDialogOpen.serialNumber, CertificateStatus.Revoked, revokeReason);
-                                    setIsRevokeDialogOpen({ isOpen: false, serialNumber: "" });
-                                }}>Revoke Certificate</Button>
-                            </Box>
+                            <Grid container spacing={2}>
+                                <Grid xs md="auto">
+                                    <Button fullWidth onClick={async () => {
+                                        apicalls.cas.updateCertificateStatus(isRevokeDialogOpen.serialNumber, CertificateStatus.Revoked, revokeReason);
+                                        setIsRevokeDialogOpen({ isOpen: false, serialNumber: "" });
+                                    }}>Revoke Certificate</Button>
+                                </Grid>
+                                <Grid xs="auto" md="auto">
+                                    <Button onClick={() => { setIsRevokeDialogOpen({ isOpen: false, serialNumber: "" }); }}>Close</Button>
+                                </Grid>
+                            </Grid >
                         }
                     />
                 </>

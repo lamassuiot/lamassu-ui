@@ -189,7 +189,7 @@ export default function Dashboard () {
                         )
                     }
                     <Grid xs>
-                        <img src={process.env.PUBLIC_URL + "/assets/LAMASSU.svg"} height={24} style={{ marginLeft: "5px" }} />
+                        <img src={process.env.PUBLIC_URL + "/assets/lamassu/lamassu_full_white.svg"} height={24} style={{ marginLeft: "5px" }} />
                     </Grid>
                 </Grid>
                 <Grid xs={12} container sx={{ height: "calc(100% - 50px)" }}>
@@ -209,8 +209,10 @@ export default function Dashboard () {
                                             setMenuOpen(false);
                                         }}
                                     >
-                                        <Box width={250}>
-                                            <MenuBar collapsed={false} items={sidebarContent} />
+                                        <Box width={300}>
+                                            <MenuBar collapsed={false} items={sidebarContent} onItemClick={(item) => {
+                                                setMenuOpen(false);
+                                            }} />
                                         </Box>
                                     </Drawer>
                                 </React.Fragment>
@@ -237,6 +239,7 @@ export default function Dashboard () {
 interface MenuBarProps {
     items: Array<SidebarSection>
     collapsed: boolean
+    onItemClick?: (item: SidebarItem) => void
 }
 
 const MenuBar = React.memo<MenuBarProps>((props) => {
@@ -272,6 +275,7 @@ const MenuBar = React.memo<MenuBarProps>((props) => {
                                             } else {
                                                 navigate(item.goTo);
                                             }
+                                            props.onItemClick && props.onItemClick(item);
                                         }}>
                                             {
                                                 React.Children.map(item.icon, (child, key) => React.cloneElement(child, {

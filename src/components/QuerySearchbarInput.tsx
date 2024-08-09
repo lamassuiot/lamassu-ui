@@ -1,5 +1,5 @@
 import { AiOutlineSearch } from "react-icons/ai";
-import { Box, MenuItem, Paper, SxProps } from "@mui/material";
+import { Box, Paper, SxProps } from "@mui/material";
 import { Select } from "./Select";
 import { TimedTextField } from "./TimedTextField";
 import Grid from "@mui/material/Unstable_Grid2";
@@ -40,13 +40,11 @@ export const QuerySearchbarInput: React.FC<Props> = (props) => {
                 {
                     props.fieldSelector &&
                     <Grid xs="auto">
-                        <Select label="" value={queryFieldIdx} sx={{ height: "30px" }} onChange={(ev) => setQueryFieldIdx(ev.target.value as number)}>
-                            {
-                                props.fieldSelector.map((field, idx) => {
-                                    return <MenuItem key={idx} value={idx}>{field.title}</MenuItem>;
-                                })
-                            }
-                        </Select>
+                        <Select label="" value={queryFieldIdx} sx={{ height: "30px" }} onChange={(ev) => setQueryFieldIdx(ev.target.value as number)} options={
+                            props.fieldSelector.map((field, idx) => {
+                                return { value: idx, render: field.title };
+                            })
+                        }/>
                     </Grid>
                 }
             </Grid>

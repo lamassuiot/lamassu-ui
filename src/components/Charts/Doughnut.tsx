@@ -68,7 +68,7 @@ export const Doughnut: React.FC<DoughnutProps> = ({ dataset, small = true, title
     };
 
     return (
-        <Box sx={{ width: small ? "250px" : "360px", height: "fit-content", borderRadius: "15px", padding: "20px", bgcolor: cardColor }} component={Paper} {...props}>
+        <Box sx={{ width: "calc(100% - 40px)", height: "fit-content", borderRadius: "15px", padding: "20px", bgcolor: cardColor }} component={Paper} {...props}>
             <Grid container justifyContent="space-between" alignItems="start">
                 <Grid xs="auto" container flexDirection="column">
                     <Grid xs="auto">
@@ -84,7 +84,7 @@ export const Doughnut: React.FC<DoughnutProps> = ({ dataset, small = true, title
                 </Grid>
             </Grid>
             <Box sx={{ position: "relative", marginTop: "0px" }} >
-                <Box sx={{}} >
+                <Box sx={{ display: "flex", justifyContent: "center" }} >
                     <DoughnutChart ref={chartRef} data={data} options={options} style={{ zIndex: 10, position: "relative" }} onClick={ev => {
                         onClick(getElementAtEvent(chartRef.current!, ev));
                     }} />
@@ -101,7 +101,7 @@ export const Doughnut: React.FC<DoughnutProps> = ({ dataset, small = true, title
                     <Typography sx={{ fontSize: "18px", fontWeight: "400", width: "50%", textTransform: "uppercase", color: secondaryTextColor, textAlign: "center" }}>{statLabel}</Typography>
                 </Box>
             </Box>
-            <Grid container spacing={1}>
+            <Grid container spacing={1} padding={"20px"}>
                 {
                     dataset.map((dataCategory, idx) => {
                         return (

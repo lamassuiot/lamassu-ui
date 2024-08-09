@@ -1,4 +1,4 @@
-import { Alert, Box, Button, IconButton, MenuItem, Paper, Typography, lighten, useTheme } from "@mui/material";
+import { Alert, Box, Button, IconButton, Paper, Typography, lighten, useMediaQuery, useTheme } from "@mui/material";
 import { CertificateSelector } from "components/Certificates/CertificateSelector";
 import { Device, DeviceStatus, deviceStatusToColor } from "ducks/features/devices/models";
 import { DeviceTimeline } from "./StatusTimeline";
@@ -26,6 +26,8 @@ export const ViewDevice: React.FC<Props> = () => {
     const params = useParams();
 
     const ref = React.useRef<FetchHandle>(null);
+
+    const isMobileScreen = useMediaQuery(theme.breakpoints.down("md"));
 
     const [decommissioningOpen, setDecommissioningOpen] = useState(false);
     const [forceUpdate, setForceUpdate] = useState<{ open: boolean, connectorID: string, selectedActions: { [name: string]: boolean } }>({ open: false, connectorID: "", selectedActions: {} });
@@ -87,40 +89,48 @@ export const ViewDevice: React.FC<Props> = () => {
                 <Grid container flexDirection={"column"} sx={{ height: "100%" }}>
                     <Grid padding={"20px"} component={Paper} borderRadius={0} zIndex={10} elevation={2}>
                         <Grid container alignItems={"center"} justifyContent={"space-between"} spacing={"40px"}>
-                            <Grid xs container alignItems={"center"} spacing="20px">
+                            <Grid xs={12} md="auto" container>
                                 <Grid xs="auto">
                                     <Box>
                                         <IconInput readonly label="" size={40} value={{ bg: device!.icon_color.split("-")[0], fg: device!.icon_color.split("-")[1], name: device!.icon }} />
                                     </Box>
                                 </Grid>
-                                <Grid xs="auto">
-                                    <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 13 }}>{device!.id}</Typography>
-                                </Grid>
-                                <Grid xs="auto" container alignItems={"center"} flexDirection="column" spacing={0}>
-                                    <Grid container>
-                                        <Label color={deviceStatusToColor(device.status)}>{device.status}</Label>
+                                <Grid xs="auto" container flexDirection={"column"} spacing={0}>
+                                    <Grid>
+                                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 13 }}>{device!.id}</Typography>
                                     </Grid>
-                                    <Grid container>
-                                        <Box style={{ display: "flex", alignItems: "center", marginTop: "3px" }}>
-                                            <AccessTimeIcon style={{ color: theme.palette.text.secondary, fontSize: 15, marginRight: 5 }} />
-                                            <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>{`Creation date: ${moment(device!.creation_timestamp).format("DD/MM/YYYY")}`}</Typography>
-                                        </Box>
+                                    <Grid>
+                                        <Label size="small" color={deviceStatusToColor(device.status)}>{device.status}</Label>
                                     </Grid>
-                                </Grid>
-                                <Grid xs={"auto"} container spacing={1} style={{ marginTop: "1px" }}>
-                                    {
-                                        device!.tags.map((tag, idx) => (
-                                            <Grid key={idx}>
-                                                <Label>{tag}</Label>
-                                            </Grid>
-                                        ))
-                                    }
-                                </Grid>
-                                <Grid xs>
-                                    <DeviceTimeline device={device} />
                                 </Grid>
                             </Grid>
-                            <Grid xs="auto" container spacing={2} sx={{ width: "fit-content" }}>
+                            {
+                                !isMobileScreen && (
+                                    <>
+                                        <Grid md="auto" container alignItems={"center"} flexDirection="column" spacing={0}>
+                                            <Grid container>
+                                                <Box style={{ display: "flex", alignItems: "center", marginTop: "3px" }}>
+                                                    <AccessTimeIcon style={{ color: theme.palette.text.secondary, fontSize: 15, marginRight: 5 }} />
+                                                    <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>{`Creation date: ${moment(device!.creation_timestamp).format("DD/MM/YYYY")}`}</Typography>
+                                                </Box>
+                                            </Grid>
+                                        </Grid>
+                                        <Grid md={"auto"} container spacing={1} style={{ marginTop: "1px" }}>
+                                            {
+                                                    device!.tags.map((tag, idx) => (
+                                                        <Grid key={idx}>
+                                                            <Label>{tag}</Label>
+                                                        </Grid>
+                                                    ))
+                                            }
+                                        </Grid>
+                                        <Grid md>
+                                            <DeviceTimeline device={device} />
+                                        </Grid>
+                                    </>
+                                )
+                            }
+                            <Grid xs={12} md="auto" container spacing={2} sx={{ width: "fit-content" }}>
                                 <Grid>
                                     <IconButton style={{ background: lighten(theme.palette.primary.main, 0.7) }} onClick={() => { refreshAction(); }}>
                                         <RefreshIcon style={{ color: theme.palette.primary.main }} />
@@ -133,7 +143,7 @@ export const ViewDevice: React.FC<Props> = () => {
                         </Grid>
                     </Grid>
 
-                    <Grid flexGrow={1}>
+                    <Grid flexGrow={1} width={"1px"}>
                         {
                             device.status !== DeviceStatus.NoIdentity && (
                                 <ViewDeviceDetails device={device} />
@@ -147,15 +157,14 @@ export const ViewDevice: React.FC<Props> = () => {
                         subtitle="By decommissioning the device, it will revoke all attached identities as well as loosing all access to Lamassu and other platforms"
                         maxWidth="md"
                         content={
-                            <></>
+                            <Alert severity="warning">
+                                You are about to decommission the device. This action is irreversible. All associated certificates will be revoked and the device will no longer be able to obtain new certificates. Are you sure you want to proceed?
+                            </Alert>
                         }
                         actions={
-                            <Grid container spacing={1}>
-                                <Grid xs>
-                                    <Button variant="text" onClick={() => setDecommissioningOpen(false)}>Close</Button>
-                                </Grid>
-                                <Grid xs="auto">
-                                    <Button variant="contained" onClick={async () => {
+                            <Grid container spacing={2}>
+                                <Grid xs md="auto">
+                                    <Button variant="contained" fullWidth onClick={async () => {
                                         try {
                                             await apicalls.devices.decommissionDevice(device.id);
                                             refreshAction();
@@ -165,6 +174,9 @@ export const ViewDevice: React.FC<Props> = () => {
                                             enqueueSnackbar(`Failed to decommission device ${device.id}: ${e}`, { variant: "error" });
                                         }
                                     }}>Decommission</Button>
+                                </Grid>
+                                <Grid xs="auto" md="auto">
+                                    <Button variant="text" onClick={() => setDecommissioningOpen(false)}>Close</Button>
                                 </Grid>
                             </Grid>
                         }
@@ -197,10 +209,7 @@ export const ViewDevice: React.FC<Props> = () => {
                         actions={
                             <Grid container spacing={1}>
                                 <Grid xs>
-                                    <Button variant="text" onClick={() => setShowAssignIdentity(false)}>Close</Button>
-                                </Grid>
-                                <Grid xs="auto">
-                                    <Button variant="contained" onClick={async () => {
+                                    <Button fullWidth variant="contained" onClick={async () => {
                                         try {
                                             await apicalls.dmss.bindDeviceIdentity(device.id, bindedCert);
                                             refreshAction();
@@ -210,6 +219,9 @@ export const ViewDevice: React.FC<Props> = () => {
                                             enqueueSnackbar(`Failed to assign identity to device ${device.id}: ${e}`, { variant: "error" });
                                         }
                                     }}>Assign Identity</Button>
+                                </Grid>
+                                <Grid xs="auto">
+                                    <Button variant="text" onClick={() => setShowAssignIdentity(false)}>Close</Button>
                                 </Grid>
                             </Grid>
                         }
@@ -233,15 +245,14 @@ export const ViewDevice: React.FC<Props> = () => {
                                 }
 
                                 <Grid>
-                                    <Select label="Cloud Connector" onChange={(ev: any) => setForceUpdate({ ...forceUpdate, connectorID: ev.target.value })} value={forceUpdate.connectorID}>
-                                        {
-                                            window._env_.CLOUD_CONNECTORS.map((id: string, idx: number) => {
-                                                return (
-                                                    <MenuItem key={idx} value={id}>{id}</MenuItem>
-                                                );
-                                            })
-                                        }
-                                    </Select>
+                                    <Select label="Cloud Connector" onChange={(ev: any) => setForceUpdate({ ...forceUpdate, connectorID: ev.target.value })} value={forceUpdate.connectorID} options={
+                                        window._env_.CLOUD_CONNECTORS.map((id: string, idx: number) => {
+                                            return {
+                                                value: id,
+                                                render: id
+                                            };
+                                        })
+                                    }/>
                                 </Grid>
                                 {
                                     forceUpdate.connectorID !== "" && Object.keys(forceUpdate.selectedActions).map((action, idx) => {
@@ -266,12 +277,9 @@ export const ViewDevice: React.FC<Props> = () => {
                             </Grid>
                         }
                         actions={
-                            <Grid container spacing={1}>
-                                <Grid xs>
-                                    <Button variant="text" onClick={() => setForceUpdate({ open: false, connectorID: "", selectedActions: {} })}>Close</Button>
-                                </Grid>
-                                <Grid xs="auto">
-                                    <Button variant="contained" disabled={forceUpdate.connectorID === ""} onClick={async () => {
+                            <Grid container spacing={2}>
+                                <Grid xs md="auto">
+                                    <Button variant="contained" fullWidth disabled={forceUpdate.connectorID === ""} onClick={async () => {
                                         const actionsToTrigger = Object.keys(forceUpdate.selectedActions).filter(action => forceUpdate.selectedActions[action] === true);
                                         if (actionsToTrigger.length > 0) {
                                             const newMeta = device!.metadata;
@@ -295,6 +303,9 @@ export const ViewDevice: React.FC<Props> = () => {
                                         }
                                         setForceUpdate({ open: false, connectorID: "", selectedActions: {} });
                                     }}>Force Update</Button>
+                                </Grid>
+                                <Grid xs="auto" md="auto">
+                                    <Button variant="text" onClick={() => setForceUpdate({ open: false, connectorID: "", selectedActions: {} })}>Close</Button>
                                 </Grid>
                             </Grid>
                         }

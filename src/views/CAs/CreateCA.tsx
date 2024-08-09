@@ -1,4 +1,4 @@
-import { Alert, Divider, MenuItem, Typography, useTheme } from "@mui/material";
+import { Alert, Divider, Typography, useTheme } from "@mui/material";
 import { CASelector } from "components/CAs/CASelector";
 import { CATimeline } from "./CATimeline";
 import { CertificateAuthority, CryptoEngine } from "ducks/features/cas/models";
@@ -177,20 +177,19 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                         <FormTextField label="CA Name" control={control} name="subject.commonName" helperText="Common Name can not be empty" error={watchSubject.commonName === ""} />
                     </Grid>
                     <Grid xs={6} md={6}>
-                        <FormSelect control={control} name="privateKey.type" label="Key Type">
-                            {
-                                watchAll.cryptoEngine.supported_key_types.map((keyFam, idx) => <MenuItem key={idx} value={keyFam.type}>{keyFam.type}</MenuItem>)
-                            }
-                        </FormSelect>
+                        <FormSelect control={control} name="privateKey.type" label="Key Type"options={
+                            watchAll.cryptoEngine.supported_key_types.map((keyFam, idx) => {
+                                return { value: keyFam.type, render: keyFam.type };
+                            })
+                        }/>
+
                     </Grid>
                     <Grid xs={6} md={6}>
-                        <FormSelect control={control} name="privateKey.size" label="Key Size">
-                            {
-                                watchAll.cryptoEngine.supported_key_types.find(keyFam => keyFam.type === watchKeyType)!.sizes.map((keySize, idx) => (
-                                    <MenuItem key={idx} value={keySize}>{keySize}</MenuItem>
-                                ))
-                            }
-                        </FormSelect>
+                        <FormSelect control={control} name="privateKey.size" label="Key Size" options={
+                            watchAll.cryptoEngine.supported_key_types.find(keyFam => keyFam.type === watchKeyType)!.sizes.map((keySize, idx) => {
+                                return { value: keySize.toString(), render: keySize.toString() };
+                            })
+                        }/>
                     </Grid>
                 </Grid>
 

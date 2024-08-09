@@ -88,7 +88,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
 
     if (!isMediumScreen) {
         return (
-            <Grid container flexDirection={"column"} sx={{ height: "100%" }}>
+            <Grid container flexDirection={"column"} sx={{ height: "100%" }} flexWrap={"nowrap"}>
                 <Grid container spacing={2} padding={2} >
                     <Grid xs>
                         <CASelector multiple={false} label="" onSelect={(ca) => {
@@ -118,7 +118,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
     }
 
     return (
-        <Grid xs container style={{ height: "100%" }}>
+        <Grid xs container style={{ height: "100%" }} >
             <Grid xs={viewMode === "list" ? 4 : 12} xl={viewMode === "list" ? 3 : 12} container direction="column">
                 <Box style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
                     <Box sx={{ padding: "20px" }}>
@@ -277,7 +277,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                                                 label={
                                                     <Grid container justifyContent={"center"}>
                                                         <Grid>
-                                                            <img src={process.env.PUBLIC_URL + theme.palette.mode === "light" ? "/assets/LAMASSU_B.svg" : "/assets/LAMASSU.svg"} height={"60px"} />
+                                                            <img src={process.env.PUBLIC_URL + theme.palette.mode === "light" ? "/assets/lamassu_full_blue.svg" : "/assets/lamassu_full_white.svg"} height={"60px"} />
                                                         </Grid>
                                                     </Grid>
                                                 }>
