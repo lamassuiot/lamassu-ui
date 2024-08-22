@@ -1,5 +1,4 @@
-import { Alert, Box, Collapse, IconButton, Paper, Skeleton, Tooltip, Typography, lighten, useTheme } from "@mui/material";
-import { CAFetchViewer } from "components/CAs/CAStandardFetchViewer";
+import { Alert, Box, Button, Divider, IconButton, Menu, MenuItem, Paper, Skeleton, Tooltip, Typography, lighten, useTheme } from "@mui/material";
 import { CASelector } from "components/CAs/CASelector";
 import { Certificate, CertificateAuthority } from "ducks/features/cas/models";
 import { CodeCopier } from "components/CodeCopier";
@@ -14,18 +13,24 @@ import { StepModal } from "components/StepModal";
 import { TextField } from "components/TextField";
 import { createCSR, createPrivateKey, keyPairToPEM } from "utils/crypto/csr";
 import { useNavigate } from "react-router-dom";
-import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlined";
 import AddIcon from "@mui/icons-material/Add";
-import CheckIcon from "@mui/icons-material/Check";
-import CloseIcon from "@mui/icons-material/Close";
-import EditIcon from "@mui/icons-material/Edit";
 import Grid from "@mui/material/Unstable_Grid2";
-import Label from "components/Label";
 import React, { useEffect, useState } from "react";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import apicalls from "ducks/apicalls";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import { GrValidate } from "react-icons/gr";
+import { CAFetchViewer } from "components/CAs/CAStandardFetchViewer";
+import { TbCertificate } from "react-icons/tb";
+import { FaWpforms } from "react-icons/fa";
+import Label from "components/Label";
 import RouterOutlinedIcon from "@mui/icons-material/RouterOutlined";
 import TerminalIcon from "@mui/icons-material/Terminal";
-import apicalls from "ducks/apicalls";
+import EditIcon from "@mui/icons-material/Edit";
+import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlined";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { Modal } from "components/Modal";
+import { enqueueSnackbar } from "notistack";
 
 export const DMSListView = () => {
     const theme = useTheme();
@@ -64,8 +69,10 @@ export const DMSListView = () => {
                                     {
                                         list.list.map((dms) => {
                                             return (
-                                                <Grid key={dms.id} xs={12} >
-                                                    <DMSCardRenderer dms={dms} />
+                                                <Grid key={dms.id} md={4} xs={12}>
+                                                    <DMSCardRenderer dms={dms} onDelete={() => {
+                                                        tableRef.current?.refresh();
+                                                    }} />
                                                 </Grid>
                                             );
                                         })
@@ -82,13 +89,16 @@ export const DMSListView = () => {
 };
 
 interface DMSCardRendererProps {
-    dms: DMS
+    dms: DMS,
+    onDelete: () => void
 }
 
-const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
+const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms, onDelete }) => {
     const theme = useTheme();
 
     const navigate = useNavigate();
+    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const open = Boolean(anchorEl);
 
     const [enrollDMSCmds, setEnrollDMSCmds] = useState<{
         open: boolean,
@@ -99,7 +109,14 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
         insecure: boolean,
     }>({ open: false, dmsName: "", bootstrapCA: undefined, deviceID: "", insecure: false, commonNameBootstrap: "" });
 
-    const [expanded, setExpanded] = useState(false);
+    const [showDelete, setShowDelete] = useState(false);
+
+    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
 
     const splitColors = dms.settings.enrollment_settings.device_provisioning_profile.icon_color.split("-");
     let iconBG = "";
@@ -111,256 +128,100 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
 
     return (
         <>
-            <Box component={Paper} padding={"10px"}>
-                <Grid container flexDirection={"column"} spacing={1}>
-                    <Grid container spacing={1} flexDirection={"column"}>
-                        <Grid container spacing={1}>
-                            <Grid xs container spacing={1}>
-                                <Grid>
-                                    <IconInput readonly label="" size={35} value={{ bg: iconBG, fg: iconFG, name: dms.settings.enrollment_settings.device_provisioning_profile.icon }} />
-                                </Grid>
-                                <Grid xs container flexDirection={"column"}>
-                                    <Grid>
-                                        <Typography>{dms.name}</Typography>
-                                        <Label color={"grey"}>{dms.id}</Label>
-                                    </Grid>
-                                </Grid>
+            <Box component={Paper} elevation={0} sx={{ padding: "20px", borderRadius: "10px" }}>
+                <Grid container spacing={1}>
+                    <Grid xs={12} container>
+                        <Grid xs>
+                            <IconInput readonly label="" size={35} value={{ bg: iconBG, fg: iconFG, name: dms.settings.enrollment_settings.device_provisioning_profile.icon }} />
+                        </Grid>
+                        <Grid xs="auto">
+                            <IconButton onClick={handleClick}>
+                                <MoreHorizIcon />
+                            </IconButton>
+                            <Menu
+                                id="demo-customized-menu"
+                                MenuListProps={{
+                                    "aria-labelledby": "demo-customized-button"
+                                }}
+                                anchorEl={anchorEl}
+                                open={open}
+                                onClose={handleClose}
+                            >
+                                <MenuItem onClick={() => {
+                                    navigate(`${dms.id}/edit`);
+                                }} disableRipple>
+                                    <EditIcon fontSize={"small"} sx={{ color: theme.palette.primary.main, marginRight: "10px" }} />
+                                    Edit
+                                </MenuItem>
+                                <Divider sx={{ my: 0.5 }} />
+                                <MenuItem onClick={() => {
+                                    handleClose();
+                                    setEnrollDMSCmds({ open: true, dmsName: dms.id, insecure: false, bootstrapCA: undefined, commonNameBootstrap: `bootstrap-for-dms-${dms.id}`, deviceID: "" });
+                                }} disableRipple>
+                                    <TerminalIcon fontSize={"small"} sx={{ marginRight: "10px" }} />
+                                    cURL Commands
+                                </MenuItem>
+                                <MenuItem onClick={() => {
+                                    navigate(`${dms.id}/cacerts`);
+                                }} disableRipple>
+                                    <AccountBalanceOutlinedIcon fontSize={"small"} sx={{ marginRight: "10px" }} />
+                                    EST - CACerts
+                                </MenuItem>
+                                <MenuItem onClick={() => {
+                                    navigate(`/devices?filter=dms_owner[equal]${dms.id}`);
+                                }} disableRipple>
+                                    <RouterOutlinedIcon fontSize={"small"} sx={{ marginRight: "10px" }} />
+                                    Go to DMS owned devices
+                                </MenuItem>
+                                <Divider sx={{ my: 0.5 }} />
+                                <MenuItem onClick={() => {
+                                    handleClose();
+                                    setShowDelete(true);
+                                }} disableRipple>
+                                    <DeleteIcon fontSize={"small"} sx={{ color: theme.palette.error.main, marginRight: "10px" }} />
+                                    Delete
+                                </MenuItem>
+                            </Menu>
+                        </Grid>
+                    </Grid>
+                    <Grid xs={12}>
+                        <Typography variant="h4">
+                            {dms.name}
+                        </Typography>
+                    </Grid>
+                    <Grid xs={12}>
+                        <Divider />
+                    </Grid>
+                    <Grid xs={12} container flexDirection={"column"} spacing={0}>
+                        <Grid container alignItems={"center"} spacing={"10px"}>
+                            <Grid xs={1}>
+                                <Tooltip title="Registration Mode">
+                                    <FaWpforms color="#999" size={20} />
+                                </Tooltip>
                             </Grid>
-
-                            <Grid xs="auto" container spacing={"20px"}>
-                                <Grid xs="auto" container spacing={1}>
-                                    <Grid xs="auto">
-                                        <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: lighten(theme.palette.primary.light, 0.8), width: 35, height: 35 }}>
-                                            <Tooltip title="Watch DMS Devices">
-                                                <IconButton onClick={(ev) => { navigate(`/devices?filter=dms_owner[equal]${dms.id}`); }}>
-                                                    <RouterOutlinedIcon fontSize={"small"} sx={{ color: theme.palette.primary.main }} />
-                                                </IconButton>
-                                            </Tooltip>
-                                        </Box>
-                                    </Grid>
-                                </Grid>
-                                <Grid xs="auto" container spacing={1}>
-                                    <Grid xs="auto">
-                                        <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: lighten(theme.palette.primary.light, 0.8), width: 35, height: 35 }}>
-                                            <Tooltip title="CA Certificates">
-                                                <IconButton onClick={(ev) => { navigate(`${dms.id}/cacerts`); }}>
-                                                    <AccountBalanceOutlinedIcon fontSize={"small"} sx={{ color: theme.palette.primary.main }} />
-                                                </IconButton>
-                                            </Tooltip>
-                                        </Box>
-                                    </Grid>
-                                    <Grid xs="auto">
-                                        <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: lighten(theme.palette.primary.light, 0.8), width: 35, height: 35 }}>
-                                            <Tooltip title="cURL enrollment commands">
-                                                <IconButton onClick={(ev) => { setEnrollDMSCmds({ open: true, dmsName: dms.id, insecure: false, bootstrapCA: undefined, commonNameBootstrap: `bootstrap-for-dms-${dms.id}`, deviceID: "" }); }}>
-                                                    <TerminalIcon fontSize={"small"} sx={{ color: theme.palette.primary.main }} />
-                                                </IconButton>
-                                            </Tooltip>
-                                        </Box>
-                                    </Grid>
-                                </Grid>
-                                <Grid xs="auto" container spacing={1}>
-                                    <Grid xs="auto">
-                                        <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: lighten(theme.palette.primary.light, 0.8), width: 35, height: 35 }}>
-                                            <Tooltip title="Edit">
-                                                <IconButton onClick={(ev) => { navigate(`${dms.id}/edit`); }}>
-                                                    <EditIcon fontSize={"small"} sx={{ color: theme.palette.primary.main }} />
-                                                </IconButton>
-                                            </Tooltip>
-                                        </Box>
-                                    </Grid>
-                                    {/* <Grid xs="auto">
-                                        <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: theme.palette.background.lightContrast, width: 35, height: 35 }}>
-                                            <Tooltip title="Delete">
-                                                <IconButton onClick={(ev) => { navigate(`${dms.id}/edit`); }}>
-                                                    <DeleteIcon fontSize={"small"} />
-                                                </IconButton>
-                                            </Tooltip>
-                                        </Box>
-                                    </Grid> */}
-                                </Grid>
+                            <Grid xs={11}>
+                                <Label>{dms.settings.enrollment_settings.registration_mode}</Label>
                             </Grid>
                         </Grid>
-                        <Grid container spacing={1} flexDirection={"column"}>
-                            <Grid>
-                                <Box onClick={() => {
-                                    setExpanded(!expanded);
-                                }} sx={{ cursor: "pointer", background: theme.palette.mode === "dark" ? "#30444f" : "#ddd", borderRadius: "3px" }}>
-                                    <Typography fontSize={"12px"} textAlign={"center"}>
-                                        {">> Click to see more options <<"}
-                                    </Typography>
-                                </Box>
+                        <Grid container alignItems={"center"} spacing={"10px"}>
+                            <Grid xs={1}>
+                                <Tooltip title="Validation CA">
+                                    <GrValidate color="#999" size={20} />
+                                </Tooltip>
                             </Grid>
-
-                            <Box sx={{ padding: "10px" }}>
-                                <Collapse in={expanded}>
-                                    <Grid container spacing={1} flexDirection={"column"}>
-                                        <Grid>
-                                            <Label color={"primary"}>Enrollment Settings</Label>
-                                        </Grid>
-
-                                        <Grid>
-                                            <KeyValueLabel
-                                                label="EST Enrollment Endpoint"
-                                                value={
-                                                    <Typography style={{ color: theme.palette.text.primary, fontSize: 12 }}>{"https://" + window.location.hostname + "/api/dmsmanager/.well-known/est/" + dms.id + "/simpleenroll"}</Typography>
-                                                }
-                                            />
-                                        </Grid>
-                                        <Grid>
-                                            <KeyValueLabel
-                                                label="Enrollment CA"
-                                                value={
-                                                    <CAFetchViewer id={dms.settings.enrollment_settings.enrollment_ca} />
-                                                }
-                                            />
-                                        </Grid>
-                                        <Grid>
-                                            <KeyValueLabel
-                                                label="Validation CAs"
-                                                value={
-                                                    <Grid container flexDirection={"column"} spacing={1}>
-                                                        {
-                                                            dms.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.validation_cas.map((caID, idx) => {
-                                                                return (
-                                                                    <Grid xs key={idx}>
-                                                                        <CAFetchViewer id={caID} />
-                                                                    </Grid>
-                                                                );
-                                                            })
-                                                        }
-                                                    </Grid>
-                                                }
-                                            />
-                                        </Grid>
-
-                                        <Grid container spacing={2}>
-                                            <Grid xs={6} md>
-                                                <KeyValueLabel
-                                                    label="Authentication Mode"
-                                                    value={
-                                                        <Label color={"grey"}>{dms.settings.enrollment_settings.est_rfc7030_settings.auth_mode}</Label>
-                                                    }
-                                                />
-                                            </Grid>
-
-                                            <Grid xs={6} md>
-                                                <KeyValueLabel
-                                                    label="Registration Mode"
-                                                    value={
-                                                        <Label color={"grey"}>{dms.settings.enrollment_settings.registration_mode}</Label>
-                                                    }
-                                                />
-                                            </Grid>
-
-                                            <Grid xs={6} md>
-                                                <KeyValueLabel
-                                                    label="Allow Override Enrollment"
-                                                    value={
-                                                        dms.settings.enrollment_settings.enable_replaceable_enrollment
-                                                            ? (
-                                                                <Box sx={{
-                                                                    width: "30px",
-                                                                    height: "30px",
-                                                                    borderRadius: "100%",
-                                                                    display: "flex",
-                                                                    alignItems: "center",
-                                                                    justifyContent: "center",
-                                                                    background: lighten(theme.palette.info.light, 0.5)
-                                                                }}>
-                                                                    <CheckIcon sx={{ color: theme.palette.info.light, fontSize: "12px" }} />
-                                                                </Box>
-                                                            )
-                                                            : (
-                                                                <CloseIcon sx={{ color: theme.palette.grey[500] }} />
-                                                            )
-                                                    }
-                                                />
-                                            </Grid>
-
-                                            <Grid xs={6} md>
-                                                <KeyValueLabel
-                                                    label="Chain Validation"
-                                                    value={
-                                                        <Label>{`${dms.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.chain_level_validation} LEVELS`} </Label>
-                                                    }
-                                                />
-                                            </Grid>
-
-                                        </Grid>
-
-                                        <Grid container spacing={1} flexDirection={"column"}>
-                                            <Grid>
-                                                <Label color={"primary"}>Re-Enrollment Settings</Label>
-                                            </Grid>
-
-                                            <Grid>
-                                                <KeyValueLabel
-                                                    label="EST ReEnrollment Endpoint"
-                                                    value={
-                                                        <Typography style={{ color: theme.palette.text.primary, fontSize: 12 }}>{"https://" + window.location.hostname + "/api/dmsmanager/.well-known/est/" + dms.id + "/simplereenroll"}</Typography>
-                                                    }
-                                                />
-                                            </Grid>
-
-                                        </Grid>
-                                        <Grid>
-                                            <KeyValueLabel
-                                                label="Additional Validation CAs"
-                                                value={
-                                                    <Grid container flexDirection={"column"} spacing={1}>
-                                                        {
-                                                            dms.settings.reenrollment_settings.additional_validation_cas.map((caID, idx) => {
-                                                                return (
-                                                                    <Grid xs key={idx}>
-                                                                        <CAFetchViewer id={caID} />
-                                                                    </Grid>
-                                                                );
-                                                            })
-                                                        }
-                                                    </Grid>
-                                                }
-                                            />
-                                        </Grid>
-
-                                        <Grid container spacing={2}>
-                                            <Grid xs>
-                                                <KeyValueLabel
-                                                    label="Allowed Renewal Delta"
-                                                    value={
-                                                        <Label color={"grey"}>{dms.settings.reenrollment_settings.reenrollment_delta} </Label>
-                                                    }
-                                                />
-                                            </Grid>
-
-                                            <Grid xs>
-                                                <KeyValueLabel
-                                                    label="Allow Expired Renewal"
-                                                    value={
-                                                        dms.settings.reenrollment_settings.enable_expired_renewal
-                                                            ? (
-                                                                <Box sx={{
-                                                                    width: "30px",
-                                                                    height: "30px",
-                                                                    borderRadius: "100%",
-                                                                    display: "flex",
-                                                                    alignItems: "center",
-                                                                    justifyContent: "center",
-                                                                    background: lighten(theme.palette.info.light, 0.5)
-                                                                }}>
-                                                                    <CheckIcon sx={{ color: theme.palette.info.light, fontSize: "12px" }} />
-                                                                </Box>
-                                                            )
-                                                            : (
-                                                                <CloseIcon sx={{ color: theme.palette.grey[500] }} />
-                                                            )
-                                                    }
-                                                />
-                                            </Grid>
-                                        </Grid>
-                                    </Grid>
-                                </Collapse>
-                            </Box>
+                            <Grid xs={11}>
+                                <CAFetchViewer elevation={false} id={dms.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.validation_cas[0]} sx={{ padding: "0px" }} />
+                            </Grid>
+                        </Grid>
+                        <Grid container alignItems={"center"} spacing={"10px"}>
+                            <Grid xs={1}>
+                                <Tooltip title="Enrollment CA">
+                                    <TbCertificate color="#999" size={20} />
+                                </Tooltip>
+                            </Grid>
+                            <Grid xs={11}>
+                                <CAFetchViewer elevation={false} id={dms.settings.enrollment_settings.enrollment_ca} sx={{ padding: "0px" }} />
+                            </Grid>
                         </Grid>
                     </Grid>
                 </Grid>
@@ -370,6 +231,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                     <StepModal
                         open={enrollDMSCmds.open}
                         onClose={() => setEnrollDMSCmds({ ...enrollDMSCmds, open: false })}
+                        onFinish={() => {}}
                         title="EST Enroll"
                         size="lg"
                         steps={[
@@ -385,7 +247,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                 subtitle: "",
                                 content: (
                                     <CodeCopier code={
-                                        `openssl req -new -newkey rsa:2048 -nodes -keyout ${enrollDMSCmds.deviceID}.key -out ${enrollDMSCmds.deviceID}.csr -subj "/CN=${enrollDMSCmds.deviceID}"\ncat ${enrollDMSCmds.deviceID}.csr | sed '/-----BEGIN CERTIFICATE REQUEST-----/d'  | sed '/-----END CERTIFICATE REQUEST-----/d' > ${enrollDMSCmds.deviceID}.stripped.csr`
+                                        `openssl req -new -newkey rsa:2048 -nodes -keyout ${enrollDMSCmds.deviceID}.key -out ${enrollDMSCmds.deviceID}.csr -subj "/CN=${enrollDMSCmds.deviceID}"\ncat ${enrollDMSCmds.deviceID}.csr | sed '/-----BEGIN CERTIFICATE REQUEST-----/d'  | sed '/-----END CERTIFICATE REQUEST-----/d'> ${enrollDMSCmds.deviceID}.stripped.csr`
                                     } />
                                 )
                             },
@@ -444,7 +306,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                                         Obtain the Root certificate used by the server:
                                                     </Typography>
                                                     <CodeCopier code={
-                                                        "openssl s_client -showcerts -servername $LAMASSU_SERVER  -connect $LAMASSU_SERVER:443 2>/dev/null </dev/null |  sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > root-ca.pem"
+                                                        "openssl s_client -showcerts -servername $LAMASSU_SERVER  -connect $LAMASSU_SERVER:443 2>/dev/null </dev/null |  sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'> root-ca.pem"
                                                     } />
                                                 </Grid>
                                             )
@@ -462,6 +324,43 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms }) => {
                                 )
                             }
                         ]}
+                    />
+                )
+            }
+            {
+                showDelete && (
+                    <Modal
+                        isOpen={true}
+                        onClose={() => { setShowDelete(false); }}
+                        maxWidth="sm"
+                        title="Delete DMS"
+                        subtitle=""
+                        content={(
+                            <Grid>
+                                <Typography>
+                                    You are about to delete the DMS <Label color={"info"}><strong>{dms.name}</strong></Label>. This action is irreversible. Are you sure you want to proceed?
+                                </Typography>
+                            </Grid>
+                        )}
+                        actions={
+                            <Grid container spacing={1}>
+                                <Grid xs>
+                                    <Button fullWidth variant="contained" onClick={async () => {
+                                        try {
+                                            await apicalls.dmss.getDMSs();
+                                            enqueueSnackbar(`DMS ${dms.id} deleted successfully`, { variant: "success" });
+                                            setShowDelete(false);
+                                            onDelete();
+                                        } catch (e) {
+                                            enqueueSnackbar(`Error deleting DMS ${dms.id}: ${errorToString(e)}`, { variant: "error" });
+                                        }
+                                    }}>Delete</Button>
+                                </Grid>
+                                <Grid xs="auto">
+                                    <Button variant="text" onClick={() => setShowDelete(false)}>Close</Button>
+                                </Grid>
+                            </Grid>
+                        }
                     />
                 )
             }
@@ -534,7 +433,7 @@ const BootstrapGenerator: React.FC<BootstrapGeneratorProps> = ({ cn, ca }) => {
                     </Alert>
                 </Grid>
                 <Grid>
-                    <CodeCopier code={`echo "${result.crt.certificate}" |  base64 -d > ${result.crt.subject.common_name}.crt\n echo "${window.window.btoa(result.privateKey)}" |  base64 -d > ${result.crt.subject.common_name}.key`} />
+                    <CodeCopier code={`echo "${result.crt.certificate}" |  base64 -d> ${result.crt.subject.common_name}.crt\n echo "${window.window.btoa(result.privateKey)}" |  base64 -d> ${result.crt.subject.common_name}.key`} />
                 </Grid>
             </Grid>
         </Grid>

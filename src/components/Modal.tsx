@@ -19,7 +19,7 @@ export const Modal: React.FC<Props> = ({ isOpen, onClose, title, subtitle, conte
 
     if (isMediumScreen) {
         return (
-            <Sheet isOpen={isOpen} onClose={() => onClose()} snapPoints={[0.6]} >
+            <Sheet isOpen={isOpen} onClose={() => onClose()} detent="content-height">
                 <Sheet.Container style={{ borderTopLeftRadius: "20px", borderTopRightRadius: "20px", display: "flex", flexDirection: "column" }}>
                     {
                         title !== ""

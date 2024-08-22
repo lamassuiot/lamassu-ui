@@ -15,11 +15,10 @@ export type Props = {
     actions?: React.ReactNode[]
     elevation?: boolean
     clickDisplay?: boolean
-    size?: "small"
     sx?: SxProps
 }
 
-const CAViewer: React.FC<Props> = ({ caData, engine, actions = [], elevation = true, clickDisplay = false, size, sx = {} }) => {
+const CAViewer: React.FC<Props> = ({ caData, engine, actions = [], elevation = true, clickDisplay = false, sx = {} }) => {
     const theme = useTheme();
     const [displayCA, setDisplayCA] = React.useState<CertificateAuthority | undefined>(undefined);
 
@@ -36,7 +35,7 @@ const CAViewer: React.FC<Props> = ({ caData, engine, actions = [], elevation = t
 
                 <Grid xs container flexDirection={"column"}>
                     <Grid xs>
-                        <Typography {...size === "small" && { fontSize: "0.8rem" }} sx={{ wordBreak: "break-word" }}>{caData.subject.common_name}</Typography>
+                        <Typography sx={{ wordBreak: "break-word" }}>{caData.subject.common_name}</Typography>
                     </Grid>
                     <Grid xs>
                         <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 12 }}>{`CA ID: ${caData.id}`}</Typography>

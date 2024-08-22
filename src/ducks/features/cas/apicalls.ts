@@ -128,6 +128,14 @@ export const updateCertificateMetadata = async (certSN: string, metadata: any): 
     });
 };
 
+export const updateCAIssuanceExpiration = async (caID: string, expiration: models.ExpirationFormat): Promise<models.CertificateAuthority> => {
+    return apiRequest({
+        method: "PUT",
+        url: `${window._env_.LAMASSU_CA_API}/v1/cas/${caID}/issuance-expiration`,
+        data: expiration
+    });
+};
+
 export const signPayload = async (caName: string, message: string, messageType: "raw" | "hash", algorithm: string): Promise<models.SignPayloadResponse> => {
     return apiRequest({
         method: "POST",

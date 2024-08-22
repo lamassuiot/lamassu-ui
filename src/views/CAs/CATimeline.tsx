@@ -88,7 +88,7 @@ export const CATimeline: React.FC<Props> = ({ issuanceDuration, caIssuedAt, caEx
         // apply logarithmic scale
         for (let i = 0; i < timelineStages.length; i++) {
             const logSize = getBaseLog(1.1, timelineStages[i].size);
-            console.log(timelineStages[i].size, logSize);
+            // console.log(timelineStages[i].size, logSize);
 
             if (logSize > stageMinSize) {
                 timelineStages[i].size = logSize;

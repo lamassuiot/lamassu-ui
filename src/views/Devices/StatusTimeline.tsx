@@ -180,8 +180,6 @@ export const DeviceTimeline: React.FC<Props> = ({ device }) => {
 
     const events = [];
 
-    console.log(stages);
-
     return (
         <Box sx={{ display: "flex", flexDirection: "row-reverse", width: "100%" }}>
             <Box sx={{ width: "100px", flex: 1, overflowX: "auto" }}>

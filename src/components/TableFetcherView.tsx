@@ -69,8 +69,6 @@ const Fetcher = <T extends GridValidRowModel>(props: ComponentProps<T>, ref: Ref
         setError(undefined);
         setIsLoading(true);
         try {
-            console.log(filterModel);
-
             const filters = filterModel.items.filter(f => {
                 return f.id && f.value;
             }).map(filter => {

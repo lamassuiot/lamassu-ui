@@ -25,7 +25,7 @@ export const parseCRT = async (rawCRT: string): Promise<X509Certificate> => {
 
     let exts = new Map<string, string>();
     if (crt.extensions) {
-        console.log(crt.extensions.length);
+        // console.log(crt.extensions.length);
         for (let i = 0; i < crt.extensions.length; i++) {
             const ext = crt.extensions[i];
         }

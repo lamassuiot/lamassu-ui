@@ -1,13 +1,11 @@
 import { CACustomFetchViewer } from "./CACustomFetchViewer";
 import { FetchHandle, FetchViewer } from "components/FetchViewer";
-import { SxProps } from "@mui/material";
-import CAViewer from "./CAViewer";
+import CAViewer, { Props as CAProps } from "./CAViewer";
 import React, { ReactElement, Ref } from "react";
 import apicalls from "ducks/apicalls";
 
-type Props = {
+interface Props extends Omit<CAProps, "caData" | "engine"> {
     id: string
-    sx?: SxProps
 }
 
 const Viewer = (props: Props, ref: Ref<FetchHandle>) => {
@@ -19,7 +17,7 @@ const Viewer = (props: Props, ref: Ref<FetchHandle>) => {
                 renderer={(engines) => {
                     const engine = engines.find(eng => eng.id === ca.engine_id);
                     if (engine) {
-                        return <CAViewer caData={ca} engine={engine} sx={props.sx} />;
+                        return <CAViewer {...props} caData={ca} engine={engine} />;
                     }
                     return <>could not fetch engine</>;
                 }}

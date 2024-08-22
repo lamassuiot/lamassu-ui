@@ -277,7 +277,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                                                 label={
                                                     <Grid container justifyContent={"center"}>
                                                         <Grid>
-                                                            <img src={process.env.PUBLIC_URL + theme.palette.mode === "light" ? "/assets/lamassu_full_blue.svg" : "/assets/lamassu_full_white.svg"} height={"60px"} />
+                                                            <img src={process.env.PUBLIC_URL + theme.palette.mode === "light" ? "/assets/lamassu/lamassu_full_blue.svg" : "/assets/lamassu_full_white.svg"} height={"60px"} />
                                                         </Grid>
                                                     </Grid>
                                                 }>

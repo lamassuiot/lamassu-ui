@@ -7,6 +7,7 @@ interface props {
     title: string | ReactElement,
     subtitle: string | ReactElement,
     children?: ReactNode;
+    actions?: ReactNode;
 }
 
 export const FormattedView: React.FC<props> = ({ title, subtitle, ...rest }) => {
@@ -18,7 +19,7 @@ export const FormattedView: React.FC<props> = ({ title, subtitle, ...rest }) => 
                     <Grid>
                         <Box sx={{ padding: "40px 40px 0 40px" }}>
                             <Grid container>
-                                <Grid container spacing={1} justifyContent="flex-start">
+                                <Grid xs container spacing={1} justifyContent="flex-start">
                                     <Grid xs={12}>
                                         <Typography variant="h3">{title}</Typography>
                                     </Grid>
@@ -26,6 +27,13 @@ export const FormattedView: React.FC<props> = ({ title, subtitle, ...rest }) => 
                                         <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13, marginTop: "10px" }}>{subtitle}</Typography>
                                     </Grid>
                                 </Grid>
+                                {
+                                    rest.actions && (
+                                        <Grid xs="auto">
+                                            {rest.actions}
+                                        </Grid>
+                                    )
+                                }
                             </Grid>
                         </Box>
                     </Grid>

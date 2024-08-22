@@ -348,7 +348,6 @@ const CertificateImporterForm: React.FC<CertificateImporterFormProps> = ({ onCre
         const run = async () => {
             if (crt) {
                 const decCrt = await parseCRT(crt);
-                console.log(decCrt);
                 setShowWarn(decCrt.subject.cn !== caSubjectCN);
             }
         };

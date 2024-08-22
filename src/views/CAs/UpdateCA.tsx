@@ -1,4 +1,4 @@
-import { Alert, Divider, Typography, useTheme } from "@mui/material";
+import { Alert, Button, Divider, Typography, useTheme } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import { errorToString } from "ducks/services/api-client";
 import { useForm } from "react-hook-form";
@@ -9,6 +9,10 @@ import React, { useState } from "react";
 import moment, { Moment } from "moment";
 import { FormExpirationInput } from "components/forms/Expiration";
 import { FormattedView } from "components/FormattedView";
+import apicalls from "ducks/apicalls";
+import { CertificateAuthority } from "ducks/features/cas/models";
+import { enqueueSnackbar } from "notistack";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 type FormData = {
     issuerExpiration: {
@@ -19,9 +23,10 @@ type FormData = {
 };
 
 interface UpdateCAProps {
+    caData: CertificateAuthority
 }
 
-export const UpdateCA: React.FC<UpdateCAProps> = () => {
+export const UpdateCA: React.FC<UpdateCAProps> = (props) => {
     const theme = useTheme();
 
     const navigate = useNavigate();
@@ -33,8 +38,8 @@ export const UpdateCA: React.FC<UpdateCAProps> = () => {
         defaultValues: {
             issuerExpiration: {
                 type: "duration",
-                duration: "100d",
-                date: moment().add(100, "days")
+                duration: props.caData.issuance_expiration.type === "Duration" ? props.caData.issuance_expiration.duration : "100d",
+                date: props.caData.issuance_expiration.type === "Time" ? moment(props.caData.issuance_expiration.time) : moment().add(100, "days")
             }
         }
     });
@@ -43,10 +48,15 @@ export const UpdateCA: React.FC<UpdateCAProps> = () => {
 
     const handleCreateCA = (formData: FormData) => {
         const run = async () => {
+            setError(undefined);
             setLoading(true);
             try {
-                // await apicalls.cas.createCA({ });
-                // navigate(`/cas/${formData.id}`);
+                await apicalls.cas.updateCAIssuanceExpiration(props.caData.id, {
+                    type: formData.issuerExpiration.type === "duration" ? "Duration" : "Time",
+                    duration: formData.issuerExpiration.duration,
+                    time: formData.issuerExpiration.type === "date-infinity" ? moment("99991231T225959Z").format() : formData.issuerExpiration.date.format()
+                });
+                enqueueSnackbar("CA updated successfully", { variant: "success" });
             } catch (error) {
                 setError(errorToString(error));
             }
@@ -62,32 +72,35 @@ export const UpdateCA: React.FC<UpdateCAProps> = () => {
             title="Update CA"
             subtitle="Update the settings of the Certificate Authority at your convenience"
         >
-            <form onSubmit={onSubmit}>
+            <Button startIcon={<ArrowBackIcon />} onClick={() => {
+                navigate(-1);
+            }}>Go Back</Button>
+            <form onSubmit={onSubmit} style={{ width: "100%" }}>
                 <Grid container spacing={2} justifyContent="center" alignItems="center" sx={{ width: "100%", paddingY: "20px" }}>
                     <Grid xs={12} container spacing={2} flexDirection={"column"}>
                         <Grid>
                             <Typography variant="h4">Issuance Expiration Settings</Typography>
                         </Grid>
                         <Grid>
-                            <FormExpirationInput control={control} name="issuerExpiration" enableInfiniteDate/>
+                            <FormExpirationInput control={control} name="issuerExpiration" enableInfiniteDate />
                         </Grid>
                     </Grid>
 
-                    <Grid sx={{ width: "100%" }}>
+                    <Grid xs={12}>
                         <Divider />
                     </Grid>
 
-                    <Grid container spacing={2} flexDirection={"column"}>
-                        <Grid>
+                    <Grid xs={12} container spacing={2}>
+                        <Grid xs={12}>
                             <LoadingButton loading={loading} variant="contained" type="submit" disabled={
                                 !validDurationRegex(watchIssuanceExpiration.duration)
                             }>Update CA</LoadingButton>
                         </Grid>
                         {
                             error && (
-                                <Grid>
+                                <Grid xs={12}>
                                     <Alert severity="error">
-                                    Something went wrong: {error}
+                                        Something went wrong: {error}
                                     </Alert>
                                 </Grid>
                             )

@@ -12,6 +12,7 @@ import { getEngines } from "ducks/features/cas/apicalls";
 import React from "react";
 import { UpdateCA } from "./UpdateCA";
 import { useTheme } from "@mui/material";
+import { CACustomFetchViewer } from "components/CAs/CACustomFetchViewer";
 
 export const CAView = () => {
     const theme = useTheme();
@@ -23,13 +24,24 @@ export const CAView = () => {
                     <Route path="/" element={<RoutedCAList engines={engines} />}>
                         <Route path="create" element={<CaCreationActionsWrapper engines={engines} />} />
                         <Route path=":caName/*" element={<RoutedCaInspector engines={engines} />} />
-                        <Route path="edit/:caName" element={<UpdateCA/>} />
+                        <Route path="edit/:caName" element={<RoutedCAUpdate />} />
                     </Route>
                 </Routes>
             );
         }
         }
         />
+    );
+};
+
+const RoutedCAUpdate = () => {
+    const params = useParams();
+    return (
+        <CACustomFetchViewer id={params.caName!} renderer={(caData) => {
+            return (
+                <UpdateCA caData={caData} />
+            );
+        }} />
     );
 };
 
@@ -42,7 +54,6 @@ const RoutedCAList = ({ engines }: { engines: CryptoEngine[] }) => {
 
 const RoutedCaInspector = ({ engines }: { engines: CryptoEngine[] }) => {
     const params = useParams();
-    console.log(params.caName);
 
     return (
         <CAInspector caName={params.caName!} engines={engines} />
