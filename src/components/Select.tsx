@@ -16,7 +16,6 @@ const Select: React.FC<SelectProps> = ({ ...rest }) => {
     const theme = useTheme();
 
     const isMobileScreen = useMediaQuery(theme.breakpoints.down("md"));
-    console.log(rest);
     return (
         <MuiSelect
             {...rest}

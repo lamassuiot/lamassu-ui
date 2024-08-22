@@ -245,11 +245,11 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                     </Grid>
                 </Grid>
 
-                <Grid sx={{ width: "100%" }}>
+                <Grid xs={12}>
                     <Divider />
                 </Grid>
 
-                <Grid container spacing={2} sx={{ width: "100%" }}>
+                <Grid container spacing={2} xs={12}>
                     <Grid xs={12}>
                         <Typography variant="h4">Timeline</Typography>
                     </Grid>
@@ -266,8 +266,8 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                     <Divider />
                 </Grid>
 
-                <Grid container spacing={2} flexDirection={"column"}>
-                    <Grid>
+                <Grid container spacing={2} xs={12}>
+                    <Grid xs={12}>
                         <LoadingButton loading={loading} variant="contained" type="submit" disabled={
                             watchSubject.commonName === "" ||
                             !validDurationRegex(watchCAExpiration.duration) ||
@@ -276,7 +276,7 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                     </Grid>
                     {
                         error && (
-                            <Grid>
+                            <Grid xs={12}>
                                 <Alert severity="error">
                                     Something went wrong: {error}
                                 </Alert>

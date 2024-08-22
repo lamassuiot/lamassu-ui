@@ -268,8 +268,6 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         policies: awsMetaConfig.policies
                     };
                 }
-
-                console.log(updateDMS);
                 setLoading(false);
                 reset(updateDMS);
             }
@@ -789,7 +787,6 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
 
                                     <Grid xs={6}>
                                         <CASelector label="Validation CA" value={getValues("emqxIntegration.serviceCA")} multiple={false} onSelect={((elems) => {
-                                            console.log(elems);
                                             if (!Array.isArray(elems)) {
                                                 setValue("emqxIntegration.serviceCA", elems);
                                             }

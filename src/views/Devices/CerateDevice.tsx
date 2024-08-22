@@ -76,7 +76,6 @@ export const CreateDevice: React.FC<Props> = ({ onSubmit }) => {
                         </Grid>
                         <Grid xs={12}>
                             <DMSSelector value={getValues("deviceReg.dms")} onSelect={(dms) => {
-                                console.log(dms);
                                 if (!Array.isArray(dms)) {
                                     setValue("deviceReg.dms", dms);
                                 }

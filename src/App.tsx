@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Box, ListItem, Paper, Typography, useTheme, useMediaQuery, IconButton, Drawer } from "@mui/material";
+import { Box, ListItem, Paper, Typography, useTheme, useMediaQuery, IconButton, Drawer, Button, Alert, AlertTitle } from "@mui/material";
 import { CAView } from "views/CAs";
 import { CertificatesView } from "views/Certificates";
 import { DMSView } from "views/DMS";
@@ -7,7 +7,7 @@ import { DevicesView } from "views/Devices";
 import { Home } from "views/Home";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import { TbCertificate } from "react-icons/tb";
-
+import MailOutlinedIcon from "@mui/icons-material/MailOutlined";
 import { useAuth } from "react-oidc-context";
 import { useState } from "react";
 import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlined";
@@ -20,6 +20,7 @@ import RouterOutlinedIcon from "@mui/icons-material/RouterOutlined";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { InfoView } from "views/Info/info";
 import MenuIcon from "@mui/icons-material/Menu";
+import { AlertsViewList } from "views/Alerts/AlertsList";
 
 type SidebarSection = {
     sectionTitle: string, sectionItems: Array<SidebarItem>
@@ -124,6 +125,19 @@ export default function Dashboard () {
             ]
         },
         {
+            sectionTitle: "Notificaitons",
+            sectionItems: [
+                {
+                    kind: "navigation",
+                    title: "Alerts",
+                    basePath: "/alerts/*",
+                    goTo: "/alerts",
+                    icon: <MailOutlinedIcon />,
+                    content: <AlertsViewList />
+                }
+            ]
+        },
+        {
             sectionTitle: "",
             sectionItems: [
                 {
@@ -157,10 +171,13 @@ export default function Dashboard () {
         if (!auth.isLoading && !auth.isAuthenticated) {
             if (auth.error === undefined) {
                 auth.signinRedirect();
+                console.log("a");
             } else {
                 interval.current = window.setTimeout(() => {
+                    console.log("b");
                     auth.signinRedirect();
                 }, 3000);
+                console.log("c");
             }
         }
 
@@ -168,11 +185,21 @@ export default function Dashboard () {
     }, [auth.isAuthenticated, auth.isLoading]);
 
     if (auth.error) {
-        return <div>Oops... {auth.error.message}</div>;
+        return <Landing>
+            <Alert severity="error">
+                <AlertTitle sx={{ fontWeight: "bold" }}>Error</AlertTitle>
+                Oops... {auth.error.message}
+            </Alert>
+        </Landing>;
     }
 
     if (!auth.isAuthenticated) {
-        return <></>;
+        return <Landing>
+            <Alert severity="info">
+                <AlertTitle sx={{ fontWeight: "bold" }}>Info</AlertTitle>
+                Not authenticated
+            </Alert>
+        </Landing>;
     }
 
     return (
@@ -235,6 +262,49 @@ export default function Dashboard () {
         </Box >
     );
 }
+
+interface LandingProps {
+    children: React.ReactElement
+}
+
+const Landing = React.memo<LandingProps>((props) => {
+    const auth = useAuth();
+    return (
+        <Grid sx={{
+            width: "100%",
+            height: "100%",
+            backgroundImage: `url("${process.env.PUBLIC_URL + "/assets/lamassu/lamassu-background.png"}")`,
+            backgroundPosition: "center",
+            backgroundSize: "cover",
+            backgroundRepeat: "no-repeat"
+        }}
+        container
+        alignItems={"center"}
+        justifyContent={"center"}
+        padding={"50px"}
+        flexDirection={"column"}
+        >
+            <Grid sx={{ marginBottom: "75px" }}>
+                <img src={process.env.PUBLIC_URL + "/assets/lamassu/title.png"} style={{ margin: "0px auto" }} />
+            </Grid>
+            <Grid>
+                <Box component={Paper} sx={{ padding: "20px 40px 30px 40px", maxWidth: "500px" }}>
+                    <Grid container spacing={2}>
+                        <Grid xs={12}>
+                            {props.children}
+                        </Grid>
+                        <Grid xs={12}>
+                            <Button fullWidth variant="contained" onClick={() => {
+                                auth.signinRedirect();
+                            }}>Authenticate</Button>
+                        </Grid>
+                    </Grid>
+                </Box>
+            </Grid>
+        </Grid>
+    );
+});
+Landing.displayName = "Landing";
 
 interface MenuBarProps {
     items: Array<SidebarSection>

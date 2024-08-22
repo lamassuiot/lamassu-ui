@@ -1,14 +1,16 @@
-import { Box, Breakpoint, Button, Dialog, DialogActions, DialogContent, DialogTitle, Step, StepIconProps, StepLabel, Stepper, Typography, lighten, useTheme } from "@mui/material";
+import { Box, Breakpoint, Button, Step, StepIconProps, StepLabel, Stepper, Typography, lighten, useTheme } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import React, { useState } from "react";
+import { Modal } from "./Modal";
 
 interface StepModalProps {
     title: string,
     open: boolean,
     onClose: () => void,
     steps: StepProps[]
-    size?: Breakpoint
+    size?: Breakpoint,
+    onFinish: () => void
 }
 
 interface StepProps {
@@ -43,68 +45,53 @@ const DuiStepIcon = (props: StepIconProps) => {
     ;
 };
 
-const StepModal: React.FC<StepModalProps> = ({ title, open, onClose, steps, size = "md" }) => {
+const StepModal: React.FC<StepModalProps> = ({ title, open, onClose, steps, size = "md", ...rest }) => {
     const [activeStep, setActiveStep] = useState(0);
     const theme = useTheme();
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth={size}>
-            <DialogTitle>
-                <Grid container spacing={"40px"} alignItems={"center"}>
-                    <Grid xs="auto">
-                        <Typography variant="h4" color={theme.palette.primary.main} >{title}</Typography>
-                    </Grid>
-                    <Grid xs>
-                        <Stepper activeStep={activeStep}>
-                            {
-                                steps.map((step, idx) => (
-                                    <Step key={idx}>
-                                        <StepLabel StepIconComponent={DuiStepIcon}>{step.title}</StepLabel>
-                                    </Step>
-                                ))
-                            }
-                        </Stepper>
-                    </Grid>
+        <Modal isOpen={open} onClose={onClose} maxWidth={size} title={title} subtitle="" content={(
+            <Grid container spacing={2}>
+                <Grid xs={12}>
+                    <Stepper activeStep={activeStep} sx={{ overflowX: "hidden" }}>
+                        {
+                            steps.map((step, idx) => (
+                                <Step key={idx} sx={{ width: "fit-content" }}>
+                                    <StepLabel StepIconComponent={DuiStepIcon}>{step.title}</StepLabel>
+                                </Step>
+                            ))
+                        }
+                    </Stepper>
                 </Grid>
-            </DialogTitle>
-            <DialogContent>
-                {
-                    steps.map((step, idx) => (
-                        idx === activeStep && (
-                            <Grid key={idx} container flexDirection={"column"} spacing={2}>
-                                <Grid>
-                                    <Typography variant="h5">{step.subtitle}</Typography>
-                                </Grid>
-                                <Grid>{step.content}</Grid>
-                            </Grid>
-                        )
-                    ))
-                }
-            </DialogContent>
-            <DialogActions>
-                <Grid container>
-                    <Grid xs>
-                        <Button onClick={onClose}>Cancel</Button>
-                    </Grid>
-                    <Grid xs="auto" container spacing={1}>
-                        <Grid xs="auto">
-                            <Button disabled={activeStep === 0} onClick={() => { setActiveStep(activeStep - 1); }}>Back</Button>
-                        </Grid>
-                        <Grid xs="auto">
-                            {
-                                activeStep < steps.length - 1
-                                    ? (
-                                        <Button variant="contained" onClick={() => { setActiveStep(activeStep + 1); }}>Next</Button>
-                                    )
-                                    : (
-                                        <Button variant="contained" onClick={onClose}>Finish</Button>
-                                    )
-                            }
-                        </Grid>
-                    </Grid>
+                <Grid xs={12} >
+                    {steps[activeStep].content}
                 </Grid>
-            </DialogActions>
-        </Dialog>
+            </Grid>
+        )} actions={
+            <Grid container spacing={2}>
+                <Grid xs="auto" md="auto">
+                    <Button variant="text" onClick={onClose}>Cancel</Button>
+                </Grid>
+                <Grid xs="auto">
+                    <Button disabled={activeStep === 0} onClick={() => { setActiveStep(activeStep - 1); }}>Back</Button>
+                </Grid>
+                <Grid xs md="auto">
+                    {
+                        activeStep < steps.length - 1
+                            ? (
+                                <Button variant="contained" fullWidth onClick={() => { setActiveStep(activeStep + 1); }}>Next</Button>
+                            )
+                            : (
+                                <Button variant="contained" fullWidth onClick={() => {
+                                    rest.onFinish();
+                                    onClose();
+                                }}>Finish</Button>
+                            )
+                    }
+                </Grid>
+            </Grid>
+        } />
+
     );
 };
 
