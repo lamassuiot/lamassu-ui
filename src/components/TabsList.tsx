@@ -21,7 +21,7 @@ const TabsList: React.FC<TabsListProps> = ({ tabs, headerStyle = {}, contentStyl
     };
 
     return (
-        <Grid container direction={"column"}>
+        <Grid container direction={"column"} sx={{ width: "100%" }}>
             <Grid sx={{ borderBottom: 1, borderColor: "divider", ...headerStyle }}>
                 <Tabs value={value} onChange={handleChange}>
                     {

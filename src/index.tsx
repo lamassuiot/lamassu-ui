@@ -9,6 +9,7 @@ import ReactDOM from "react-dom/client";
 import ThemeProviderWrapper from "./theme/ThemeProvider";
 import reportWebVitals from "./reportWebVitals";
 import { FluentProvider, webLightTheme } from "@fluentui/react-components";
+import moment from "moment";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -32,6 +33,8 @@ declare global {
     };
   }
 }
+
+moment.locale("en");
 
 root.render(
     <FluentProvider theme={webLightTheme} style={{ height: "100%" }}>

@@ -333,6 +333,11 @@ export const PureLightTheme = createTheme({
         }
     },
     components: {
+        MuiGrid2: {
+            defaultProps: {
+                disableEqualOverflow: true
+            }
+        },
         MuiDataGrid: {
             styleOverrides: {
                 root: {
@@ -355,6 +360,7 @@ export const PureLightTheme = createTheme({
                     "& .MuiDataGrid-virtualScroller": {
                     }
                 },
+
                 virtualScroller: {
                     borderRadius: "3px!important"
                 }

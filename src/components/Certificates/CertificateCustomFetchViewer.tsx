@@ -23,4 +23,4 @@ const Viewer = (props: Props, ref: Ref<FetchHandle>) => {
     );
 };
 
-export const CertificateFetchViewer = React.forwardRef(Viewer) as (props: Props & { ref?: Ref<FetchHandle> }) => ReactElement;
+export const CertificateCustomFetchViewer = React.forwardRef(Viewer) as (props: Props & { ref?: Ref<FetchHandle> }) => ReactElement;

@@ -204,8 +204,8 @@ export default function Dashboard () {
 
     return (
         <Box component={Paper} sx={{ height: "100%" }}>
-            <Grid container sx={{ height: "100%" }}>
-                <Grid xs={12} container sx={{ background: theme.palette.primary.main, height: "50px", paddingX: "10px" }} alignItems={"center"} spacing={1}>
+            <Grid container sx={{ height: "100%" }} direction={"column"} spacing={0}>
+                <Grid container sx={{ background: theme.palette.primary.main, height: "40px", paddingX: "10px", width: "100%", margin: 0 }} alignItems={"center"} >
                     {
                         !isMdUp && (
                             <Grid xs="auto">
@@ -216,10 +216,10 @@ export default function Dashboard () {
                         )
                     }
                     <Grid xs>
-                        <img src={process.env.PUBLIC_URL + "/assets/lamassu/lamassu_full_white.svg"} height={24} style={{ marginLeft: "5px" }} />
+                        <img src={process.env.PUBLIC_URL + "/assets/lamassu/lamassu_full_white.svg"} height={24} style={{ marginLeft: "10px" }} />
                     </Grid>
                 </Grid>
-                <Grid xs={12} container sx={{ height: "calc(100% - 50px)" }}>
+                <Grid flexGrow={1} container sx={{ height: "calc(100% - 50px)" }}>
                     {
                         isMdUp
                             ? (

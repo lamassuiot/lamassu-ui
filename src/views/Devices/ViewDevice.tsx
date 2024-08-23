@@ -1,7 +1,6 @@
 import { Alert, Box, Button, IconButton, Paper, Typography, lighten, useMediaQuery, useTheme } from "@mui/material";
 import { CertificateSelector } from "components/Certificates/CertificateSelector";
 import { Device, DeviceStatus, deviceStatusToColor } from "ducks/features/devices/models";
-import { DeviceTimeline } from "./StatusTimeline";
 import { FetchHandle, FetchViewer } from "components/FetchViewer";
 import { IOSSwitch } from "components/Switch";
 import { IconInput } from "components/IconInput";
@@ -86,7 +85,7 @@ export const ViewDevice: React.FC<Props> = () => {
     return (
         <FetchViewer ref={ref} fetcher={() => apicalls.devices.getDeviceByID(params.deviceId!)} renderer={device => {
             return (
-                <Grid container flexDirection={"column"} sx={{ height: "100%" }}>
+                <Grid container flexDirection={"column"} sx={{ height: "100%" }} flexWrap={"nowrap"}>
                     <Grid padding={"20px"} component={Paper} borderRadius={0} zIndex={10} elevation={2}>
                         <Grid container alignItems={"center"} justifyContent={"space-between"} spacing={"40px"}>
                             <Grid xs={12} md="auto" container>
@@ -108,12 +107,10 @@ export const ViewDevice: React.FC<Props> = () => {
                                 !isMobileScreen && (
                                     <>
                                         <Grid md="auto" container alignItems={"center"} flexDirection="column" spacing={0}>
-                                            <Grid container>
-                                                <Box style={{ display: "flex", alignItems: "center", marginTop: "3px" }}>
-                                                    <AccessTimeIcon style={{ color: theme.palette.text.secondary, fontSize: 15, marginRight: 5 }} />
-                                                    <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>{`Creation date: ${moment(device!.creation_timestamp).format("DD/MM/YYYY")}`}</Typography>
-                                                </Box>
-                                            </Grid>
+                                            <Box style={{ display: "flex", alignItems: "center", marginTop: "3px" }}>
+                                                <AccessTimeIcon style={{ color: theme.palette.text.secondary, fontSize: 15, marginRight: 5 }} />
+                                                <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>{`Creation date: ${moment(device!.creation_timestamp).format("DD/MM/YYYY")}`}</Typography>
+                                            </Box>
                                         </Grid>
                                         <Grid md={"auto"} container spacing={1} style={{ marginTop: "1px" }}>
                                             {
@@ -123,9 +120,6 @@ export const ViewDevice: React.FC<Props> = () => {
                                                         </Grid>
                                                     ))
                                             }
-                                        </Grid>
-                                        <Grid md>
-                                            <DeviceTimeline device={device} />
                                         </Grid>
                                     </>
                                 )
@@ -143,7 +137,7 @@ export const ViewDevice: React.FC<Props> = () => {
                         </Grid>
                     </Grid>
 
-                    <Grid flexGrow={1} width={"1px"}>
+                    <Grid>
                         {
                             device.status !== DeviceStatus.NoIdentity && (
                                 <ViewDeviceDetails device={device} />
