@@ -31,6 +31,7 @@ import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlin
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Modal } from "components/Modal";
 import { enqueueSnackbar } from "notistack";
+import { Select } from "components/Select";
 
 export const DMSListView = () => {
     const theme = useTheme();
@@ -336,16 +337,34 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms, onDelete }) => {
                         title="Delete DMS"
                         subtitle=""
                         content={(
-                            <Grid>
-                                <Typography>
+                            <Grid container spacing={2}>
+                                <Grid xs={12}>
+                                    <Typography>
                                     You are about to delete the DMS <Label color={"info"}><strong>{dms.name}</strong></Label>. This action is irreversible. Are you sure you want to proceed?
-                                </Typography>
+                                    </Typography>
+                                </Grid>
+                                <Grid xs={12}>
+                                    <Select label="Delete Mode" options={[
+                                        {
+                                            value: "SOFT-DELETE",
+                                            render: "Detach Devices"
+                                        },
+                                        {
+                                            value: "CHAINED-DELETE",
+                                            render: "Delete owned Devices"
+                                        },
+                                        {
+                                            value: "TRANSFER",
+                                            render: "Transfer owned Devices to DMS"
+                                        }
+                                    ]}/>
+                                </Grid>
                             </Grid>
                         )}
                         actions={
                             <Grid container spacing={1}>
                                 <Grid xs>
-                                    <Button fullWidth variant="contained" onClick={async () => {
+                                    <Button fullWidth color="error" variant="contained" onClick={async () => {
                                         try {
                                             await apicalls.dmss.getDMSs();
                                             enqueueSnackbar(`DMS ${dms.id} deleted successfully`, { variant: "success" });

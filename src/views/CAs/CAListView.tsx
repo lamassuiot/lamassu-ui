@@ -122,9 +122,9 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
             <Grid xs={viewMode === "list" ? 4 : 12} xl={viewMode === "list" ? 3 : 12} container direction="column">
                 <Box style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
                     <Box sx={{ padding: "20px" }}>
-                        <Grid container flexDirection={"column"} spacing={1}>
-                            <Grid container>
-                                <Grid xs={12} sm={9}>
+                        <Grid container spacing={1} sx={{ maxWidth: "calc(100vw - 80px)" }}>
+                            <Grid xs={12} container>
+                                <Grid xs>
                                     <Box style={{ borderRadius: 8 }}>
                                         <ToggleButtonGroup
                                             value={viewMode}
@@ -169,16 +169,18 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                                     </Grid>
                                 </Grid>
                             </Grid>
-                            <Grid container>
+                            <Grid xs={12}>
                                 <QuerySearchbarInput sx={{ width: "100%" }} onChange={({ query, field }) => {
                                     setQuery({ value: query, field, operator: queryableFields.find((f) => f.key === field)!.operator || "contains" });
                                 }}
                                 fieldSelector={queryableFields}
                                 />
                             </Grid>
+                            {/*
                             <Grid style={{ paddingTop: "10px" }} container alignItems={"center"}>
-                                {/* <Filters fields={casFilters} filters={filters} onChange={(filters) => setFilters([...filters])} /> */}
+                                <Filters fields={casFilters} filters={filters} onChange={(filters) => setFilters([...filters])} />
                             </Grid>
+                            */}
                         </Grid>
                     </Box>
 

@@ -1,7 +1,7 @@
 import { Box } from "@mui/system";
 import { Certificate, CertificateAuthority, CertificateStatus } from "ducks/features/cas/models";
-import { Device, DeviceEvent, DeviceEventType, Slot, slotStatusToColor } from "ducks/features/devices/models";
-import { Divider, IconButton, Paper, Tooltip, Typography, lighten, useTheme, useMediaQuery } from "@mui/material";
+import { Device, DeviceEvent, DeviceEventType, DeviceStatus, Slot, deviceStatusToColor, slotStatusToColor } from "ducks/features/devices/models";
+import { IconButton, Paper, Tooltip, Typography, lighten, useTheme, useMediaQuery } from "@mui/material";
 import { FetchHandle, TableFetchViewer } from "components/TableFetcherView";
 import { GridColDef } from "@mui/x-data-grid";
 import { ListResponse } from "ducks/services/api-client";
@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import Grid from "@mui/material/Unstable_Grid2";
-import Label from "components/Label";
+import Label, { BasicColor } from "components/Label";
 import React, { useEffect, useState } from "react";
 import Timeline from "@mui/lab/Timeline";
 import TimelineConnector from "@mui/lab/TimelineConnector";
@@ -20,6 +20,8 @@ import TimelineItem from "@mui/lab/TimelineItem";
 import TimelineSeparator from "@mui/lab/TimelineSeparator";
 import apicalls from "ducks/apicalls";
 import moment from "moment";
+import { TabsList } from "components/TabsList";
+import { CertificateStandardFetchViewer } from "components/Certificates/CertificateStandardFetchViewer";
 
 interface Props {
     slotID?: string | undefined,
@@ -45,7 +47,94 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
     }
 
     const [devEvents, setDevEvents] = useState<DeviceLog[]>([]);
-    const [includeIDSlotLogs, setIncludeIDSlotLogs] = useState(false);
+    const [includeIDSlotLogs, setIncludeIDSlotLogs] = useState(true);
+
+    const getEventColors = (log: DeviceLog) => {
+        let eventColor: "success" | "error" | "grey" | "warning" | [string, string] | BasicColor = "grey";
+        let statusColor = deviceStatusToColor(DeviceStatus.NoIdentity)[1];
+        let statusChange = false;
+        switch (log.event.type) {
+        case DeviceEventType.Created:
+            eventColor = deviceStatusToColor(DeviceStatus.NoIdentity);
+            statusColor = deviceStatusToColor(DeviceStatus.NoIdentity)[1];
+            statusChange = true;
+            break;
+
+        case DeviceEventType.Provisioned:
+            eventColor = deviceStatusToColor(DeviceStatus.Active);
+            break;
+
+        case DeviceEventType.ReProvisioned:
+            statusColor = deviceStatusToColor(DeviceStatus.Active)[1];
+            statusChange = false;
+            eventColor = "warning";
+            break;
+
+        case DeviceEventType.ShadowUpdated:
+            statusColor = deviceStatusToColor(DeviceStatus.Active)[1];
+            statusChange = false;
+            eventColor = "warning";
+            break;
+
+        case DeviceEventType.Renewed:
+            statusColor = deviceStatusToColor(DeviceStatus.Active)[1];
+            statusChange = false;
+            eventColor = "success";
+            break;
+
+        case DeviceEventType.Decommissioned:
+            statusColor = deviceStatusToColor(DeviceStatus.Decommissioned)[1];
+            statusChange = true;
+            eventColor = "error";
+            break;
+
+        case DeviceEventType.StatusUpdated:
+            if (log.event.description.includes("to 'REVOKED'")) {
+                eventColor = deviceStatusToColor(DeviceStatus.Revoked);
+                statusColor = deviceStatusToColor(DeviceStatus.Revoked)[1];
+                statusChange = true;
+            } else if (log.event.description.includes("to 'ACTIVE'")) {
+                statusColor = deviceStatusToColor(DeviceStatus.Active)[1];
+                statusChange = true;
+                eventColor = deviceStatusToColor(DeviceStatus.Active);
+            } else if (log.event.description.includes("to 'REQUIRES_ACTION'")) {
+                eventColor = "error";
+            } else if (log.event.description.includes("to 'RENEWAL_PENDING'")) {
+                eventColor = deviceStatusToColor(DeviceStatus.RenewalWindow);
+                statusColor = deviceStatusToColor(DeviceStatus.RenewalWindow)[1];
+                statusChange = true;
+            } else if (log.event.description.includes("to 'WARN'")) {
+                eventColor = deviceStatusToColor(DeviceStatus.RenewalWindow);
+                statusColor = deviceStatusToColor(DeviceStatus.RenewalWindow)[1];
+                statusChange = true;
+            } else if (log.event.description.includes("to 'ACTIVE_WITH_CRITICAL'")) {
+                eventColor = deviceStatusToColor(DeviceStatus.AboutToExpire);
+                statusColor = deviceStatusToColor(DeviceStatus.AboutToExpire)[1];
+                statusChange = true;
+            } else if (log.event.description.includes("to 'CRITICAL'")) {
+                eventColor = deviceStatusToColor(DeviceStatus.AboutToExpire);
+                statusColor = deviceStatusToColor(DeviceStatus.AboutToExpire)[1];
+                statusChange = true;
+            } else if (log.event.description.includes("to 'EXPIRED'")) {
+                eventColor = deviceStatusToColor(DeviceStatus.Expired);
+                statusColor = deviceStatusToColor(DeviceStatus.Expired)[1];
+                statusChange = true;
+            } else {
+                eventColor = "grey";
+            }
+            break;
+
+        default:
+            break;
+        }
+
+        return {
+            node: statusColor,
+            fullNode: statusChange,
+            connector: statusColor,
+            label: eventColor
+        };
+    };
 
     const isMobileScreen = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -211,7 +300,7 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
             {
                 !isMobileScreen && (
                     <Grid component={Paper} container borderRadius={0} padding={"10px 20px"} zIndex={5}>
-                        <Grid xs={12} container spacing={6} alignItems="center">
+                        <Grid xs={12} container spacing={4} alignItems="center">
                             <Grid xs="auto">
                                 <Tooltip title="Back to Device List">
                                     <IconButton style={{ background: lighten(theme.palette.primary.main, 0.7) }} onClick={() => {
@@ -294,146 +383,126 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
                     </Grid>
                 )
             }
-            <Grid container sx={{ flexGrow: 1 }} columns={13}>
-                <Grid xs md={10} columns={12} sx={{ padding: "30px", height: "100%" }} container>
-                    <Grid md={12} container component={Paper} spacing={2}>
-                        <Grid xs={12} sx={{ padding: "15px" }}>
-                            <Typography variant="h4">Certificates</Typography>
-                        </Grid>
-                        <Grid xs={12} >
-                            <Divider />
-                        </Grid>
-                        <Grid xs={12} sx={{ height: "calc(100% - 40px)", padding: "20px" }}>
-                            <TableFetchViewer
-                                columns={cols}
-                                fetcher={async (params, controller) => {
-                                    const promises = [];
-                                    const versionedSN: string[] = [];
-                                    for (let i = 0; i <= slot.active_version; i++) {
-                                        const sn: string = slot.versions[i];
-                                        promises.push(apicalls.cas.getCertificate(sn));
-                                        versionedSN.push(sn);
-                                    }
-
-                                    const responses = await Promise.all(promises);
-
-                                    const uniqueCAIDs = Array.from(new Set(responses.map((cert) => cert.issuer_metadata.id)));
-                                    const casPromises: Promise<CertificateAuthority>[] = uniqueCAIDs.map((caID) => {
-                                        return apicalls.cas.getCA(caID);
-                                    });
-
-                                    const cas = await Promise.all(casPromises);
-
-                                    return new Promise<ListResponse<CertificateWithVersionAndCA>>(resolve => {
-                                        resolve({
-                                            list: responses.map((cert) => {
-                                                const version = versionedSN.indexOf(cert.serial_number);
-                                                const ca = cas.find((ca) => ca.id === cert.issuer_metadata.id);
-                                                return { ...cert, version, ca };
-                                            }),
-                                            next: ""
-                                        });
-                                    });
-                                }}
-                                id={(item) => item.serial_number}
-                                sortField={{ field: "valid_from", sort: "desc" }}
-                                ref={tableRef}
-                                density="compact"
-                            />
-                        </Grid>
-                    </Grid>
-                </Grid>
-                {
-                    !isMobileScreen && (
-                        <Grid md={3} container flexDirection={"column"} component={Paper} borderRadius={0} >
-                            <Grid sx={{ flexGrow: 1, overflowY: "auto", overflowX: "hidden", height: "0px", padding: "20px" }}>
-                                <Timeline position="right" sx={{
-                                    [`& .${timelineContentClasses.root}`]: {
-                                    }
-                                }}>
-                                    {
-                                        devEvents.map((ev, idx) => {
-                                            let eventColor: "success" | "error" | "grey" | "warning" | [string, string] = "grey";
-                                            switch (ev.event.type) {
-                                            case DeviceEventType.Created:
-                                                eventColor = "success";
-                                                break;
-
-                                            case DeviceEventType.Provisioned:
-                                                eventColor = "success";
-                                                break;
-
-                                            case DeviceEventType.ReProvisioned:
-                                                eventColor = "warning";
-                                                break;
-
-                                            case DeviceEventType.ShadowUpdated:
-                                                eventColor = "warning";
-                                                break;
-
-                                            case DeviceEventType.Renewed:
-                                                eventColor = "success";
-                                                break;
-
-                                            case DeviceEventType.Decommissioned:
-                                                eventColor = "error";
-                                                break;
-                                            case DeviceEventType.StatusUpdated:
-                                                if (ev.event.description.includes("to 'REVOKED'")) {
-                                                    eventColor = "error";
-                                                } else if (ev.event.description.includes("to 'ACTIVE'")) {
-                                                    eventColor = "success";
-                                                } else if (ev.event.description.includes("to 'REQUIRES_ACTION'")) {
-                                                    eventColor = "error";
-                                                } else if (ev.event.description.includes("to 'ACTIVE_WITH_WARNS'")) {
-                                                    eventColor = ["#000000", "#F1DB3D"];
-                                                } else if (ev.event.description.includes("to 'WARN'")) {
-                                                    eventColor = ["#000000", "#F1DB3D"];
-                                                } else if (ev.event.description.includes("to 'ACTIVE_WITH_CRITICAL'")) {
-                                                    eventColor = ["#444444", "#F88B56"];
-                                                } else if (ev.event.description.includes("to 'CRITICAL'")) {
-                                                    eventColor = ["#444444", "#F88B56"];
-                                                } else {
-                                                    eventColor = "grey";
-                                                }
-                                                break;
-
-                                            default:
-                                                break;
+            <Grid container sx={{ flexGrow: 1 }}>
+                <TabsList
+                    headerStyle={{ width: "100%", padding: "10px 10px 0 10px", background: theme.palette.background.paper, boxShadow: "0px 9px 16px rgba(159, 162, 191, .18), 0px 2px 2px rgba(159, 162, 191, 0.32);" }}
+                    contentStyle={{ width: "100%", height: "100%" }}
+                    tabs={[
+                        {
+                            label: "Certificates History",
+                            element: (
+                                <Grid xs={12} sx={{ height: "100%", padding: "20px" }} component={Paper} borderRadius={0}>
+                                    <TableFetchViewer
+                                        columns={cols}
+                                        fetcher={async (params, controller) => {
+                                            const promises = [];
+                                            const versionedSN: string[] = [];
+                                            for (let i = 0; i <= slot.active_version; i++) {
+                                                const sn: string = slot.versions[i];
+                                                promises.push(apicalls.cas.getCertificate(sn));
+                                                versionedSN.push(sn);
                                             }
-                                            return (
-                                                <TimelineItem key={idx}>
-                                                    <TimelineOppositeContent flex={"0.5!important"}>
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            <Typography sx={{ color: theme.palette.text.secondary }} fontSize="13px">{ev.ts.format("DD-MM-YYYY HH:mm")}</Typography>
-                                                            <Typography sx={{ color: theme.palette.text.secondary, marginRight: "5px" }} fontSize="13px">{ev.ts.fromNow()}</Typography>
-                                                        </Typography>
-                                                    </TimelineOppositeContent>
-                                                    <TimelineSeparator >
-                                                        <TimelineDot />
-                                                        {
-                                                            idx !== devEvents.length - 1 && (
-                                                                <TimelineConnector />
-                                                            )
-                                                        }
-                                                    </TimelineSeparator>
-                                                    <TimelineContent sx={{ marginTop: "-5px" }}>
-                                                        <Label color={"primary"}>{ev.event.type}</Label>
-                                                        <Box sx={{ marginTop: "10px" }}>
-                                                            <Typography fontSize="12px">
-                                                                {ev.event.description}
-                                                            </Typography>
-                                                        </Box>
-                                                    </TimelineContent>
-                                                </TimelineItem>
-                                            );
-                                        })
-                                    }
-                                </Timeline>
-                            </Grid>
-                        </Grid>
-                    )
-                }
+
+                                            const responses = await Promise.all(promises);
+
+                                            const uniqueCAIDs = Array.from(new Set(responses.map((cert) => cert.issuer_metadata.id)));
+                                            const casPromises: Promise<CertificateAuthority>[] = uniqueCAIDs.map((caID) => {
+                                                return apicalls.cas.getCA(caID);
+                                            });
+
+                                            const cas = await Promise.all(casPromises);
+
+                                            return new Promise<ListResponse<CertificateWithVersionAndCA>>(resolve => {
+                                                resolve({
+                                                    list: responses.map((cert) => {
+                                                        const version = versionedSN.indexOf(cert.serial_number);
+                                                        const ca = cas.find((ca) => ca.id === cert.issuer_metadata.id);
+                                                        return { ...cert, version, ca };
+                                                    }),
+                                                    next: ""
+                                                });
+                                            });
+                                        }}
+                                        id={(item) => item.serial_number}
+                                        sortField={{ field: "valid_from", sort: "desc" }}
+                                        ref={tableRef}
+                                        density="compact"
+                                    />
+                                </Grid>
+                            )
+                        },
+                        {
+                            label: "Timeline",
+                            element: (
+                                <Grid container flexDirection={"column"} component={Paper} borderRadius={0} >
+                                    <Grid sx={{ flexGrow: 1, overflowY: "auto", overflowX: "hidden", height: "100%", width: "100%", padding: "0px" }}>
+                                        <Timeline position="right" sx={{
+                                            [`& .${timelineContentClasses.root}`]: {
+                                            }
+                                        }}>
+                                            {
+                                                devEvents.map((ev, idx) => {
+                                                    const colors = getEventColors(ev);
+                                                    return (
+                                                        <>
+                                                            <TimelineItem key={idx}>
+                                                                <TimelineOppositeContent flex={isMobileScreen ? "0.4!important" : "0.1!important"}>
+                                                                    <Typography variant="body2" color="text.secondary">
+                                                                        <Typography sx={{ color: theme.palette.text.secondary }} fontSize="13px">{ev.ts.format("DD-MM-YYYY HH:mm")}</Typography>
+                                                                        <Typography sx={{ color: theme.palette.text.secondary, marginRight: "5px" }} fontSize="13px">{ev.ts.fromNow()}</Typography>
+                                                                        {
+                                                                            idx < devEvents.length - 1 && (
+                                                                                <Label size="small">{moment.duration(moment(devEvents[idx + 1].ts).diff(ev.ts)).humanize()} later</Label>
+                                                                            )
+                                                                        }
+                                                                    </Typography>
+                                                                </TimelineOppositeContent>
+                                                                <TimelineSeparator>
+                                                                    <TimelineDot sx={{ border: `2px solid ${colors.node}`, background: colors.fullNode ? colors.node : "default" }} />
+                                                                    {
+                                                                        idx < devEvents.length - 1 && (
+                                                                            <TimelineConnector sx={{ backgroundColor: getEventColors(devEvents[idx + 1]).connector }} />
+                                                                        )
+                                                                    }
+                                                                </TimelineSeparator>
+                                                                <TimelineContent sx={{ marginTop: "-5px" }}>
+                                                                    <Label color={"primary"}>{ev.event.type}</Label>
+                                                                    <Box sx={{ marginTop: "10px", borderBottom: "1px solid #ddd" }}>
+                                                                        <Typography fontSize="12px">
+                                                                            {
+                                                                                ev.event.type === DeviceEventType.Provisioned && (
+                                                                                    <CertificateStandardFetchViewer sn={slot.versions[0]} />
+                                                                                )
+                                                                            }
+                                                                            {ev.event.description.includes("New Active Version")
+                                                                                ? (
+                                                                                    <Grid container direction={"column"}>
+                                                                                        <Grid>
+                                                                                            {ev.event.description}
+                                                                                        </Grid>
+                                                                                        <Grid>
+                                                                                            <CertificateStandardFetchViewer sn={slot.versions[parseInt(ev.event.description.replace("New Active Version set to ", ""))]} />
+                                                                                        </Grid>
+                                                                                    </Grid>
+                                                                                )
+                                                                                : (
+                                                                                    <> {ev.event.description}</>
+                                                                                )}
+                                                                        </Typography>
+                                                                    </Box>
+                                                                </TimelineContent>
+                                                            </TimelineItem>
+                                                        </>
+                                                    );
+                                                })
+                                            }
+                                        </Timeline>
+                                    </Grid>
+                                </Grid>
+                            )
+                        }
+                    ]}
+                />
             </Grid>
         </Grid>
     );
