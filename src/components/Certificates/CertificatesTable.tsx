@@ -1,27 +1,26 @@
-import { Box, Button, IconButton, Paper, Tooltip, Typography, lighten, useTheme } from "@mui/material";
-import { Certificate, CertificateAuthority, CertificateStatus, RevocationReason, getRevocationReasonDescription } from "ducks/features/cas/models";
-import { CodeCopier } from "components/CodeCopier";
+import { Box, IconButton, Paper, Tooltip, Typography, lighten, useTheme } from "@mui/material";
+import { Certificate, CertificateAuthority, CertificateStatus } from "ducks/features/cas/models";
 import { FetchHandle, TableFetchViewer } from "components/TableFetcherView";
 import { GridColDef, GridFilterItem } from "@mui/x-data-grid";
 import { ListResponse } from "ducks/services/api-client";
-import { Modal } from "components/Modal";
-import { MultiKeyValueInput } from "components/forms/MultiKeyValue";
-import { Select } from "components/Select";
-import { TextField } from "components/TextField";
 import { useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 import Grid from "@mui/material/Unstable_Grid2";
 import Label from "components/Label";
-import React, { Ref, useEffect, useImperativeHandle, useState } from "react";
+import React, { Ref, useImperativeHandle, useState } from "react";
 import UnarchiveOutlinedIcon from "@mui/icons-material/UnarchiveOutlined";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import apicalls from "ducks/apicalls";
-import deepEqual from "fast-deep-equal/es6";
 import moment from "moment";
+import { ShowCertificateModal } from "./Modals/ShowCertificate";
+import { RevokeCertificateModal } from "./Modals/RevokeCertificate";
+import { GrValidate } from "react-icons/gr";
+import { OCSPCertificateVerificationModal } from "./Modals/OCSPCertificate";
 
 interface Props {
     withActions?: boolean
+    filter?: GridFilterItem | undefined;
     query?: { field: string, value: string, operator: string }
     ref?: Ref<FetchHandle>
     caID?: string
@@ -36,12 +35,8 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
     const theme = useTheme();
 
     const [showDialog, setShowDialog] = useState<Certificate | undefined>(undefined);
+    const [ocspDialog, setOcspDialog] = useState<Certificate | undefined>(undefined);
     const [revokeDialog, setRevokeDialog] = useState<Certificate | undefined>(undefined);
-    const [revokeReason, setRevokeReason] = useState("Unspecified");
-
-    useEffect(() => {
-        tableRef.current?.refresh();
-    }, [props.query]);
 
     useImperativeHandle(ref, () => ({
         refresh () {
@@ -69,7 +64,7 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
                 return <Label color={row.status === CertificateStatus.Active ? "success" : (row.status === CertificateStatus.Revoked ? "error" : "grey")}>{row.status}</Label>;
             }
         },
-        { field: "cn", valueGetter: (value, row) => { return row.subject.common_name; }, headerName: "Common Name", width: 150, flex: 0.2 },
+        { field: "subject.common_name", valueGetter: (value, row) => { return row.subject.common_name; }, headerName: "Common Name", width: 150, flex: 0.2 },
         {
             field: "key",
             valueGetter: (value, row) => { return row.key_metadata.strength; },
@@ -164,7 +159,7 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
             type: "actions",
             headerName: "Actions",
             headerAlign: "center",
-            width: 100,
+            width: 150,
             cellClassName: "actions",
             renderCell: ({ value, row, id }) => {
                 return (
@@ -176,6 +171,17 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
                                         setShowDialog(row);
                                     }}>
                                         <VisibilityIcon sx={{ color: theme.palette.primary.main }} fontSize={"small"} />
+                                    </IconButton>
+                                </Box>
+                            </Tooltip>
+                        </Grid>
+                        <Grid xs="auto">
+                            <Tooltip title="OCSP">
+                                <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: lighten(theme.palette.primary.light, 0.8), width: 35, height: 35 }}>
+                                    <IconButton onClick={() => {
+                                        setOcspDialog(row);
+                                    }}>
+                                        <GrValidate color={theme.palette.primary.main} fontSize={"18px"} />
                                     </IconButton>
                                 </Box>
                             </Tooltip>
@@ -202,7 +208,7 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
                                         <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: lighten(theme.palette.primary.light, 0.8), width: 35, height: 35 }}>
                                             <IconButton onClick={() => {
                                                 try {
-                                                    apicalls.cas.updateCertificateStatus(row.serial_number, CertificateStatus.Active, revokeReason);
+                                                    apicalls.cas.updateCertificateStatus(row.serial_number, CertificateStatus.Active, "");
                                                     tableRef.current?.refresh();
                                                     enqueueSnackbar(`Certificate with Serial Number ${row.serial_number} and CN ${row.subject.common_name} reactivated`, { variant: "success" });
                                                 } catch (err) {
@@ -228,28 +234,23 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
         cols.splice(cols.findIndex(col => col.field === "caid"), 1);
     }
 
-    let filter: GridFilterItem[] | undefined;
-    if (props.query && props.query.field && props.query.value) {
-        filter = [{ field: props.query.field, operator: "contains", value: props.query.value, id: "query-input" }];
-    }
-
     return (
         <>
             <TableFetchViewer
                 columns={cols}
                 fetcher={async (params, controller) => {
-                    if (props.query && props.query.field && props.query.value) {
-                        // check if params has filter
-                        if (params.filters) {
-                            const queryIdx = params.filters.findIndex((f) => f.startsWith(props.query!.field!));
-                            const filter = `${props.query.field}[${props.query.operator}]${props.query.value}`;
-                            if (queryIdx !== -1) {
-                                params.filters[queryIdx] = filter;
-                            } else {
-                                params.filters.push(filter);
-                            }
-                        }
-                    }
+                    // if (props.query && props.query.field && props.query.value) {
+                    // check if params has filter
+                    // if (params.filters) {
+                    //     const queryIdx = params.filters.findIndex((f) => f.startsWith(props.query!.field!));
+                    //     const filter = `${props.query.field}[${props.query.operator}]${props.query.value}`;
+                    //     if (queryIdx !== -1) {
+                    //         params.filters[queryIdx] = filter;
+                    //     } else {
+                    //         params.filters.push(filter);
+                    //     }
+                    // }
+                    // }
 
                     let certsList: ListResponse<Certificate>;
 
@@ -281,110 +282,36 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
                         });
                     });
                 }}
+
+                filter={!props.query || (props.query && props.query?.value === "") ? props.filter : { ...props.query, id: "query" }}
                 id={(item) => item.serial_number}
                 sortField={{ field: "valid_from", sort: "desc" }}
                 ref={tableRef}
                 density="compact"
             />
-            <Modal
-                title={`Certificate ${showDialog?.serial_number}`}
-                subtitle=""
-                isOpen={showDialog !== undefined}
-                maxWidth={false}
-                onClose={() => { setShowDialog(undefined); }}
-                actions={
-                    <Box>
-                        <Button fullWidth onClick={() => { setShowDialog(undefined); }}>Close</Button>
-                    </Box>
-                }
-                content={
-                    showDialog
-                        ? (
-                            <Grid container spacing={4} width={"100%"}>
-                                <Grid xs="auto">
-                                    <CodeCopier code={window.window.atob(showDialog!.certificate)} enableDownload downloadFileName={showDialog!.issuer_metadata.id + "_" + showDialog!.serial_number + ".crt"} />
-                                </Grid>
-                                <Grid xs container flexDirection={"column"}>
-                                    <MultiKeyValueInput label="Metadata" value={showDialog!.metadata} onChange={(meta) => {
-                                        if (!deepEqual(showDialog!.metadata, meta)) {
-                                            apicalls.cas.updateCertificateMetadata(showDialog!.serial_number, meta);
-                                        }
-                                    }} />
-                                </Grid>
-                            </Grid>
-                        )
-                        : (
-                            <></>
-                        )
-                }
-            />
-            <Modal
-                title={"Revoke Certificate"}
-                subtitle={""}
-                isOpen={revokeDialog !== undefined}
-                onClose={function (): void {
-                    setRevokeDialog(undefined);
-                }}
-                maxWidth={"md"}
-                content={
-                    revokeDialog
-                        ? (
-                            <Grid container flexDirection={"column"} spacing={4}>
-                                <Grid container flexDirection={"column"} spacing={2}>
-                                    <Grid>
-                                        <TextField label="Certificate Common Name" value={revokeDialog!.serial_number} disabled />
-                                    </Grid>
-                                    <Grid>
-                                        <TextField label="Certificate Common Name" value={revokeDialog!.subject.common_name} disabled />
-                                    </Grid>
-                                </Grid>
-                                <Grid container flexDirection={"column"} spacing={2}>
-                                    <Grid>
-                                        <Select label="Select Revocation Reason" value={revokeReason} onChange={(ev: any) => setRevokeReason(ev.target.value!)} options={
-                                            Object.values(RevocationReason).map((rCode, idx) => {
-                                                return {
-                                                    value: rCode,
-                                                    render: () => (
-                                                        <Grid container spacing={1}>
-                                                            <Grid xs={12}>
-                                                                <Typography variant="body1" fontWeight={"bold"}>{rCode}</Typography>
-                                                            </Grid>
-                                                            <Grid xs={12}>
-                                                                <Typography variant="body2">{getRevocationReasonDescription(rCode)}</Typography>
-                                                            </Grid>
-                                                        </Grid>
-                                                    )
-                                                };
-                                            })
-                                        } />
-                                    </Grid>
-                                </Grid>
-                            </Grid>
-                        )
-                        : (
-                            <></>
-                        )
-                }
-                actions={
-                    <Grid container spacing={2}>
-                        <Grid xs md="auto">
-                            <Button variant="contained" fullWidth onClick={async () => {
-                                try {
-                                    await apicalls.cas.updateCertificateStatus(revokeDialog!.serial_number, CertificateStatus.Revoked, revokeReason);
-                                    tableRef.current?.refresh();
-                                    enqueueSnackbar(`Certificate with Serial Number ${revokeDialog?.serial_number} and CN ${revokeDialog?.subject.common_name} revoked`, { variant: "success" });
-                                    setRevokeDialog(undefined);
-                                } catch (err) {
-                                    enqueueSnackbar(`Error while revoking Certificate with Serial Number ${revokeDialog?.serial_number} and CN ${revokeDialog?.subject.common_name}: ${err}`, { variant: "error" });
-                                }
-                            }}>Revoke Certificate</Button>
-                        </Grid>
-                        <Grid xs="auto" md="auto">
-                            <Button variant="text" onClick={() => { setRevokeDialog(undefined); }}>Close</Button>
-                        </Grid>
-                    </Grid>
-                }
-            />
+            {
+                ocspDialog && (
+                    <OCSPCertificateVerificationModal certificate={ocspDialog!} onClose={() => {
+                        setOcspDialog(undefined);
+                    }} open={true} />
+                )
+            }
+            {
+                showDialog && (
+                    <ShowCertificateModal certificate={showDialog!} onClose={() => {
+                        setShowDialog(undefined);
+                    }} open={true} />
+                )
+            }
+            {
+                revokeDialog && (
+                    <RevokeCertificateModal certificate={revokeDialog!} onClose={() => {
+                        setRevokeDialog(undefined);
+                    }} open={true} onRevoke={() => {
+                        tableRef.current?.refresh();
+                    }} />
+                )
+            }
         </>
     );
 });

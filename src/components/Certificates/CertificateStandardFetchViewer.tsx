@@ -2,9 +2,9 @@ import { Certificate } from "ducks/features/cas/models";
 import { FetchHandle } from "components/FetchViewer";
 import React, { ReactElement, Ref } from "react";
 import { CertificateCustomFetchViewer } from "./CertificateCustomFetchViewer";
-import { CertificateViewer } from "./CertificateViewer";
+import { CertificateViewer, Props as CertificateViewerProps } from "./CertificateViewer";
 
-type Props = {
+interface Props extends Omit<CertificateViewerProps, "certificate"> {
     sn: string
 }
 
@@ -13,7 +13,7 @@ const Viewer = (props: Props, ref: Ref<FetchHandle>) => {
         <CertificateCustomFetchViewer
             ref={ref}
             renderer={(item: Certificate) => (
-                <CertificateViewer certificate={item} />
+                <CertificateViewer certificate={item} {...props}/>
             )}
             sn={props.sn}
         />

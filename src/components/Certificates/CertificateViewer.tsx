@@ -1,27 +1,36 @@
-import { Box, Dialog, DialogContent, DialogTitle, IconButton, Typography, lighten, useTheme } from "@mui/material";
+import { Box, IconButton, Paper, Tooltip, Typography, lighten, useTheme } from "@mui/material";
 import { Certificate, CertificateAuthority, CertificateStatus } from "ducks/features/cas/models";
-import { CertificateDecoder } from "./CertificateDecoder";
-import { CodeCopier } from "components/CodeCopier";
 import Grid from "@mui/material/Unstable_Grid2";
-import React from "react";
+import React, { useState } from "react";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import moment from "moment";
 import Label from "components/Label";
+import apicalls from "ducks/apicalls";
+import { enqueueSnackbar } from "notistack";
+import UnarchiveOutlinedIcon from "@mui/icons-material/UnarchiveOutlined";
+import DeleteIcon from "@mui/icons-material/DeleteOutlined";
+import { ShowCertificateModal } from "./Modals/ShowCertificate";
+import { RevokeCertificateModal } from "./Modals/RevokeCertificate";
 
 export type Props = {
     certificate: Certificate,
     issuerCA?: CertificateAuthority,
     actions?: React.ReactNode[]
     clickDisplay?: boolean
+    clickRevoke?: boolean
+    onRevoke?: () => void
+    onReactivate?: () => void
 }
 
-export const CertificateViewer: React.FC<Props> = ({ certificate, issuerCA, actions = [], clickDisplay = false }) => {
+export const CertificateViewer: React.FC<Props> = ({ certificate, issuerCA, actions = [], clickDisplay = false, clickRevoke = false, onRevoke = () => {}, onReactivate = () => {} }) => {
     const theme = useTheme();
-    const [displayCertificate, setDisplayCertificate] = React.useState<Certificate | undefined>(undefined);
+
+    const [openShowDialog, setOpenShowDialog] = useState(false);
+    const [openRevokeDialog, setOpenRevokeDialog] = useState(false);
 
     return (
         <Box sx={{ padding: "10px", cursor: "pointer", width: "calc(100% - 20px)" }} >
-            <Grid container columnGap={2} alignItems={"center"}>
+            <Grid container columnGap={1} alignItems={"center"}>
                 <Grid xs container flexDirection={"column"}>
                     <Grid xs>
                         <Typography >{certificate.subject.common_name}</Typography>
@@ -41,7 +50,7 @@ export const CertificateViewer: React.FC<Props> = ({ certificate, issuerCA, acti
                             certificate.status === CertificateStatus.Revoked
                                 ? (
                                     <Grid xs="auto">
-                                        <Label color="error" size="small">{`REVOKED - ${certificate.revocation_reason}`}</Label>
+                                        <Label color="error" size="small">{`REVOKED - ${certificate.revocation_reason} · ${moment(certificate.revocation_timestamp).format("DD/MM/YYYY HH:mm")} (${moment.duration(moment(certificate.revocation_timestamp).diff(moment())).humanize(true)})`}</Label>
                                     </Grid>
                                 )
                                 : (
@@ -55,10 +64,52 @@ export const CertificateViewer: React.FC<Props> = ({ certificate, issuerCA, acti
                 {
                     clickDisplay && (
                         <Grid xs="auto">
-                            <IconButton onClick={(ev) => { ev.stopPropagation(); ev.preventDefault(); setDisplayCertificate(certificate); }}>
+                            <IconButton onClick={(ev) => { ev.stopPropagation(); ev.preventDefault(); setOpenShowDialog(true); }}>
                                 <RemoveRedEyeIcon />
                             </IconButton>
                         </Grid>
+                    )
+                }
+                {
+                    clickRevoke && (
+                        <>
+                            {
+                                certificate.status !== CertificateStatus.Revoked && (
+                                    <Grid xs="auto">
+                                        <Tooltip title="Revoke Certificate">
+                                            <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: lighten(theme.palette.error.light, 0.8), width: 35, height: 35 }}>
+                                                <IconButton onClick={() => {
+                                                    setOpenRevokeDialog(true);
+                                                }}>
+                                                    <DeleteIcon fontSize={"small"} sx={{ color: theme.palette.error.main }} />
+                                                </IconButton>
+                                            </Box>
+                                        </Tooltip>
+                                    </Grid>
+                                )
+                            }
+                            {
+                                certificate.status === CertificateStatus.Revoked && certificate.revocation_reason === "CertificateHold" && (
+                                    <Grid xs="auto">
+                                        <Tooltip title="ReActivate certificate">
+                                            <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: lighten(theme.palette.primary.light, 0.8), width: 35, height: 35 }}>
+                                                <IconButton onClick={() => {
+                                                    try {
+                                                        apicalls.cas.updateCertificateStatus(certificate.serial_number, CertificateStatus.Active, "");
+                                                        onReactivate();
+                                                        enqueueSnackbar(`Certificate with Serial Number ${certificate.serial_number} and CN ${certificate.subject.common_name} reactivated`, { variant: "success" });
+                                                    } catch (err) {
+                                                        enqueueSnackbar(`Error while reactivating Certificate with Serial Number ${certificate.serial_number} and CN ${certificate.subject.common_name}: ${err}`, { variant: "error" });
+                                                    }
+                                                }}>
+                                                    <UnarchiveOutlinedIcon fontSize={"small"} sx={{ color: theme.palette.primary.main }} />
+                                                </IconButton>
+                                            </Box>
+                                        </Tooltip>
+                                    </Grid>
+                                )
+                            }
+                        </>
                     )
                 }
                 {
@@ -78,22 +129,19 @@ export const CertificateViewer: React.FC<Props> = ({ certificate, issuerCA, acti
                 }
             </Grid>
             {
-                displayCertificate && (
-                    <Dialog open={true} onClose={() => setDisplayCertificate(undefined)} maxWidth={"md"}>
-                        <DialogTitle>
-                            <Typography variant="h2" sx={{ fontWeight: "500", fontSize: "1.25rem" }}>{displayCertificate.serial_number}</Typography>
-                        </DialogTitle>
-                        <DialogContent>
-                            <Grid container spacing={2} flexDirection={"column"}>
-                                <Grid>
-                                    <CodeCopier code={atob(displayCertificate.certificate)} />
-                                </Grid>
-                                <Grid>
-                                    <CertificateDecoder crtPem={atob(displayCertificate.certificate)} />
-                                </Grid>
-                            </Grid>
-                        </DialogContent>
-                    </Dialog>
+                openShowDialog && (
+                    <ShowCertificateModal certificate={certificate} onClose={() => {
+                        setOpenShowDialog(false);
+                    }} open={true} />
+                )
+            }
+            {
+                openRevokeDialog && (
+                    <RevokeCertificateModal certificate={certificate} onClose={() => {
+                        setOpenRevokeDialog(false);
+                    }} open={true} onRevoke={() => {
+                        onRevoke();
+                    }} />
                 )
             }
         </Box>
