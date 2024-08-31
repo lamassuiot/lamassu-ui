@@ -74,7 +74,7 @@ export const DevicesListView = () => {
                 <Grid xs >
                     <Box component={Paper} borderRadius={"15px"}>
                         <DevicesTable ref={tableRef} query={query} filter={filter} onRowClick={(row) => {
-                            navigate(`/devices/${row.id}`);
+                            navigate(`/devices/${row.id}/certificates`);
                         }} />
                     </Box>
                 </Grid>

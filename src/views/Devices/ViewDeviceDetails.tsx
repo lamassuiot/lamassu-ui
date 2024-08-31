@@ -20,12 +20,14 @@ import TimelineItem from "@mui/lab/TimelineItem";
 import TimelineSeparator from "@mui/lab/TimelineSeparator";
 import apicalls from "ducks/apicalls";
 import moment from "moment";
-import { TabsList } from "components/TabsList";
 import { CertificateStandardFetchViewer } from "components/Certificates/CertificateStandardFetchViewer";
+import { KeyValueLabel } from "components/KeyValue";
+import { TabsListWithRouter } from "components/TabsListWithRouter";
 
 interface Props {
     slotID?: string | undefined,
     device: Device,
+    onChange: () => void
 }
 
 type CertificateWithVersionAndCA = Certificate & { version: number, ca: CertificateAuthority | undefined }; // Imported certificates may not belong to any CA
@@ -35,7 +37,7 @@ type DeviceLog = {
     ts: moment.Moment
 }
 
-export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
+export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device, onChange }) => {
     const theme = useTheme();
 
     const navigate = useNavigate();
@@ -49,7 +51,7 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
     const [devEvents, setDevEvents] = useState<DeviceLog[]>([]);
     const [includeIDSlotLogs, setIncludeIDSlotLogs] = useState(true);
 
-    const getEventColors = (log: DeviceLog) => {
+    const getEventColors = (log: DeviceLog, idx: number, logs: DeviceLog[]): { node: string, fullNode: boolean, connector: string, label: [string, string] | BasicColor } => {
         let eventColor: "success" | "error" | "grey" | "warning" | [string, string] | BasicColor = "grey";
         let statusColor = deviceStatusToColor(DeviceStatus.NoIdentity)[1];
         let statusChange = false;
@@ -70,12 +72,6 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
             eventColor = "warning";
             break;
 
-        case DeviceEventType.ShadowUpdated:
-            statusColor = deviceStatusToColor(DeviceStatus.Active)[1];
-            statusChange = false;
-            eventColor = "warning";
-            break;
-
         case DeviceEventType.Renewed:
             statusColor = deviceStatusToColor(DeviceStatus.Active)[1];
             statusChange = false;
@@ -86,6 +82,16 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
             statusColor = deviceStatusToColor(DeviceStatus.Decommissioned)[1];
             statusChange = true;
             eventColor = "error";
+            break;
+
+        case DeviceEventType.ShadowUpdated:
+            if (idx < logs.length - 1) {
+                const colors = getEventColors(logs[idx + 1], idx + 1, logs);
+                return {
+                    ...colors,
+                    fullNode: false
+                };
+            }
             break;
 
         case DeviceEventType.StatusUpdated:
@@ -107,7 +113,7 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
                 eventColor = deviceStatusToColor(DeviceStatus.RenewalWindow);
                 statusColor = deviceStatusToColor(DeviceStatus.RenewalWindow)[1];
                 statusChange = true;
-            } else if (log.event.description.includes("to 'ACTIVE_WITH_CRITICAL'")) {
+            } else if (log.event.description.includes("to 'EXPIRING_SOON'")) {
                 eventColor = deviceStatusToColor(DeviceStatus.AboutToExpire);
                 statusColor = deviceStatusToColor(DeviceStatus.AboutToExpire)[1];
                 statusChange = true;
@@ -282,7 +288,7 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
                             <Tooltip title="Go to Certificate view">
                                 <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: lighten(theme.palette.primary.light, 0.8), width: 35, height: 35 }}>
                                     <IconButton onClick={() => {
-                                        navigate(`/certificates/${row.serial_number}`);
+                                        navigate(`/certs/${row.serial_number}`);
                                     }}>
                                         <ArrowForwardIcon sx={{ color: theme.palette.primary.main }} fontSize={"small"} />
                                     </IconButton>
@@ -296,7 +302,7 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
     ];
 
     return (
-        <Grid container flexDirection={"column"} height={"100%"}>
+        <Grid container flexDirection={"column"} height={"100%"} flexWrap={"nowrap"}>
             {
                 !isMobileScreen && (
                     <Grid component={Paper} container borderRadius={0} padding={"10px 20px"} zIndex={5}>
@@ -384,12 +390,15 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
                 )
             }
             <Grid container sx={{ flexGrow: 1 }}>
-                <TabsList
+                <TabsListWithRouter
                     headerStyle={{ width: "100%", padding: "10px 10px 0 10px", background: theme.palette.background.paper, boxShadow: "0px 9px 16px rgba(159, 162, 191, .18), 0px 2px 2px rgba(159, 162, 191, 0.32);" }}
                     contentStyle={{ width: "100%", height: "100%" }}
+                    useParamsKey="*"
                     tabs={[
                         {
                             label: "Certificates History",
+                            goto: "certificates",
+                            path: "certificates",
                             element: (
                                 <Grid xs={12} sx={{ height: "100%", padding: "20px" }} component={Paper} borderRadius={0}>
                                     <TableFetchViewer
@@ -433,6 +442,8 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
                         },
                         {
                             label: "Timeline",
+                            goto: "timeline",
+                            path: "timeline",
                             element: (
                                 <Grid container flexDirection={"column"} component={Paper} borderRadius={0} >
                                     <Grid sx={{ flexGrow: 1, overflowY: "auto", overflowX: "hidden", height: "100%", width: "100%", padding: "0px" }}>
@@ -442,7 +453,21 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
                                         }}>
                                             {
                                                 devEvents.map((ev, idx) => {
-                                                    const colors = getEventColors(ev);
+                                                    const colors = getEventColors(ev, idx, devEvents);
+                                                    let tooltip;
+
+                                                    if (ev.event.type === DeviceEventType.Provisioned) {
+                                                        tooltip = "Device has been provisioned with a certificate for the first time";
+                                                    }
+
+                                                    if (ev.event.type === DeviceEventType.ReProvisioned) {
+                                                        tooltip = "Device has acquired a new certificate using the ENROLL procedure (not using the RE-ENROLL)";
+                                                    }
+
+                                                    if (ev.event.type === DeviceEventType.Renewed) {
+                                                        tooltip = "Device has acquired a new certificate using the RE-ENROLL procedure";
+                                                    }
+
                                                     return (
                                                         <>
                                                             <TimelineItem key={idx}>
@@ -461,17 +486,34 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
                                                                     <TimelineDot sx={{ border: `2px solid ${colors.node}`, background: colors.fullNode ? colors.node : "default" }} />
                                                                     {
                                                                         idx < devEvents.length - 1 && (
-                                                                            <TimelineConnector sx={{ backgroundColor: getEventColors(devEvents[idx + 1]).connector }} />
+                                                                            <TimelineConnector sx={{ backgroundColor: getEventColors(devEvents[idx + 1], idx, devEvents).connector }} />
                                                                         )
                                                                     }
                                                                 </TimelineSeparator>
-                                                                <TimelineContent sx={{ marginTop: "-5px" }}>
-                                                                    <Label color={"primary"}>{ev.event.type}</Label>
+                                                                <TimelineContent sx={{ marginTop: "-2px" }}>
+                                                                    <Grid container spacing={1} alignItems={"center"}>
+                                                                        {
+                                                                            ev.event.type === DeviceEventType.ShadowUpdated && (
+                                                                                <Grid xs="auto">
+                                                                                    <img src={process.env.PUBLIC_URL + "/assets/AWS.png"} alt="Shadow Updated" style={{ width: "35px", height: "35px" }} />
+                                                                                </Grid>
+                                                                            )
+                                                                        }
+                                                                        <Grid xs="auto">
+                                                                            <KeyValueLabel
+                                                                                label={
+                                                                                    <Typography fontSize="12px" fontWeight="600" color={"primary"}>{ev.event.type}</Typography>
+                                                                                }
+                                                                                value=""
+                                                                                tooltip={tooltip}
+                                                                            />
+                                                                        </Grid>
+                                                                    </Grid>
                                                                     <Box sx={{ marginTop: "10px", borderBottom: "1px solid #ddd" }}>
                                                                         <Typography fontSize="12px">
                                                                             {
                                                                                 ev.event.type === DeviceEventType.Provisioned && (
-                                                                                    <CertificateStandardFetchViewer sn={slot.versions[0]} />
+                                                                                    <CertificateStandardFetchViewer sn={slot.versions[0]} clickDisplay clickRevoke onReactivate={() => onChange()} onRevoke={() => onChange()} />
                                                                                 )
                                                                             }
                                                                             {ev.event.description.includes("New Active Version")
@@ -481,7 +523,7 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device }) => {
                                                                                             {ev.event.description}
                                                                                         </Grid>
                                                                                         <Grid>
-                                                                                            <CertificateStandardFetchViewer sn={slot.versions[parseInt(ev.event.description.replace("New Active Version set to ", ""))]} />
+                                                                                            <CertificateStandardFetchViewer sn={slot.versions[parseInt(ev.event.description.replace("New Active Version set to ", ""))]} clickDisplay clickRevoke={true} onReactivate={() => onChange()} onRevoke={() => onChange()} />
                                                                                         </Grid>
                                                                                     </Grid>
                                                                                 )

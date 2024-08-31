@@ -140,7 +140,9 @@ export const ViewDevice: React.FC<Props> = () => {
                     <Grid>
                         {
                             device.status !== DeviceStatus.NoIdentity && (
-                                <ViewDeviceDetails device={device} />
+                                <ViewDeviceDetails device={device} onChange={() => {
+                                    ref.current?.refresh();
+                                }} />
                             )
                         }
                     </Grid>

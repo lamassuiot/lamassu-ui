@@ -1,5 +1,5 @@
 import { Alert, Box, LinearProgress, styled } from "@mui/material";
-import { DataGrid, GridColDef, GridDensity, GridFilterItem, GridFilterModel, GridPaginationModel, GridSlots, GridSortItem, GridSortModel, GridValidRowModel, getGridDateOperators, getGridStringOperators } from "@mui/x-data-grid";
+import { DataGrid, GridColDef, GridDensity, GridFilterItem, GridFilterModel, GridPaginationMeta, GridPaginationModel, GridRowId, GridSlots, GridSortItem, GridSortModel, GridValidRowModel, getGridDateOperators, getGridStringOperators } from "@mui/x-data-grid";
 
 import { ListRequest, ListResponse, errorToString } from "../ducks/services/api-client";
 import React, { ReactElement, Ref, useEffect, useImperativeHandle, useState } from "react";
@@ -28,7 +28,7 @@ export type FetchHandle = {
     refresh: () => void,
 }
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 10;
 
 type ComponentProps<T extends GridValidRowModel> = React.PropsWithChildren<WrapperComponentProps<T>>;
 const Fetcher = <T extends GridValidRowModel>(props: ComponentProps<T>, ref: Ref<FetchHandle>) => {
@@ -40,12 +40,42 @@ const Fetcher = <T extends GridValidRowModel>(props: ComponentProps<T>, ref: Ref
         props.sortField || { field: "id", sort: "asc" }
     ]);
 
+    const [rowCountState, setRowCountState] = React.useState(-1);
     const [filterModel, setFilterModel] = useState<GridFilterModel>({ items: props.filter ? [props.filter] : [] });
     const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: props.pageSize || PAGE_SIZE });
+    const mapPageToNextCursor = React.useRef<{ [page: number]: GridRowId }>({});
+
+    const paginationMetaRef = React.useRef<GridPaginationMeta>();
+    // Memoize to avoid flickering when the `hasNextPage` is `undefined` during refetch
+    const paginationMeta = React.useMemo(() => {
+        if (data?.next !== undefined && paginationMetaRef.current?.hasNextPage !== (data?.next !== "")) {
+            paginationMetaRef.current = { hasNextPage: data?.next !== "" };
+        }
+        return paginationMetaRef.current;
+    }, [data?.next]);
 
     useEffect(() => {
-        setFilterModel({ ...filterModel, ...props.filter });
+        console.log("Filter changed", props.filter);
+        setFilterModel({ ...filterModel, items: props.filter ? [props.filter] : [] });
     }, [props.filter]);
+
+    useEffect(() => {
+        // reset page to 0 when filter changes
+        paginationMetaRef.current = {};
+        mapPageToNextCursor.current = {};
+        setRowCountState(-1);
+        setPaginationModel({ pageSize: PAGE_SIZE, page: 0 });
+
+        const controller = new AbortController();
+        fetchData(controller);
+        return () => controller.abort();
+    }, [filterModel, sortModel]);
+
+    useEffect(() => {
+        const controller = new AbortController();
+        fetchData(controller);
+        return () => controller.abort();
+    }, [paginationModel]);
 
     const handleSortModelChange = (newSortModel: GridSortModel) => {
         setSortModel(newSortModel);
@@ -56,7 +86,13 @@ const Fetcher = <T extends GridValidRowModel>(props: ComponentProps<T>, ref: Ref
     };
 
     const handlePaginationChange = (newPaginationModel: GridPaginationModel) => {
-        setPaginationModel(newPaginationModel);
+        // We have the cursor, we can allow the page transition.
+        if (
+            newPaginationModel.page === 0 ||
+            mapPageToNextCursor.current[newPaginationModel.page - 1]
+        ) {
+            setPaginationModel(newPaginationModel);
+        }
     };
 
     useEffect(() => {
@@ -82,16 +118,16 @@ const Fetcher = <T extends GridValidRowModel>(props: ComponentProps<T>, ref: Ref
                 return propertyKey + "[" + propertyOperator + "]" + propertyValue;
             });
 
+            const bookMark = mapPageToNextCursor.current[paginationModel.page - 1] as string;
             const resp = await props.fetcher({
                 pageSize: paginationModel.pageSize,
-                page: paginationModel.page,
                 sortMode: sortModel[0]?.sort === "desc" ? "desc" : "asc",
                 sortField: sortModel[0]?.field,
-                bookmark: "",
+                bookmark: bookMark,
                 filters
-                // bookmark: queryOptions.cursor ? queryOptions.cursor.valueOf() + "" : ""
             }, controller);
             setData(resp);
+            mapPageToNextCursor.current[paginationModel.page] = resp.next;
         } catch (err: any) {
             setError(errorToString(err));
         }
@@ -103,12 +139,6 @@ const Fetcher = <T extends GridValidRowModel>(props: ComponentProps<T>, ref: Ref
             fetchData(new AbortController());
         }
     }));
-
-    useEffect(() => {
-        const controller = new AbortController();
-        fetchData(controller);
-        return () => controller.abort();
-    }, [filterModel, sortModel, paginationModel]);
 
     const stringOperators = getGridStringOperators().filter(
         (operator) => operator.value === "equals" || operator.value === "contains"
@@ -170,13 +200,15 @@ const Fetcher = <T extends GridValidRowModel>(props: ComponentProps<T>, ref: Ref
             paginationModel={paginationModel}
             onPaginationModelChange={handlePaginationChange}
             paginationMode="server"
+            paginationMeta={paginationMeta}
+            rowCount={rowCountState}
+            onRowCountChange={(newRowCount) => setRowCountState(newRowCount)}
             pageSizeOptions={[PAGE_SIZE]}
             filterMode="server"
             onFilterModelChange={handleFilterModelChange}
             filterModel={filterModel}
             sortModel={sortModel}
             sortingMode="server"
-            rowCount={data?.list.length || 0}
             density={props.density || "comfortable"}
             onSortModelChange={handleSortModelChange}
             {

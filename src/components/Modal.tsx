@@ -32,7 +32,7 @@ export const Modal: React.FC<Props> = ({ isOpen, onClose, title, subtitle, conte
                                 <Sheet.Header />
                             )
                     }
-                    <Sheet.Content style={{ padding: "15px", flex: "auto" }}>{content}</Sheet.Content>
+                    <Sheet.Content style={{ padding: "15px", flex: "auto", overflowY: "auto" }}>{content}</Sheet.Content>
                     <Sheet.Content style={{ padding: "15px 15px 25px 15px", display: "block", flexGrow: "unset" }}>{actions}</Sheet.Content>
                 </Sheet.Container>
                 <Sheet.Backdrop />

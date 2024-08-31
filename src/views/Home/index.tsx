@@ -114,12 +114,12 @@ export const Home = () => {
                                 </Box>
                             </Box>
                         </Grid>
-                        <Grid xs={12} md="auto">
+                        <Grid xs={12} md={3}>
                             <Box sx={{ display: "flex" }}>
                                 <Box component={Paper} style={{
                                     borderRadius: 10,
                                     padding: 20,
-                                    width: 400,
+                                    width: "100%",
                                     display: "flex",
                                     flexDirection: "column",
                                     background: "#265da2",

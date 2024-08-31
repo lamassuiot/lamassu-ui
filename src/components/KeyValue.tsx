@@ -4,7 +4,7 @@ import HelpOutlinedIcon from "@mui/icons-material/HelpOutlined";
 import React from "react";
 
 interface KeyValueLabelProps {
-    label: string
+    label: string | React.ReactNode
     tooltip?: string | React.ReactNode
     value: string | React.ReactNode
 }
@@ -15,7 +15,13 @@ const KeyValueLabel: React.FC<KeyValueLabelProps> = ({ label, tooltip, value }) 
         <Grid container flexDirection={"column"}>
             <Grid container alignItems={"center"}>
                 <Grid xs="auto">
-                    <Typography>{label}</Typography>
+                    {
+                        typeof label === "string"
+                            ? (
+                                <Typography>{label}</Typography>
+                            )
+                            : label
+                    }
                 </Grid>
                 {
                     tooltip && (

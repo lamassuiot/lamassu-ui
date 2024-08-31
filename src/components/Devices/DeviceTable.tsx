@@ -122,7 +122,7 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
                             <Tooltip title="Show Device">
                                 <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: lighten(theme.palette.primary.light, 0.8), width: 35, height: 35 }}>
                                     <IconButton onClick={() => {
-                                        navigate("/devices/" + row.id);
+                                        navigate("/devices/" + row.id + "/certificates");
                                     }}>
                                         <VisibilityIcon sx={{ color: theme.palette.primary.main }} fontSize={"small"} />
                                     </IconButton>
@@ -139,33 +139,33 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
         <TableFetchViewer
             columns={cols}
             fetcher={(params, controller) => {
-                let newFilters: string[] = [];
-                if (params.filters) {
-                    newFilters = [...params.filters];
-                }
+                // let newFilters: string[] = [];
+                // if (params.filters) {
+                //     newFilters = [...params.filters];
+                // }
 
-                if (props.query && props.query.field && props.query.value) {
-                    // check if params has filter
-                    const filter = `${props.query.field}[${props.query.operator}]${props.query.value}`;
-                    if (newFilters) {
-                        const queryIdx = newFilters.findIndex((f) => f.startsWith(props.query!.field!));
-                        if (queryIdx !== -1) {
-                            newFilters[queryIdx] = filter;
-                        } else {
-                            newFilters.push(filter);
-                        }
-                    } else {
-                        newFilters = [filter];
-                    }
-                }
+                // if (props.query && props.query.field && props.query.value) {
+                //     // check if params has filter
+                //     const filter = `${props.query.field}[${props.query.operator}]${props.query.value}`;
+                //     if (newFilters) {
+                //         const queryIdx = newFilters.findIndex((f) => f.startsWith(props.query!.field!));
+                //         if (queryIdx !== -1) {
+                //             newFilters[queryIdx] = filter;
+                //         } else {
+                //             newFilters.push(filter);
+                //         }
+                //     } else {
+                //         newFilters = [filter];
+                //     }
+                // }
 
-                params.filters = newFilters;
+                // params.filters = newFilters;
 
                 return apicalls.devices.getDevices(params);
             }}
             id={(item) => item.id}
             ref={tableRef}
-            filter={props.filter}
+            filter={!props.query || (props.query && props.query?.value === "") ? props.filter : { ...props.query, id: "query" }}
             density="compact"
             sortField={{ field: "creation_timestamp", sort: "desc" }}
             onRowClick={props.onRowClick}

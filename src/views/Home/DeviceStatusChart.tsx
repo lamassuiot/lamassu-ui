@@ -2,7 +2,7 @@ import { DeviceStats, DeviceStatus, deviceStatusToColor } from "ducks/features/d
 import { Doughnut } from "components/Charts/Doughnut";
 import { capitalizeFirstLetter } from "utils/string-utils";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "@mui/material";
+import { useMediaQuery, useTheme } from "@mui/material";
 import React from "react";
 
 interface Props {
@@ -13,6 +13,7 @@ interface Props {
 export const DeviceStatusChart : React.FC<Props> = ({ deviceStats, ...props }) => {
     const theme = useTheme();
     const navigate = useNavigate();
+    const isMobileScreen = useMediaQuery(theme.breakpoints.down("md"));
 
     const totalDevices = deviceStats.total;
     const enablePrimaryStat = totalDevices !== 0;
@@ -44,7 +45,7 @@ export const DeviceStatusChart : React.FC<Props> = ({ deviceStats, ...props }) =
 
     return (
         <Doughnut
-            small={false}
+            small={isMobileScreen}
             dataset={dataset}
             title="Device Provisioning Status"
             subtitle={""}

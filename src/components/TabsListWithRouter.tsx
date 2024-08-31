@@ -40,7 +40,7 @@ const TabsListWithRouter: React.FC<TabsListWithRouterProps> = ({ tabs, headerSty
     }, []);
 
     return (
-        <Grid container direction={"column"} spacing={2} sx={{ height: "100%" }}>
+        <Grid container direction={"column"} sx={{ width: "100%", height: "100%" }}>
             <Grid sx={{ borderBottom: 1, borderColor: "divider", ...headerStyle }}>
                 <Tabs value={value} onChange={handleChange} variant="scrollable" scrollButtons allowScrollButtonsMobile>
                     {
@@ -59,7 +59,6 @@ const TabsListWithRouter: React.FC<TabsListWithRouterProps> = ({ tabs, headerSty
                             tabs.map((elem, idx) => {
                                 return (
                                     <Route key={idx} path={elem.path} element={elem.element} />
-
                                 );
                             })
                         }

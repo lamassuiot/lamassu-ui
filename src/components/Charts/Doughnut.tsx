@@ -40,7 +40,7 @@ export const Doughnut: React.FC<DoughnutProps> = ({ dataset, small = true, title
 
     // const options: ChartOptions<"doughnut"> = {
     const options: any = {
-        cutout: small ? 90 : 120,
+        cutout: 120,
         borderWidth: 0,
         backgroundColor: localColors,
         hoverBackgroundColor: localColors,
