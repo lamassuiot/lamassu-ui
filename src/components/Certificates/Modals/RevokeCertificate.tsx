@@ -1,4 +1,4 @@
-import { Button, Typography } from "@mui/material";
+import { Box, Button, Typography, useTheme } from "@mui/material";
 import { Certificate, CertificateStatus, RevocationReason, getRevocationReasonDescription } from "ducks/features/cas/models";
 import { Modal } from "components/Modal";
 import { Select } from "components/Select";
@@ -16,6 +16,7 @@ interface Props {
 }
 
 export const RevokeCertificateModal = (props: Props) => {
+    const theme = useTheme();
     const [revokeReason, setRevokeReason] = useState("Unspecified");
 
     return (
@@ -44,14 +45,16 @@ export const RevokeCertificateModal = (props: Props) => {
                                     return {
                                         value: rCode,
                                         render: () => (
-                                            <Grid container spacing={1}>
-                                                <Grid xs={12}>
-                                                    <Typography variant="body1" fontWeight={"bold"}>{rCode}</Typography>
+                                            <Box sx={{ padding: "5px 10px", width: "100%" }}>
+                                                <Grid container spacing={1}>
+                                                    <Grid xs={12}>
+                                                        <Typography variant="body1" fontWeight={"bold"} color={rCode === RevocationReason.CertificateHold ? theme.palette.warning.main : ""}>{rCode}</Typography>
+                                                    </Grid>
+                                                    <Grid xs={12}>
+                                                        <Typography variant="body2">{getRevocationReasonDescription(rCode)}</Typography>
+                                                    </Grid>
                                                 </Grid>
-                                                <Grid xs={12}>
-                                                    <Typography variant="body2">{getRevocationReasonDescription(rCode)}</Typography>
-                                                </Grid>
-                                            </Grid>
+                                            </Box>
                                         )
                                     };
                                 })

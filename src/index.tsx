@@ -28,6 +28,7 @@ declare global {
       LAMASSU_TUF_API: string;
       LAMASSU_DEVMANAGER: string;
       LAMASSU_ALERTS: string;
+      LAMASSU_VA: string;
       CLOUD_CONNECTORS: string[];
       INFO: any
     };

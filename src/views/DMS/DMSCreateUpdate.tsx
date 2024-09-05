@@ -255,6 +255,11 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                 if (firstConnectorKey && firstConnectorKey.startsWith("lamassu.io/iot/aws.")) {
                     const awsMetaConfig: AWSIoTDMSMetadata = dmsMeta[firstConnectorKey];
                     const connectorID = firstConnectorKey.replace("lamassu.io/iot/", "");
+                    let shadowType: "classic" | "named" = "classic";
+                    if (awsMetaConfig.shadow_config.shadow_name && awsMetaConfig.shadow_config.shadow_name !== "") {
+                        shadowType = "named";
+                    }
+
                     updateDMS.awsIotIntegration = {
                         id: connectorID,
                         accountID: "",
@@ -262,7 +267,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         enableJITP: awsMetaConfig.jitp_config.enable_template,
                         enableShadow: awsMetaConfig.shadow_config.enable,
                         enableCADistributionSync: true,
-                        shadowType: awsMetaConfig.shadow_config.shadow_name === "" ? "classic" : "named",
+                        shadowType,
                         namedShadowName: awsMetaConfig.shadow_config.shadow_name === "" ? "" : awsMetaConfig.shadow_config.shadow_name,
                         thingGroups: awsMetaConfig.groups,
                         policies: awsMetaConfig.policies
