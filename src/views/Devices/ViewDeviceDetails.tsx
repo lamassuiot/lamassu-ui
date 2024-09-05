@@ -311,79 +311,24 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device, onChange })
                                 <Tooltip title="Back to Device List">
                                     <IconButton style={{ background: lighten(theme.palette.primary.main, 0.7) }} onClick={() => {
                                         const url = location.pathname;
-                                        navigate(url.substring(0, url.lastIndexOf("/")));
+                                        // navigate(url.substring(0, url.lastIndexOf("/")));
+                                        navigate("/devices");
                                     }}>
                                         <ArrowBackIcon style={{ color: theme.palette.primary.main }} />
                                     </IconButton>
                                 </Tooltip>
                             </Grid>
-
-                            {/* <Grid xs="auto">
-                        <Typography variant="h5" fontWeight="500" fontSize="15px" textAlign={"center"}
-                            sx={{ display: "inline", padding: "5px 10px", borderRadius: "5px" }}
-                        >
-                            Identity Slot
-                        </Typography>
-                    </Grid> */}
                             <Grid xs="auto">
                                 <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Slot Active Version: {slot.active_version}</Typography>
                                 <Label color={slotStatusToColor(slot.status)}>{slot.status}</Label>
                             </Grid>
                             <Grid xs container flexDirection="column">
                                 <Grid container columnSpacing={8} rowSpacing={0}>
-                                    {/* <Grid xs="auto">
-                                <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Expiration Date</Typography>
-                                <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>{moment(slot!.active_certificate.valid_to).format("DD-MM-YYYY HH:mm")}</Typography>
-                            </Grid>
-                            <Grid xs="auto">
-                                <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>CA Name</Typography>
-                                <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>{slot!.active_certificate.ca_name}</Typography>
-                            </Grid> */}
                                     <Grid xs="auto">
                                         <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Serial Number</Typography>
                                         <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>{slot.versions[slot.active_version]}</Typography>
                                     </Grid>
-                                    {/* <Grid xs="auto">
-                                <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Key Properties</Typography>
-                                <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>{`${slot!.active_certificate!.key_metadata.type.toUpperCase()} ${slot!.active_certificate!.key_metadata.bits}`}</Typography>
-                            </Grid>
-                            <Grid xs="auto">
-                                <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Key Strength</Typography>
-                                <LamassuChip label={slot!.active_certificate!.key_metadata.strength} color={slot!.active_certificate!.key_metadata.strength_color} compact />
-                            </Grid>
-                            <Grid xs="auto">
-                                <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 14 }}>Subject</Typography>
-                                <Typography style={{ color: theme.palette.text.primary, fontWeight: "400", fontSize: 14 }}>
-                                    {decodedCertificateSubject}
-                                </Typography>
-                            </Grid> */}
                                 </Grid>
-                            </Grid>
-                            <Grid xs="auto">
-                                {/* {
-                            slot.status && (
-                                <Grid xs container alignItems={"center"} justifyContent={"flex-end"}>
-                                    <Button variant="outlined" size="small" onClick={() => { setShowCertificate(true); }}>View Certificate</Button>
-                                    <Modal
-                                        title=""
-                                        isOpen={showCertificate}
-                                        onClose={() => { setShowCertificate(false); }}
-                                        subtitle=""
-                                        actions={
-                                            <Box>
-                                                <Button onClick={() => { setShowCertificate(false); }}>Close</Button>
-                                            </Box>
-                                        }
-                                        content={
-                                            <SyntaxHighlighter language="json" style={theme.palette.mode === "light" ? materialLight : materialOceanic} customStyle={{ fontSize: 10, padding: 20, borderRadius: 10, width: "fit-content", height: "fit-content" }} wrapLines={true} lineProps={{ style: { color: theme.palette.text.primaryLight } }}>
-                                                {window.window.atob(slot!.active_certificate.certificate)}
-                                            </SyntaxHighlighter>
-                                        }
-                                    />
-                                </Grid>
-
-                            )
-                        } */}
                             </Grid>
                         </Grid>
                     </Grid>
@@ -432,8 +377,9 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device, onChange })
                                                 });
                                             });
                                         }}
+                                        sortMode="client"
+                                        sortField={{ field: "version", sort: "desc" }}
                                         id={(item) => item.serial_number}
-                                        sortField={{ field: "valid_from", sort: "desc" }}
                                         ref={tableRef}
                                         density="compact"
                                     />

@@ -19,6 +19,7 @@ interface WrapperComponentProps<T extends GridValidRowModel> {
     disableControllers?: boolean
     density?: GridDensity
     sortField?: GridSortItem
+    sortMode?: "server" | "client"
     pageSize?: number,
     filter?: GridFilterItem,
     onRowClick?: (row: T) => void
@@ -32,6 +33,7 @@ const PAGE_SIZE = 10;
 
 type ComponentProps<T extends GridValidRowModel> = React.PropsWithChildren<WrapperComponentProps<T>>;
 const Fetcher = <T extends GridValidRowModel>(props: ComponentProps<T>, ref: Ref<FetchHandle>) => {
+    const [sortMode, setSortMode] = useState<"server" | "client">(props.sortMode || "server");
     const [data, setData] = React.useState<ListResponse<T> | undefined>(undefined);
     const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState<any | undefined>(undefined);
@@ -208,7 +210,7 @@ const Fetcher = <T extends GridValidRowModel>(props: ComponentProps<T>, ref: Ref
             onFilterModelChange={handleFilterModelChange}
             filterModel={filterModel}
             sortModel={sortModel}
-            sortingMode="server"
+            sortingMode={sortMode}
             density={props.density || "comfortable"}
             onSortModelChange={handleSortModelChange}
             {

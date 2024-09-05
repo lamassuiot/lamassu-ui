@@ -175,17 +175,21 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
                                 </Box>
                             </Tooltip>
                         </Grid>
-                        <Grid xs="auto">
-                            <Tooltip title="OCSP">
-                                <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: lighten(theme.palette.primary.light, 0.8), width: 35, height: 35 }}>
-                                    <IconButton onClick={() => {
-                                        setOcspDialog(row);
-                                    }}>
-                                        <GrValidate color={theme.palette.primary.main} fontSize={"18px"} />
-                                    </IconButton>
-                                </Box>
-                            </Tooltip>
-                        </Grid>
+                        {
+                            false && (
+                                <Grid xs="auto">
+                                    <Tooltip title="OCSP">
+                                        <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: lighten(theme.palette.primary.light, 0.8), width: 35, height: 35 }}>
+                                            <IconButton onClick={() => {
+                                                setOcspDialog(row);
+                                            }}>
+                                                <GrValidate color={theme.palette.primary.main} fontSize={"18px"} />
+                                            </IconButton>
+                                        </Box>
+                                    </Tooltip>
+                                </Grid>
+                            )
+                        }
                         {
                             row.status !== CertificateStatus.Revoked && (
                                 <Grid xs="auto">

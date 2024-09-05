@@ -310,7 +310,11 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
                                                                         </Grid>
                                                                     )
                                                                     : (
-                                                                        tabs.filter((_, idx) => idx === addCertMode)[0].component
+                                                                        <Grid>
+                                                                            {
+                                                                                tabs.filter((_, idx) => idx === addCertMode)[0].component
+                                                                            }
+                                                                        </Grid>
                                                                     )
                                                             )
                                                     )

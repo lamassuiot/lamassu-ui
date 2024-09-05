@@ -151,11 +151,18 @@ export const InfoView = () => {
                                         header={<Text weight="semibold">Deployment Version</Text>}
                                         description={<Body1 className={styles.caption}>{window._env_.INFO.CHART_VERSION}</Body1>}
                                         action={
-                                            <InteractionTag appearance="brand" onClick={() => setUpdateDrawerOpen(true)}>
-                                                <InteractionTagPrimary icon={<ArrowCircleUpRegular />}>
-                                                    Upgrade Ready
-                                                </InteractionTagPrimary>
-                                            </InteractionTag>
+                                            <>
+                                                {
+                                                    false && (
+                                                        <InteractionTag appearance="brand" onClick={() => setUpdateDrawerOpen(true)}>
+                                                            <InteractionTagPrimary icon={<ArrowCircleUpRegular />}>
+                                                            Upgrade Ready
+                                                            </InteractionTagPrimary>
+                                                        </InteractionTag>
+
+                                                    )
+                                                }
+                                            </>
                                         }
                                     />
                                     <Grid container>
@@ -185,13 +192,17 @@ export const InfoView = () => {
                                                 </Grid>
                                             </Grid>
                                         </Grid>
-                                        <Grid item xs="auto">
-                                            <InteractionTag appearance="filled" onClick={() => setViewConfigDrawerOpen(true)}>
-                                                <InteractionTagPrimary icon={<SettingsRegular />}>
+                                        {
+                                            false && (
+                                                <Grid item xs="auto">
+                                                    <InteractionTag appearance="filled" onClick={() => setViewConfigDrawerOpen(true)}>
+                                                        <InteractionTagPrimary icon={<SettingsRegular />}>
                                                     View Config
-                                                </InteractionTagPrimary>
-                                            </InteractionTag>
-                                        </Grid>
+                                                        </InteractionTagPrimary>
+                                                    </InteractionTag>
+                                                </Grid>
+                                            )
+                                        }
                                     </Grid>
                                 </Card>
                             </Grid>

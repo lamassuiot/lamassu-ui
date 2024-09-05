@@ -175,7 +175,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms, onDelete }) => {
                                     Go to DMS owned devices
                                 </MenuItem>
                                 <Divider sx={{ my: 0.5 }} />
-                                <MenuItem onClick={() => {
+                                <MenuItem disabled onClick={() => {
                                     handleClose();
                                     setShowDelete(true);
                                 }} disableRipple>
