@@ -30,7 +30,7 @@ const Select: React.FC<SelectProps> = ({ ...rest }) => {
                     )
                     : (
                         rest.options.map((option) => (
-                            <MenuItem key={option.value} value={option.value} sx={{ padding: 0 }}>
+                            <MenuItem key={option.value} value={option.value}>
                                 {typeof option.render === "string" ? option.render : option.render()}
                             </MenuItem>
                         ))

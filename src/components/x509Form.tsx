@@ -70,14 +70,10 @@ const X509Form: React.FC<X509FormProps> = ({ value, onChange }) => {
                         case "number":
                             onChange({ ...value, keyMetadata: { ...value.keyMetadata, size: ev.target.value } });
                             break;
-
-                        default:
-                            onChange({ ...value, keyMetadata: { ...value.keyMetadata, size: 4096 } });
-                            break;
                         }
                     }} options={
                         keySizesOptions.map((kSize, idx) => {
-                            return { value: kSize.toString(), render: kSize.toString() };
+                            return { value: kSize, render: kSize.toString() };
                         })
                     } />
                 </Grid>
