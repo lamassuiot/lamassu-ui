@@ -1,28 +1,31 @@
 import { CertificateAuthority } from "ducks/features/cas/models";
-import { MultiKeyValueInput } from "components/forms/MultiKeyValue";
-import { Typography } from "@mui/material";
 import { useTheme } from "@mui/system";
 import Grid from "@mui/material/Unstable_Grid2";
 import React from "react";
 import apicalls from "ducks/apicalls";
-import deepEqual from "fast-deep-equal/es6";
+import { MetadataInput } from "components/forms/MetadataInput";
+import { enqueueSnackbar } from "notistack";
+import { errorToString } from "ducks/services/api-client";
 
 interface Props {
     caData: CertificateAuthority
+    onMetadataChange: (metadata: { [key: string]: any }) => void
 }
 
-export const CAMetadata: React.FC<Props> = ({ caData }) => {
+export const CAMetadata: React.FC<Props> = ({ caData, onMetadataChange }) => {
     const theme = useTheme();
 
     return (
         <Grid container sx={{ width: "100%" }} spacing={0} flexDirection={"column"}>
-            <Grid>
-                <Typography>Metadata</Typography>
-            </Grid>
             <Grid container flexDirection={"column"}>
-                <MultiKeyValueInput label="" value={caData.metadata} onChange={async (meta) => {
-                    if (!deepEqual(caData.metadata, meta)) {
+                <MetadataInput label="" value={caData.metadata} onChange={async (meta) => {
+                    try {
                         await apicalls.cas.updateCAMetadata(caData.id, meta);
+                        enqueueSnackbar("CA metadata updated", { variant: "success" });
+                        onMetadataChange(meta);
+                    } catch (e) {
+                        const err = errorToString(e);
+                        enqueueSnackbar(`Failed to update CA metadata: ${err}`, { variant: "error" });
                     }
                 }} />
             </Grid>

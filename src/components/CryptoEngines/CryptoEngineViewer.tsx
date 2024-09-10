@@ -2,7 +2,7 @@ import { Box, Button, Dialog, DialogActions, DialogContent, IconButton, Paper, T
 import { CryptoEngine } from "ducks/features/cas/models";
 import { IoFolderOpen } from "react-icons/io5";
 import { KeyValueLabel } from "components/KeyValue";
-import { MultiKeyValueInput } from "components/forms/MultiKeyValue";
+import { MetadataInput } from "components/forms/MetadataInput";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
@@ -185,7 +185,7 @@ export const CryptoEngineViewer: React.FC<CryptoEngineViewerProps> = ({ engine, 
                                             <Typography>Metadata</Typography>
                                         </Grid>
                                         <Grid>
-                                            <MultiKeyValueInput value={engine.metadata} label="" disable={true} onChange={(ev) => {}}/>
+                                            <MetadataInput value={engine.metadata} label="" disabled={true} onChange={(ev) => {}}/>
                                         </Grid>
                                     </Grid>
                                 </Grid>

@@ -30,11 +30,11 @@ const CSRInBrowserGenerator: React.FC<CSRInBrowserGeneratorProps> = ({ onCreate 
             }
             {
                 step === 1 && (
-                    <>
-                        <Grid container spacing={2}>
+                    <Grid container spacing={1}>
+                        <Grid xs={12} container spacing={2}>
                             <Grid xs container direction={"column"} spacing={1}>
                                 <Grid>
-                                    <Typography>Private Key</Typography>
+                                    <Typography variant="h4">Private Key</Typography>
                                 </Grid>
                                 <Grid>
                                     <CodeCopier code={privKey!} />
@@ -42,17 +42,17 @@ const CSRInBrowserGenerator: React.FC<CSRInBrowserGeneratorProps> = ({ onCreate 
                             </Grid>
                             <Grid xs container direction={"column"} spacing={1}>
                                 <Grid>
-                                    <Typography>Certificate Request</Typography>
+                                    <Typography variant="h4">Certificate Request</Typography>
                                 </Grid>
                                 <Grid>
                                     <CSRViewer csr={csr!} />
                                 </Grid>
                             </Grid>
                         </Grid>
-                        <Grid>
+                        <Grid xs={12}>
                             <Divider />
                         </Grid>
-                        <Grid container spacing={2}>
+                        <Grid xs={12} container spacing={2}>
                             <Grid xs>
                                 <Button onClick={() => setStep(step - 1)}>Back</Button>
                             </Grid>
@@ -60,7 +60,7 @@ const CSRInBrowserGenerator: React.FC<CSRInBrowserGeneratorProps> = ({ onCreate 
                                 <Button variant="contained" onClick={() => onCreate(privKey!, csr!)}>Confirm</Button>
                             </Grid>
                         </Grid>
-                    </>
+                    </Grid>
                 )
             }
         </Grid>
