@@ -4,7 +4,7 @@ import { Device, DeviceEvent, DeviceEventType, DeviceStatus, Slot, deviceStatusT
 import { IconButton, Paper, Tooltip, Typography, lighten, useTheme, useMediaQuery } from "@mui/material";
 import { FetchHandle, TableFetchViewer } from "components/TableFetcherView";
 import { GridColDef } from "@mui/x-data-grid";
-import { ListResponse } from "ducks/services/api-client";
+import { errorToString, ListResponse } from "ducks/services/api-client";
 import { TimelineOppositeContent } from "@mui/lab";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -23,6 +23,8 @@ import moment from "moment";
 import { CertificateStandardFetchViewer } from "components/Certificates/CertificateStandardFetchViewer";
 import { KeyValueLabel } from "components/KeyValue";
 import { TabsListWithRouter } from "components/TabsListWithRouter";
+import { MetadataInput } from "components/forms/MetadataInput";
+import { enqueueSnackbar } from "notistack";
 
 interface Props {
     slotID?: string | undefined,
@@ -486,6 +488,25 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device, onChange })
                                             }
                                         </Timeline>
                                     </Grid>
+                                </Grid>
+                            )
+                        },
+                        {
+                            label: "Metadata",
+                            goto: "metadata",
+                            path: "metadata",
+                            element: (
+                                <Grid component={Paper} borderRadius={0} >
+                                    <MetadataInput label="" onChange={async (meta) => {
+                                        try {
+                                            await apicalls.devices.updateDeviceMetadata(device.id, meta);
+                                            enqueueSnackbar("Metadata updated successfully", { variant: "success" });
+                                            onChange();
+                                        } catch (e) {
+                                            const errMsg = errorToString(e);
+                                            enqueueSnackbar(`Error updating metadata: ${errMsg}`, { variant: "error" });
+                                        }
+                                    }} value={device.metadata} />
                                 </Grid>
                             )
                         }

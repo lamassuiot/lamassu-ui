@@ -1,4 +1,4 @@
-import { Box, IconButton, Paper, Tooltip, Typography, lighten, useTheme } from "@mui/material";
+import { Box, IconButton, Paper, Tooltip, Typography, lighten, useMediaQuery, useTheme } from "@mui/material";
 import { Device, deviceStatusToColor } from "ducks/features/devices/models";
 import { FetchHandle, TableFetchViewer } from "components/TableFetcherView";
 import { GridColDef, GridFilterItem } from "@mui/x-data-grid";
@@ -24,6 +24,8 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
     const theme = useTheme();
+
+    const isMobileScreen = useMediaQuery(theme.breakpoints.down("md"));
 
     useEffect(() => {
         tableRef.current?.refresh();
@@ -168,7 +170,10 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
             filter={!props.query || (props.query && props.query?.value === "") ? props.filter : { ...props.query, id: "query" }}
             density="compact"
             sortField={{ field: "creation_timestamp", sort: "desc" }}
-            onRowClick={props.onRowClick}
+            {
+                ...isMobileScreen ? { onRowClick: props.onRowClick } : {}
+            }
+
         />
     );
 });

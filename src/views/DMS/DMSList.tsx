@@ -32,10 +32,11 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { Modal } from "components/Modal";
 import { enqueueSnackbar } from "notistack";
 import { Select } from "components/Select";
+import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
+import { MetadataInput } from "components/forms/MetadataInput";
 
 export const DMSListView = () => {
     const theme = useTheme();
-    const [query, setQuery] = useState({ field: "id", value: "" });
     const navigate = useNavigate();
 
     const tableRef = React.useRef<FetchHandle>(null);
@@ -111,6 +112,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms, onDelete }) => {
     }>({ open: false, dmsName: "", bootstrapCA: undefined, deviceID: "", insecure: false, commonNameBootstrap: "" });
 
     const [showDelete, setShowDelete] = useState(false);
+    const [showMetadata, setShowMetadata] = useState(false);
 
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -157,10 +159,10 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms, onDelete }) => {
                                 <Divider sx={{ my: 0.5 }} />
                                 <MenuItem onClick={() => {
                                     handleClose();
-                                    setEnrollDMSCmds({ open: true, dmsName: dms.id, insecure: false, bootstrapCA: undefined, commonNameBootstrap: `bootstrap-for-dms-${dms.id}`, deviceID: "" });
+                                    setEnrollDMSCmds({ open: true, dmsName: dms.id, insecure: false, bootstrapCA: undefined, commonNameBootstrap: "ui-generated-bootstrap", deviceID: "" });
                                 }} disableRipple>
                                     <TerminalIcon fontSize={"small"} sx={{ marginRight: "10px" }} />
-                                    cURL Commands
+                                    EST - Enroll: cURL Commands
                                 </MenuItem>
                                 <MenuItem onClick={() => {
                                     navigate(`${dms.id}/cacerts`);
@@ -173,6 +175,13 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms, onDelete }) => {
                                 }} disableRipple>
                                     <RouterOutlinedIcon fontSize={"small"} sx={{ marginRight: "10px" }} />
                                     Go to DMS owned devices
+                                </MenuItem>
+                                <MenuItem onClick={() => {
+                                    handleClose();
+                                    setShowMetadata(true);
+                                }} disableRipple>
+                                    <MenuBookOutlinedIcon fontSize={"small"} sx={{ marginRight: "10px" }} />
+                                    Show Metadata
                                 </MenuItem>
                                 <Divider sx={{ my: 0.5 }} />
                                 <MenuItem disabled onClick={() => {
@@ -377,6 +386,39 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms, onDelete }) => {
                                 </Grid>
                                 <Grid xs="auto">
                                     <Button variant="text" onClick={() => setShowDelete(false)}>Close</Button>
+                                </Grid>
+                            </Grid>
+                        }
+                    />
+                )
+            }
+            {
+                showMetadata && (
+                    <Modal
+                        isOpen={true}
+                        onClose={() => { setShowMetadata(false); }}
+                        maxWidth="lg"
+                        title="DMS Metadata"
+                        subtitle=""
+                        content={(
+                            <Grid container spacing={2}>
+                                <Grid xs={12}>
+                                    <MetadataInput label="" onChange={async (meta) => {
+                                        try {
+                                            await apicalls.dmss.updateDMS(dms.id, { ...dms, metadata: meta });
+                                            enqueueSnackbar("Metadata updated successfully", { variant: "success" });
+                                        } catch (e) {
+                                            const errMsg = errorToString(e);
+                                            enqueueSnackbar(`Error updating metadata: ${errMsg}`, { variant: "error" });
+                                        }
+                                    }} value={dms.metadata} />
+                                </Grid>
+                            </Grid>
+                        )}
+                        actions={
+                            <Grid container spacing={1}>
+                                <Grid xs="auto">
+                                    <Button variant="text" onClick={() => setShowMetadata(false)}>Close</Button>
                                 </Grid>
                             </Grid>
                         }

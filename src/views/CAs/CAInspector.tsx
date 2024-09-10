@@ -64,7 +64,9 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                         path: "metadata",
                         goto: "metadata",
                         element: <div style={{ margin: "0 35px" }}>
-                            <CAMetadata caData={caData} />
+                            <CAMetadata caData={caData} onMetadataChange={() => {
+                                refreshAction();
+                            }}/>
                         </div>
                     },
                     {
