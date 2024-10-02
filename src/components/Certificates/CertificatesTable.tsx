@@ -61,7 +61,7 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
             align: "center",
             minWidth: 100,
             renderCell: ({ value, row, id }) => {
-                return <Label color={row.status === CertificateStatus.Active ? "success" : (row.status === CertificateStatus.Revoked ? "error" : "grey")}>{row.status}</Label>;
+                return <Label color={row.status === CertificateStatus.Active ? ["#ffffff", "#008000"] : (row.status === CertificateStatus.Revoked ? "error" : "grey")}>{row.status}</Label>;
             }
         },
         { field: "subject.common_name", valueGetter: (value, row) => { return row.subject.common_name; }, headerName: "Common Name", width: 150, flex: 0.2 },
