@@ -18,11 +18,17 @@ const root = ReactDOM.createRoot(
 declare global {
   interface Window {
     _env_: {
-      AUTH_OIDC_AUTHORITY: string;
-      AUTH_OIDC_CLIENT_ID: string;
-      AUTH_COGNITO_ENABLED: string;
-      AUTH_COGNITO_HOSTED_UI_DOMAIN: string;
-
+      AUTH: {
+        ENABLED: boolean;
+        OIDC: {
+          AUTHORITY: string;
+          CLIENT_ID: string;
+        },
+        COGNITO: {
+          ENABLED: boolean;
+          HOSTED_UI_DOMAIN: string
+        }
+      }
       LAMASSU_CA_API: string;
       LAMASSU_DMS_MANAGER_API: string;
       LAMASSU_TUF_API: string;
@@ -41,14 +47,22 @@ root.render(
     <FluentProvider theme={webLightTheme} style={{ height: "100%" }}>
         <ThemeProviderWrapper>
             <AuthProvider
-                authority={window._env_.AUTH_OIDC_AUTHORITY}
-                client_id={window._env_.AUTH_OIDC_CLIENT_ID}
+                authority={window._env_.AUTH.OIDC.AUTHORITY}
+                client_id={window._env_.AUTH.OIDC.CLIENT_ID}
                 redirect_uri={window.location.origin}
                 post_logout_redirect_uri={`${window.location.origin}`}
+                {
+                    ...window._env_.AUTH.ENABLED && window._env_.AUTH.COGNITO.ENABLED && {
+                        /** Can be used to seed or add additional values to the results of the discovery request */
+                        metadataSeed: {
+                            end_session_endpoint: `${window._env_.AUTH.COGNITO.HOSTED_UI_DOMAIN}/logout?client_id=${window._env_.AUTH.OIDC.CLIENT_ID}&logout_uri=${window.location.origin}/loggedout`
+                        }
+                    }
+                }
                 /*
-        localStorage persists until explicitly deleted. Changes made are saved and available for all current and future visits to the site.
-        sessionStorage, changes are only available per tab. Changes made are saved and available for the current page in that tab until it is closed. Once it is closed, the stored data is deleted.
-      */
+localStorage persists until explicitly deleted. Changes made are saved and available for all current and future visits to the site.
+sessionStorage, changes are only available per tab. Changes made are saved and available for the current page in that tab until it is closed. Once it is closed, the stored data is deleted.
+*/
                 userStore={new oidc.WebStorageStateStore({ store: window.localStorage })}
             >
                 <Router>
@@ -59,6 +73,7 @@ root.render(
             </AuthProvider>
         </ThemeProviderWrapper>
     </FluentProvider>
+
 );
 
 // If you want to start measuring performance in your app, pass a function

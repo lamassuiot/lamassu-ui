@@ -168,38 +168,39 @@ export default function Dashboard () {
     const interval = React.useRef<number>();
 
     React.useEffect(() => {
-        if (!auth.isLoading && !auth.isAuthenticated) {
-            if (auth.error === undefined) {
-                auth.signinRedirect();
-                console.log("a");
-            } else {
-                interval.current = window.setTimeout(() => {
-                    console.log("b");
+        if (window._env_.AUTH.ENABLED) {
+            if (!auth.isLoading && !auth.isAuthenticated) {
+                if (auth.error === undefined) {
                     auth.signinRedirect();
-                }, 3000);
-                console.log("c");
+                } else {
+                    interval.current = window.setTimeout(() => {
+                        auth.signinRedirect();
+                    }, 3000);
+                }
             }
         }
 
         return () => { };
     }, [auth.isAuthenticated, auth.isLoading]);
 
-    if (auth.error) {
-        return <Landing>
-            <Alert severity="error">
-                <AlertTitle sx={{ fontWeight: "bold" }}>Error</AlertTitle>
+    if (window._env_.AUTH.ENABLED) {
+        if (auth.error) {
+            return <Landing>
+                <Alert severity="error">
+                    <AlertTitle sx={{ fontWeight: "bold" }}>Error</AlertTitle>
                 Oops... {auth.error.message}
-            </Alert>
-        </Landing>;
-    }
+                </Alert>
+            </Landing>;
+        }
 
-    if (!auth.isAuthenticated) {
-        return <Landing>
-            <Alert severity="info">
-                <AlertTitle sx={{ fontWeight: "bold" }}>Info</AlertTitle>
+        if (!auth.isAuthenticated) {
+            return <Landing>
+                <Alert severity="info">
+                    <AlertTitle sx={{ fontWeight: "bold" }}>Info</AlertTitle>
                 Not authenticated
-            </Alert>
-        </Landing>;
+                </Alert>
+            </Landing>;
+        }
     }
 
     return (

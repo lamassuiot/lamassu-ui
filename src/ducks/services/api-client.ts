@@ -32,7 +32,7 @@ export const apiRequest = async ({ method = "GET", url, data, headers = {}, cont
     const response = await fetch(url, {
         method,
         headers: {
-            Authorization: "Bearer " + token,
+            ...(token && { Authorization: `Bearer ${token}` }),
             ...(method === "POST" && { "Content-Type": "application/json" }),
             ...headers
         },
