@@ -62,6 +62,11 @@ type FormData = {
         allowExpired: boolean;
         additionalValidationCAs: CertificateAuthority[];
     },
+    serverKeyGen: {
+        enabled: boolean;
+        keySize: number;
+        keyType: "RSA" | "ECDSA";
+    },
     caDistribution: {
         includeDownstream: boolean;
         includeAuthorized: boolean;
@@ -131,6 +136,11 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                 allowExpired: false,
                 additionalValidationCAs: []
             },
+            serverKeyGen: {
+                enabled: true,
+                keySize: 4096,
+                keyType: "RSA"
+            },
             caDistribution: {
                 includeDownstream: true,
                 includeAuthorized: true,
@@ -155,6 +165,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
     const watchDmsId = watch("dmsDefinition.id");
     const watchEnrollmentCA = watch("enrollProtocol.enrollmentCA");
     const watchAwsIotIntegration = watch("awsIotIntegration");
+    const watchServerKeyGen = watch("serverKeyGen");
 
     useEffect(() => {
         if (!editMode) {
@@ -224,6 +235,11 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         preventiveDelta: dms.settings.reenrollment_settings.preventive_delta,
                         criticalDelta: dms.settings.reenrollment_settings.critical_delta
                     },
+                    serverKeyGen: {
+                        enabled: false,
+                        keySize: 4096,
+                        keyType: "RSA"
+                    },
                     caDistribution: {
                         includeAuthorized: dms!.settings.ca_distribution_settings.include_enrollment_ca,
                         includeDownstream: dms!.settings.ca_distribution_settings.include_system_ca,
@@ -248,6 +264,14 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         serviceCA: undefined
                     }
                 };
+
+                if (dms.settings.server_keygen_settings !== null) {
+                    updateDMS.serverKeyGen = {
+                        enabled: dms.settings.server_keygen_settings.enabled,
+                        keySize: dms.settings.server_keygen_settings.key.bits,
+                        keyType: dms.settings.server_keygen_settings.key.type
+                    };
+                }
 
                 const dmsMeta = dms.metadata;
 
@@ -370,6 +394,13 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         reenrollment_delta: data.reEnroll.allowedRenewalDelta,
                         additional_validation_cas: data.reEnroll.additionalValidationCAs.map(ca => ca.id)
                     },
+                    server_keygen_settings: {
+                        enabled: data.serverKeyGen.enabled,
+                        key: {
+                            bits: data.serverKeyGen.keySize,
+                            type: data.serverKeyGen.keyType
+                        }
+                    },
                     ca_distribution_settings: {
                         include_enrollment_ca: false,
                         include_system_ca: data.caDistribution.includeDownstream,
@@ -436,14 +467,14 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                         <Grid xs={12}>
                                             <FormSelect control={control} name="enrollProtocol.protocol" label="Protocol" options={[
                                                 { value: EnrollmentProtocols.EST, render: "EST" }
-                                            ]}/>
+                                            ]} />
                                         </Grid>
 
                                         <Grid xs={12}>
                                             <FormSelect control={control} name="enrollProtocol.estAuthMode" label="Authentication Mode" options={[
                                                 { value: ESTAuthMode.ClientCertificate, render: "Client Certificate" },
                                                 { value: ESTAuthMode.NoAuth, render: "No Auth" }
-                                            ]}/>
+                                            ]} />
                                         </Grid>
                                         <Grid xs={12}>
                                             <CASelector value={getValues("enrollProtocol.enrollmentCA")} onSelect={(elems) => {
@@ -503,6 +534,48 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
 
                                     </Grid>
 
+                                    <Grid xs={12} >
+                                        <Divider />
+                                    </Grid>
+
+                                    <Grid xs={12} container spacing={2}>
+                                        <Grid xs={12}>
+                                            <Typography variant="h4">Server Key Generation Settings</Typography>
+                                            <Alert severity="info">
+                                                <Typography variant="body1">If enabled. Devices will be able to enroll using EST-defined ServerKeyGen endpoints. Validation and registration process will use <Label color="primary">Enrollment Settings</Label>. Keys will be generated using the backend&apos;s cryptographic software engine.</Typography>
+                                            </Alert>
+                                        </Grid>
+                                        <Grid xs={12}>
+                                            <FormSwitch control={control} name="serverKeyGen.enabled" label="Enable Key Generartion" />
+                                        </Grid>
+                                        {
+                                            watchServerKeyGen.enabled && (
+                                                <>
+                                                    <Grid xs={12} md={6}>
+                                                        <FormSelect control={control} name="serverKeyGen.keyType" label="Key Type" options={[
+                                                            { value: "RSA", render: "RSA" },
+                                                            { value: "ECDSA", render: "ECDSA" }
+                                                        ]} />
+                                                    </Grid>
+                                                    <Grid xs={12} md={6}>
+                                                        <FormSelect control={control} name="serverKeyGen.keySize" label="Key Size" options={
+                                                            watchServerKeyGen.keyType === "RSA"
+                                                                ? [
+                                                                    { value: 2048, render: "2048" },
+                                                                    { value: 3072, render: "3072" },
+                                                                    { value: 4096, render: "4096" }
+                                                                ]
+                                                                : [
+                                                                    { value: 256, render: "256" },
+                                                                    { value: 384, render: "384" },
+                                                                    { value: 521, render: "521" }
+                                                                ]
+                                                        } />
+                                                    </Grid>
+                                                </>
+                                            )
+                                        }
+                                    </Grid>
                                     <Grid xs={12} >
                                         <Divider />
                                     </Grid>
@@ -572,7 +645,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                                                                     awsSync === AWSSync.RequiresSync && (
                                                                                         <>
                                                                                             <Grid>
-                                                                                The selected Enrollment CA is not registered in AWS. Make sure to synchronize it first.
+                                                                                                The selected Enrollment CA is not registered in AWS. Make sure to synchronize it first.
                                                                                             </Grid>
                                                                                             <Grid>
                                                                                                 <Button onClick={async () => {
@@ -592,13 +665,13 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                                                                     awsSync === AWSSync.SyncInProgress && (
                                                                                         <Grid>
                                                                                             <Grid>
-                                                                                Registering process underway. CA should be registered soon, click on &apos;Reload & Check&apos; periodically.
+                                                                                                Registering process underway. CA should be registered soon, click on &apos;Reload & Check&apos; periodically.
                                                                                             </Grid>
                                                                                             <Button onClick={async () => {
                                                                                                 const ca = await apicalls.cas.getCA(watchEnrollmentCA.id);
                                                                                                 setValue("enrollProtocol.enrollmentCA", ca);
                                                                                             }}>
-                                                                                Reload & Check
+                                                                                                Reload & Check
                                                                                             </Button>
                                                                                         </Grid>
                                                                                     )
@@ -614,14 +687,14 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                                                         <FullAlert severity="success">
                                                                             <Grid container flexDirection={"column"} spacing={2} sx={{ width: "100%" }}>
                                                                                 <Grid>
-                                                                    The selected Enrollment CA is correctly registered in AWS:
+                                                                                    The selected Enrollment CA is correctly registered in AWS:
                                                                                 </Grid>
                                                                                 <Grid>
                                                                                     <Button onClick={async () => {
                                                                                         const ca = await apicalls.cas.getCA(watchEnrollmentCA!.id);
                                                                                         setValue("enrollProtocol.enrollmentCA", ca);
                                                                                     }}>
-                                                                        Reload & Check
+                                                                                        Reload & Check
                                                                                     </Button>
                                                                                 </Grid>
 
@@ -717,7 +790,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                                             <Alert severity="warning">
                                                                 <Grid container spacing={2} width={"100%"}>
                                                                     <Grid xs={12}>
-                                                        Make sure to add a policy allowing access to shadow topics
+                                                                        Make sure to add a policy allowing access to shadow topics
                                                                     </Grid>
                                                                     <Grid xs={12} container spacing={1} flexDirection={"column"}>
                                                                         <Grid>

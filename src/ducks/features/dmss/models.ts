@@ -17,6 +17,7 @@ export type DMSSettings = {
     enrollment_settings: EnrollmentSettings,
     reenrollment_settings: ReEnrollmentSettings,
     ca_distribution_settings: CADistributionSettings,
+    server_keygen_settings: null | ServerKeygenSettings,
 }
 
 export enum EnrollmentProtocols {
@@ -37,6 +38,7 @@ export type AuthOptionsClientCertificate = {
     validation_cas: string[],
     chain_level_validation: number
 }
+
 export type EST7030Settings = {
     auth_mode: ESTAuthMode,
     client_certificate_settings: AuthOptionsClientCertificate,
@@ -62,6 +64,14 @@ export type ReEnrollmentSettings = {
     enable_expired_renewal: boolean,
     preventive_delta: string,
     critical_delta: string,
+}
+
+export type ServerKeygenSettings = {
+    enabled: boolean,
+    key:{
+        type: "RSA" | "ECDSA",
+        bits: number
+    }
 }
 
 export type CADistributionSettings = {
