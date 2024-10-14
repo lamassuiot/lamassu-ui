@@ -44,12 +44,15 @@ type FormData = {
     }
     enrollProtocol: {
         protocol: EnrollmentProtocols
-        estAuthMode: ESTAuthMode;
         registrationMode: EnrollmentRegistrationMode;
-        chainValidation: number;
         enrollmentCA: undefined | CertificateAuthority;
-        validationCAs: CertificateAuthority[];
         overrideEnrollment: boolean,
+        estAuthMode: ESTAuthMode;
+        certificateValidation: {
+            chainValidation: number;
+            validationCAs: CertificateAuthority[];
+            allowExpired: boolean;
+        }
     }
     enrollDeviceRegistration: {
         icon: Icon,
@@ -110,11 +113,14 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
             enrollProtocol: {
                 protocol: EnrollmentProtocols.EST,
                 estAuthMode: ESTAuthMode.ClientCertificate,
-                chainValidation: -1,
+                certificateValidation: {
+                    chainValidation: -1,
+                    validationCAs: [],
+                    allowExpired: false
+                },
                 registrationMode: EnrollmentRegistrationMode.JITP,
                 overrideEnrollment: false,
-                enrollmentCA: undefined,
-                validationCAs: []
+                enrollmentCA: undefined
             },
             enrollDeviceRegistration: {
                 icon: {
@@ -205,9 +211,12 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         estAuthMode: dms.settings.enrollment_settings.est_rfc7030_settings.auth_mode,
                         overrideEnrollment: dms.settings.enrollment_settings.enable_replaceable_enrollment,
                         enrollmentCA: casResp.list.find(ca => ca.id === dms!.settings.enrollment_settings.enrollment_ca)!,
-                        validationCAs: dms!.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.validation_cas.map(ca => casResp.list.find(caF => caF.id === ca)!),
-                        chainValidation: dms!.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.chain_level_validation,
-                        registrationMode: dms!.settings.enrollment_settings.registration_mode
+                        registrationMode: dms!.settings.enrollment_settings.registration_mode,
+                        certificateValidation: {
+                            chainValidation: dms!.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.chain_level_validation,
+                            validationCAs: dms!.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.validation_cas.map(ca => casResp.list.find(caF => caF.id === ca)!),
+                            allowExpired: dms!.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.allow_expired
+                        }
                     },
                     enrollDeviceRegistration: {
                         icon: {
@@ -351,8 +360,9 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         est_rfc7030_settings: {
                             auth_mode: data.enrollProtocol.estAuthMode,
                             client_certificate_settings: {
-                                chain_level_validation: Number(data.enrollProtocol.chainValidation),
-                                validation_cas: data.enrollProtocol.validationCAs.map(ca => ca.id)
+                                chain_level_validation: Number(data.enrollProtocol.certificateValidation.chainValidation),
+                                validation_cas: data.enrollProtocol.certificateValidation.validationCAs.map(ca => ca.id),
+                                allow_expired: data.enrollProtocol.certificateValidation.allowExpired
                             }
                         },
                         device_provisioning_profile: {
@@ -438,7 +448,9 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                                 { value: EnrollmentProtocols.EST, render: "EST" }
                                             ]}/>
                                         </Grid>
-
+                                        <Grid xs={12}>
+                                            <FormSwitch control={control} name="enrollProtocol.overrideEnrollment" label="Allow Override Enrollment" />
+                                        </Grid>
                                         <Grid xs={12}>
                                             <FormSelect control={control} name="enrollProtocol.estAuthMode" label="Authentication Mode" options={[
                                                 { value: ESTAuthMode.ClientCertificate, render: "Client Certificate" },
@@ -454,18 +466,18 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                             />
                                         </Grid>
                                         <Grid xs={12}>
-                                            <CASelector value={getValues("enrollProtocol.validationCAs")} onSelect={(elems) => {
+                                            <CASelector value={getValues("enrollProtocol.certificateValidation.validationCAs")} onSelect={(elems) => {
                                                 if (Array.isArray(elems)) {
-                                                    setValue("enrollProtocol.validationCAs", elems);
+                                                    setValue("enrollProtocol.certificateValidation.validationCAs", elems);
                                                 }
                                             }} multiple={true} label="Validation CAs"
                                             />
                                         </Grid>
                                         <Grid xs={12}>
-                                            <FormSwitch control={control} name="enrollProtocol.overrideEnrollment" label="Allow Override Enrollment" />
+                                            <FormSwitch control={control} name="enrollProtocol.certificateValidation.allowExpired" label="Allow Authenticating Expired Certificates" />
                                         </Grid>
                                         <Grid xs={12}>
-                                            <FormTextField label="Chain Validation Level (-1 equals full chain)" control={control} name="enrollProtocol.chainValidation" type="number" />
+                                            <FormTextField label="Chain Validation Level (-1 equals full chain)" control={control} name="enrollProtocol.certificateValidation.chainValidation" type="number" />
                                         </Grid>
                                     </Grid>
 

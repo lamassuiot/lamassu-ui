@@ -35,7 +35,8 @@ export enum ESTAuthMode {
 
 export type AuthOptionsClientCertificate = {
     validation_cas: string[],
-    chain_level_validation: number
+    chain_level_validation: number,
+    allow_expired: boolean,
 }
 export type EST7030Settings = {
     auth_mode: ESTAuthMode,
