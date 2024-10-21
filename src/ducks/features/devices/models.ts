@@ -47,6 +47,7 @@ export type Device = {
     creation_timestamp: string;
     metadata: { [key: string]: any };
     dms_owner: string;
+    events: { [key: string]: DeviceEvent };
     identity: Slot<string>
     slots: { [key: string]: Slot<string> }
 }
@@ -88,6 +89,7 @@ export type Slot<T extends string> = {
     active_version: number;
     type: CryptoSecretType;
     versions: { [key: number]: T };
+    events: { [key: string]: DeviceEvent };
 }
 
 export enum DeviceEventType {
@@ -98,18 +100,11 @@ export enum DeviceEventType {
     ShadowUpdated = "SHADOW-UPDATED",
     StatusUpdated = "STATUS-UPDATED",
     Decommissioned = "DECOMMISSIONED",
-    ConnectionUpdated = "CONNECTION-UPDATED",
 }
 
 export type DeviceEvent = {
-    id: string;
-    device_id: string;
-    timestamp: string;
     type: DeviceEventType;
     description: string;
-    source: string;
-    status: DeviceStatus;
-    structured_fields: { [key: string]: any };
 }
 
 export type CreateDevicePayload = {
@@ -119,16 +114,4 @@ export type CreateDevicePayload = {
     dms_id: string,
     icon: string,
     icon_color: string,
-}
-
-export type AWSIoTDeviceMetadata = {
-    actions: any[]
-    groups: string[]
-    connection_details: {
-        disconnection_reason: string,
-        ip_address: string,
-        is_connected: boolean,
-        latest_connection_update: string
-    },
-    thing_registered: boolean
 }
