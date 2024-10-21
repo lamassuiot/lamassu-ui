@@ -6,10 +6,17 @@ window._env_ =  {
         CHART_VERSION: `${CHART_VERSION}`,
         HELM_REVISION: `${HELM_REVISION}`,
     },
-    AUTH_COGNITO_ENABLED: `${COGNITO_ENABLED}`,
-    AUTH_COGNITO_HOSTED_UI_DOMAIN: `${COGNITO_HOSTED_UI_DOMAIN}`,
-    AUTH_OIDC_AUTHORITY: `${OIDC_AUTHORITY}`,
-    AUTH_OIDC_CLIENT_ID: `${OIDC_CLIENT_ID}`,
+    AUTH: {
+        ENABLED: ${OIDC_ENABLED},
+        COGNITO: {
+            ENABLED: ${COGNITO_ENABLED},
+            HOSTED_UI_DOMAIN: `${COGNITO_HOSTED_UI_DOMAIN}`,
+        },
+        OIDC: {
+            AUTHORITY: `${OIDC_AUTHORITY}`,
+            CLIENT_ID: `${OIDC_CLIENT_ID}`,
+        },
+    },
     LAMASSU_CA_API: `https://${DOMAIN}/api/ca`,
     LAMASSU_DMS_MANAGER_API: `https://${DOMAIN}/api/dmsmanager`,
     LAMASSU_DEVMANAGER:`https://${DOMAIN}/api/devmanager`,

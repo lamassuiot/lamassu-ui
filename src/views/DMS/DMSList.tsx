@@ -206,27 +206,49 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms, onDelete }) => {
                         <Grid container alignItems={"center"} spacing={"10px"}>
                             <Grid xs={1}>
                                 <Tooltip title="Registration Mode">
-                                    <FaWpforms color="#999" size={20} />
+                                    <div>
+                                        <FaWpforms color="#999" size={20} />
+                                    </div>
                                 </Tooltip>
                             </Grid>
                             <Grid xs={11}>
                                 <Label>{dms.settings.enrollment_settings.registration_mode}</Label>
                             </Grid>
                         </Grid>
-                        <Grid container alignItems={"center"} spacing={"10px"}>
+                        <Grid container alignItems={"start"} spacing={"10px"}>
                             <Grid xs={1}>
                                 <Tooltip title="Validation CA">
-                                    <GrValidate color="#999" size={20} />
+                                    <div style={{ paddingTop: dms.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.validation_cas.length > 0 ? "25px" : "0" }}>
+                                        <GrValidate color="#999" size={20} />
+                                    </div>
                                 </Tooltip>
                             </Grid>
-                            <Grid xs={11}>
-                                <CAFetchViewer elevation={false} id={dms.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.validation_cas[0]} sx={{ padding: "0px" }} />
+                            <Grid xs={11} container spacing={1}>
+                                {
+                                    dms.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.validation_cas.length > 0
+                                        ? (
+                                            dms.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.validation_cas.map((caID, idx) => {
+                                                return (
+                                                    <Grid xs={12} key={idx}>
+                                                        <CAFetchViewer elevation={false} id={caID} sx={{ padding: "0px" }} />
+                                                    </Grid>
+                                                );
+                                            })
+                                        )
+                                        : (
+                                            <Grid xs={12}>
+                                                <Typography variant="body1" color="textSecondary" fontStyle={"italic"}>No validation CAs defined</Typography>
+                                            </Grid>
+                                        )
+                                }
                             </Grid>
                         </Grid>
                         <Grid container alignItems={"center"} spacing={"10px"}>
                             <Grid xs={1}>
                                 <Tooltip title="Enrollment CA">
-                                    <TbCertificate color="#999" size={20} />
+                                    <div>
+                                        <TbCertificate color="#999" size={20} />
+                                    </div>
                                 </Tooltip>
                             </Grid>
                             <Grid xs={11}>
@@ -241,7 +263,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms, onDelete }) => {
                     <StepModal
                         open={enrollDMSCmds.open}
                         onClose={() => setEnrollDMSCmds({ ...enrollDMSCmds, open: false })}
-                        onFinish={() => {}}
+                        onFinish={() => { }}
                         title="EST Enroll"
                         size="lg"
                         steps={[
@@ -349,7 +371,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms, onDelete }) => {
                             <Grid container spacing={2}>
                                 <Grid xs={12}>
                                     <Typography>
-                                    You are about to delete the DMS <Label color={"info"}><strong>{dms.name}</strong></Label>. This action is irreversible. Are you sure you want to proceed?
+                                        You are about to delete the DMS <Label color={"info"}><strong>{dms.name}</strong></Label>. This action is irreversible. Are you sure you want to proceed?
                                     </Typography>
                                 </Grid>
                                 <Grid xs={12}>
@@ -366,7 +388,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms, onDelete }) => {
                                             value: "TRANSFER",
                                             render: "Transfer owned Devices to DMS"
                                         }
-                                    ]}/>
+                                    ]} />
                                 </Grid>
                             </Grid>
                         )}
