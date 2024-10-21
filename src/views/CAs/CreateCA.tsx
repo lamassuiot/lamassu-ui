@@ -177,19 +177,19 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                         <FormTextField label="CA Name" control={control} name="subject.commonName" helperText="Common Name can not be empty" error={watchSubject.commonName === ""} />
                     </Grid>
                     <Grid xs={6} md={6}>
-                        <FormSelect control={control} name="privateKey.type" label="Key Type"options={
+                        <FormSelect control={control} name="privateKey.type" label="Key Type" options={
                             watchAll.cryptoEngine.supported_key_types.map((keyFam, idx) => {
                                 return { value: keyFam.type, render: keyFam.type };
                             })
-                        }/>
+                        } />
 
                     </Grid>
                     <Grid xs={6} md={6}>
                         <FormSelect control={control} name="privateKey.size" label="Key Size" options={
                             watchAll.cryptoEngine.supported_key_types.find(keyFam => keyFam.type === watchKeyType)!.sizes.map((keySize, idx) => {
-                                return { value: keySize.toString(), render: keySize.toString() };
+                                return { value: keySize, render: keySize.toString() };
                             })
-                        }/>
+                        } />
                     </Grid>
                 </Grid>
 
@@ -231,7 +231,7 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                             <Typography variant="h4">CA Expiration Settings</Typography>
                         </Grid>
                         <Grid>
-                            <FormExpirationInput control={control} name="caExpiration" enableInfiniteDate/>
+                            <FormExpirationInput control={control} name="caExpiration" enableInfiniteDate />
                         </Grid>
                     </Grid>
 
@@ -240,7 +240,7 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                             <Typography variant="h4">Issuance Expiration Settings</Typography>
                         </Grid>
                         <Grid>
-                            <FormExpirationInput control={control} name="issuerExpiration" enableInfiniteDate/>
+                            <FormExpirationInput control={control} name="issuerExpiration" enableInfiniteDate />
                         </Grid>
                     </Grid>
                 </Grid>
