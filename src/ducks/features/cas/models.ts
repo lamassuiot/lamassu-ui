@@ -167,25 +167,3 @@ export type ExpirationFormat = {
     duration?: string
     time?: string
 }
-export enum AWSCAMetadataRegistrationStatus {
-    REQUESTED = "REQUESTED",
-    FAILED = "FAILED",
-    SUCCEEDED = "SUCCEEDED",
-}
-
-export type AWSCAMetadataRegistration = {
-    registration_request_time: string;
-    status: AWSCAMetadataRegistrationStatus;
-    primary_account: boolean;
-    error?: string;
-    registration_time?: string;
-}
-
-export type AWSCAMetadata = {
-    registration: AWSCAMetadataRegistration
-    account?: string
-    region?: string
-    arn?: string
-    certificate_id?: string
-    mqtt_endpoint?: string
-}

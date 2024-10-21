@@ -2,7 +2,7 @@
 import { AWSIoTDMSMetadata, AWSIoTDMSMetadataRegistrationMode, AWSIoTPolicy, CreateUpdateDMSPayload, DMS, ESTAuthMode, EnrollmentProtocols, EnrollmentRegistrationMode } from "ducks/features/dmss/models";
 import { Alert, Button, Chip, Divider, Paper, Skeleton, Typography, useTheme } from "@mui/material";
 import { CASelector } from "components/CAs/CASelector";
-import { AWSCAMetadata, AWSCAMetadataRegistrationStatus, CertificateAuthority } from "ducks/features/cas/models";
+import { CertificateAuthority } from "ducks/features/cas/models";
 import { Editor } from "@monaco-editor/react";
 import { FormIconInput } from "components/forms/IconInput";
 import { FormSelect } from "components/forms/Select";
@@ -18,13 +18,10 @@ import { Upload } from "antd";
 import { getCAs } from "ducks/features/cas/apicalls";
 import { useForm } from "react-hook-form";
 import Grid from "@mui/material/Unstable_Grid2";
+import Label from "components/Label";
 import React, { useEffect, useState } from "react";
 import apicalls from "ducks/apicalls";
 import styled from "@emotion/styled";
-import { Select } from "components/Select";
-import moment from "moment";
-import { enqueueSnackbar } from "notistack";
-import Label from "components/Label";
 
 const { Dragger } = Upload;
 
@@ -33,6 +30,12 @@ export const FullAlert = styled(Alert)(({ theme }) => ({
         width: "100%"
     }
 }));
+
+enum AWSSync {
+    RequiresSync = "RequiresSync",
+    SyncInProgress = "SyncInProgress",
+    SyncOK = "SyncOK",
+}
 
 type FormData = {
     dmsDefinition: {
@@ -105,8 +108,6 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
     const editMode = dms !== undefined;
     const [loading, setLoading] = useState(true);
     const theme = useTheme();
-
-    const [awsCARegisterAsPrimaryAccount, setAwsCARegisterAsPrimaryAccount] = useState(true);
 
     const { control, setValue, reset, getValues, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
         defaultValues: {
@@ -181,12 +182,14 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
 
     const registeredInAWSKey = `lamassu.io/iot/${watchAwsIotIntegration.id}`;
 
-    const [enrollCARegistrationInAWS, setEnrollCARegistrationInAWS] = useState<AWSCAMetadata | undefined>(undefined);
+    const [awsSync, setAwsSync] = useState(AWSSync.RequiresSync);
     useEffect(() => {
         if (watchEnrollmentCA !== undefined && watchAwsIotIntegration.id !== "") {
             const caMeta = watchEnrollmentCA.metadata;
-            if (registeredInAWSKey in caMeta) {
-                setEnrollCARegistrationInAWS(caMeta[registeredInAWSKey] as AWSCAMetadata);
+            if (registeredInAWSKey in caMeta && caMeta[registeredInAWSKey].register === true) {
+                setAwsSync(AWSSync.SyncOK);
+            } else {
+                setAwsSync(AWSSync.RequiresSync);
             }
         }
     }, [watchEnrollmentCA, watchAwsIotIntegration.id]);
@@ -555,7 +558,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                             </Alert>
                                         </Grid>
                                         <Grid xs={12}>
-                                            <FormSwitch control={control} name="serverKeyGen.enabled" label="Enable Key Generation" />
+                                            <FormSwitch control={control} name="serverKeyGen.enabled" label="Enable Key Generartion" />
                                         </Grid>
                                         {
                                             watchServerKeyGen.enabled && (
@@ -646,151 +649,90 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                                     watchAwsIotIntegration.mode !== "none" && watchEnrollmentCA !== undefined && (
                                                         <>
                                                             {
-                                                                !enrollCARegistrationInAWS
-                                                                    ? (
-                                                                        <Grid xs={12}>
-                                                                            <Alert severity="warning">
-                                                                                <Grid container flexDirection={"column"} spacing={1} width={"100%"}>
-                                                                                    <Grid>
-                                                                                        The selected Enrollment CA is not registered in AWS. Make sure to synchronize it first.
-                                                                                    </Grid>
-                                                                                    <Grid>
-                                                                                        <Select value={awsCARegisterAsPrimaryAccount} onChange={(ev) => setAwsCARegisterAsPrimaryAccount(ev.target.value === "true")} label="Register as Primary Account" options={[
-                                                                                            {
-                                                                                                value: true,
-                                                                                                render: () => (
-                                                                                                    <Grid container>
-                                                                                                        <Grid xs={12}>
-                                                                                                            <Typography variant="body1" fontWeight={"bold"}>Primary Account - Register as CA owner</Typography>
-                                                                                                        </Grid>
-                                                                                                        <Grid xs={12}>
-                                                                                                            <Typography variant="body1">Only one account can be registered as the CA owner within the same AWS Region. It is required to have access to the CA private key.</Typography>
-                                                                                                        </Grid>
-                                                                                                    </Grid>
-                                                                                                )
-                                                                                            },
-                                                                                            {
-                                                                                                value: false,
-                                                                                                render: () => (
-                                                                                                    <Grid container>
-                                                                                                        <Grid xs={12}>
-                                                                                                            <Typography variant="body1" fontWeight={"bold"}>Secondary Account</Typography>
-                                                                                                        </Grid>
-                                                                                                        <Grid xs={12}>
-                                                                                                            <Typography variant="body1">No access to the CA private key is needed.</Typography>
-                                                                                                        </Grid>
-                                                                                                    </Grid>
-                                                                                                )
-                                                                                            }
-                                                                                        ]} />
-
-                                                                                        <Grid>
-                                                                                            <Button onClick={async () => {
-                                                                                                const caRegAWS: AWSCAMetadata = {
-                                                                                                    registration: {
-                                                                                                        status: AWSCAMetadataRegistrationStatus.REQUESTED,
-                                                                                                        registration_request_time: moment().toISOString(),
-                                                                                                        primary_account: awsCARegisterAsPrimaryAccount
-                                                                                                    }
-                                                                                                };
-
-                                                                                                try {
+                                                                awsSync !== AWSSync.SyncOK && watchEnrollmentCA !== undefined && (
+                                                                    <Grid xs={12}>
+                                                                        <Alert severity="warning">
+                                                                            <Grid container flexDirection={"column"} spacing={1} width={"100%"}>
+                                                                                {
+                                                                                    awsSync === AWSSync.RequiresSync && (
+                                                                                        <>
+                                                                                            <Grid>
+                                                                                                The selected Enrollment CA is not registered in AWS. Make sure to synchronize it first.
+                                                                                            </Grid>
+                                                                                            <Grid>
+                                                                                                <Button onClick={async () => {
                                                                                                     await apicalls.cas.updateCAMetadata(watchEnrollmentCA.id, {
                                                                                                         ...watchEnrollmentCA.metadata,
-                                                                                                        [registeredInAWSKey]: caRegAWS
+                                                                                                        [registeredInAWSKey]: {
+                                                                                                            register: true
+                                                                                                        }
                                                                                                     });
-                                                                                                    const ca = await apicalls.cas.getCA(watchEnrollmentCA.id);
-                                                                                                    setValue("enrollProtocol.enrollmentCA", ca);
-                                                                                                    enqueueSnackbar("CA Metadata updated", { variant: "success" });
-                                                                                                } catch (e) {
-                                                                                                    enqueueSnackbar("Failed to update CA Metadata", { variant: "error" });
-                                                                                                }
-                                                                                            }}>Synchronize CA</Button>
+                                                                                                    setAwsSync(AWSSync.SyncInProgress);
+                                                                                                }}>Synchronize CA</Button>
+                                                                                            </Grid>
+                                                                                        </>
+                                                                                    )
+                                                                                }
+                                                                                {
+                                                                                    awsSync === AWSSync.SyncInProgress && (
+                                                                                        <Grid>
+                                                                                            <Grid>
+                                                                                                Registering process underway. CA should be registered soon, click on &apos;Reload & Check&apos; periodically.
+                                                                                            </Grid>
+                                                                                            <Button onClick={async () => {
+                                                                                                const ca = await apicalls.cas.getCA(watchEnrollmentCA.id);
+                                                                                                setValue("enrollProtocol.enrollmentCA", ca);
+                                                                                            }}>
+                                                                                                Reload & Check
+                                                                                            </Button>
                                                                                         </Grid>
-                                                                                    </Grid>
-                                                                                </Grid>
-                                                                            </Alert>
-                                                                        </Grid>
-                                                                    )
-                                                                    : (
-                                                                        <>
-                                                                            {
-                                                                                enrollCARegistrationInAWS.registration.status === AWSCAMetadataRegistrationStatus.REQUESTED && (
-                                                                                    <Grid xs={12}>
-                                                                                        <Alert severity="warning">
-                                                                                            <Grid container spacing={2} sx={{ width: "100%" }}>
-                                                                                                <Grid xs={12}>
-                                                                                                    Registering process underway. CA should be registered soon, click on &apos;Reload & Check&apos; periodically.
-                                                                                                </Grid>
-                                                                                                <Grid xs={12}>
-                                                                                                    <Editor
-                                                                                                        theme="vs-dark"
-                                                                                                        defaultLanguage="json"
-                                                                                                        height="30vh"
-                                                                                                        value={JSON.stringify(enrollCARegistrationInAWS, null, 4)}
-                                                                                                        options={{ readOnly: true }}
-                                                                                                    />
-                                                                                                </Grid>
-                                                                                                <Grid xs={12}>
-                                                                                                    <Button onClick={async () => {
-                                                                                                        const ca = await apicalls.cas.getCA(watchEnrollmentCA.id);
-                                                                                                        setValue("enrollProtocol.enrollmentCA", ca);
-                                                                                                    }}>
-                                                                                                        Reload & Check
-                                                                                                    </Button>
-                                                                                                </Grid>
-                                                                                            </Grid>
-                                                                                        </Alert>
-                                                                                    </Grid>
-                                                                                )
-                                                                            }
-                                                                            {
-                                                                                enrollCARegistrationInAWS.registration.status === AWSCAMetadataRegistrationStatus.SUCCEEDED && (
-                                                                                    <Grid xs={12}>
-                                                                                        <Alert severity="success">
-                                                                                            <Grid container spacing={2} sx={{ width: "100%" }}>
-                                                                                                <Grid xs={12}>
-                                                                                                    The selected Enrollment CA is correctly registered in AWS:
-                                                                                                </Grid>
-                                                                                                <Grid xs={12}>
-                                                                                                    <Editor
-                                                                                                        theme="vs-dark"
-                                                                                                        defaultLanguage="json"
-                                                                                                        height="30vh"
-                                                                                                        value={JSON.stringify(enrollCARegistrationInAWS, null, 4)}
-                                                                                                        options={{ readOnly: true }}
-                                                                                                    />
-                                                                                                </Grid>
-                                                                                            </Grid>
-                                                                                        </Alert>
-                                                                                    </Grid>
-                                                                                )
-                                                                            }
-                                                                            {
-                                                                                enrollCARegistrationInAWS.registration.status === AWSCAMetadataRegistrationStatus.FAILED && (
-                                                                                    <Grid xs={12}>
-                                                                                        <Alert severity="warning">
-                                                                                            <Grid container>
-                                                                                                <Grid xs={12}>
-                                                                                                    Registering process failed: {enrollCARegistrationInAWS.registration.error}
-                                                                                                </Grid>
-                                                                                                <Grid xs={12}>
-                                                                                                    <Editor
-                                                                                                        theme="vs-dark"
-                                                                                                        defaultLanguage="json"
-                                                                                                        height="30vh"
-                                                                                                        value={JSON.stringify(enrollCARegistrationInAWS, null, 4)}
-                                                                                                        options={{ readOnly: true }}
-                                                                                                    />
-                                                                                                </Grid>
-                                                                                            </Grid>
-                                                                                        </Alert>
-                                                                                    </Grid>
-                                                                                )
-                                                                            }
-                                                                        </>
-                                                                    )
+                                                                                    )
+                                                                                }
+                                                                            </Grid>
+                                                                        </Alert>
+                                                                    </Grid>
+                                                                )
                                                             }
+                                                            {
+                                                                awsSync === AWSSync.SyncOK && registeredInAWSKey in watchEnrollmentCA.metadata && (
+                                                                    <Grid xs={12}>
+                                                                        <FullAlert severity="success">
+                                                                            <Grid container flexDirection={"column"} spacing={2} sx={{ width: "100%" }}>
+                                                                                <Grid>
+                                                                                    The selected Enrollment CA is correctly registered in AWS:
+                                                                                </Grid>
+                                                                                <Grid>
+                                                                                    <Button onClick={async () => {
+                                                                                        const ca = await apicalls.cas.getCA(watchEnrollmentCA!.id);
+                                                                                        setValue("enrollProtocol.enrollmentCA", ca);
+                                                                                    }}>
+                                                                                        Reload & Check
+                                                                                    </Button>
+                                                                                </Grid>
+
+                                                                                <Grid container flexDirection={"column"} spacing={1} sx={{ width: "100%" }}>
+                                                                                    {
+                                                                                        Object.keys(watchEnrollmentCA!.metadata[registeredInAWSKey]).map((key, idx) => {
+                                                                                            return (
+                                                                                                <Grid key={idx} container>
+                                                                                                    <Grid xs={2}>
+                                                                                                        <Label>{key}</Label>
+                                                                                                    </Grid>
+                                                                                                    <Grid xs>
+                                                                                                        <Label>{watchEnrollmentCA!.metadata[registeredInAWSKey][key]}</Label>
+                                                                                                    </Grid>
+                                                                                                </Grid>
+                                                                                            );
+                                                                                        })
+                                                                                    }
+                                                                                </Grid>
+                                                                            </Grid>
+                                                                        </FullAlert>
+                                                                    </Grid>
+
+                                                                )
+                                                            }
+
                                                             <Grid xs={12}>
                                                                 <FormTagsInput control={control} name="awsIotIntegration.thingGroups" label="AWS Thing Groups" />
                                                             </Grid>
@@ -801,6 +743,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                                         </>
                                                     )
                                                 }
+
                                                 {
                                                     watchAwsIotIntegration.mode === "jitp" && (
                                                         <>
