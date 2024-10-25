@@ -1,20 +1,36 @@
-const download = (filename: string, content: string) => {
-    // creating an invisible element
-    const element = document.createElement("a");
-    element.setAttribute("href",
-        "data:text/plain;charset=utf-8," +
-    encodeURIComponent(content));
-    element.setAttribute("download", filename);
+const download = (filename: string, content: string | Blob) => {
+    let blob: Blob;
+    if (typeof content === "string") {
+        blob = new Blob([content], { type: "text/plain" });
+    } else {
+        blob = content;
+    }
 
-    // Above code is equivalent to
-    // <a href="path of file" download="file name">
+    // Convert your blob into a Blob URL (a special url that points to an object in the browser's memory)
+    const blobUrl = URL.createObjectURL(blob);
 
-    document.body.appendChild(element);
+    // Create a link element
+    const link = document.createElement("a");
 
-    // onClick property
-    element.click();
+    // Set link's href to point to the Blob URL
+    link.href = blobUrl;
+    link.download = filename;
 
-    document.body.removeChild(element);
+    // Append link to the body
+    document.body.appendChild(link);
+
+    // Dispatch click event on the link
+    // This is necessary as link.click() does not work on the latest firefox
+    link.dispatchEvent(
+        new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+            view: window
+        })
+    );
+
+    // Remove link from body
+    document.body.removeChild(link);
 };
 
 export default download;

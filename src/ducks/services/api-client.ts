@@ -46,10 +46,19 @@ export const apiRequest = async ({ method = "GET", url, data, headers = {}, cont
             return json;
         }
 
+        if (response.headers.has("Content-Type") && response.headers.get("Content-Type")!.includes("application/pkix-crl")) {
+            const buffer = await response.blob();
+            return buffer;
+        }
+
+        if (response.headers.has("Content-Type") && response.headers.get("Content-Type")!.includes("application/octet-stream")) {
+            const buffer = await response.blob();
+            return buffer;
+        }
+
         const text = await response.text();
         return text;
     }
-
     throw Error(await parseErrorResponse(response));
 };
 

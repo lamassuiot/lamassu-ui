@@ -32,9 +32,9 @@ declare global {
       LAMASSU_CA_API: string;
       LAMASSU_DMS_MANAGER_API: string;
       LAMASSU_TUF_API: string;
-      LAMASSU_DEVMANAGER: string;
-      LAMASSU_ALERTS: string;
-      LAMASSU_VA: string;
+      LAMASSU_DEVMANAGER_API: string;
+      LAMASSU_ALERTS_API: string;
+      LAMASSU_VA_API: string;
       CLOUD_CONNECTORS: string[];
       INFO: any
     };

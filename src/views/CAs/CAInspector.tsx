@@ -24,6 +24,9 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import apicalls from "ducks/apicalls";
 import moment from "moment";
 import { SingleStatDoughnut } from "components/Charts/SingleStatDouhbnut";
+import FileDownloadRoundedIcon from "@mui/icons-material/FileDownloadRounded";
+import { LoadingButton } from "@mui/lab";
+import download from "utils/downloader";
 
 interface Props {
     caName: string
@@ -36,6 +39,7 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
 
     const [revokeDialog, setRevokeDialog] = useState<CertificateAuthority | undefined>();
     const [revokeReason, setRevokeReason] = useState("Unspecified");
+    const [loadingCRLResp, setLoadingCRLResp] = useState(false);
 
     const caRef = React.useRef<FetchHandle>(null);
 
@@ -66,7 +70,7 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                         element: <div style={{ margin: "0 35px" }}>
                             <CAMetadata caData={caData} onMetadataChange={() => {
                                 refreshAction();
-                            }}/>
+                            }} />
                         </div>
                     },
                     {
@@ -137,6 +141,24 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                                             </IconButton>
                                         </Tooltip >
                                     </Grid>
+
+                                    <Grid xs="auto">
+                                        <Tooltip title="Download CRL">
+                                            <LoadingButton loading={loadingCRLResp} onClick={async () => {
+                                                setLoadingCRLResp(true);
+                                                try {
+                                                    const crl = await apicalls.va.getCRL(caData.id);
+                                                    download(`${caData.subject.common_name}.crl`, crl);
+                                                } catch (e) {
+                                                    enqueueSnackbar(`Error while downloading CRL for CA with ID ${caData.id} and CN ${caData.subject.common_name}: ${e}`, { variant: "error" });
+                                                }
+                                                setLoadingCRLResp(false);
+                                            }} style={{ background: lighten(theme.palette.primary.main, 0.7) }} endIcon={ <FileDownloadRoundedIcon fontSize={"small"} />}>
+                                                CRL
+                                            </LoadingButton>
+                                        </Tooltip >
+                                    </Grid>
+
                                     {
                                         (caData.type !== "EXTERNAL" && caData.status !== CertificateStatus.Revoked) && (
                                             <Grid xs="auto">

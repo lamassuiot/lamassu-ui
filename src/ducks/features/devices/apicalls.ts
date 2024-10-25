@@ -4,35 +4,35 @@ import { CreateDevicePayload, Device, DeviceStats, Slot } from "./models";
 export const getApiInfo = async (): Promise<APIServiceInfo> => {
     return apiRequest({
         method: "GET",
-        url: `${window._env_.LAMASSU_DEVMANAGER}/health`
+        url: `${window._env_.LAMASSU_DEVMANAGER_API}/health`
     }) as Promise<APIServiceInfo>;
 };
 
 export const getStats = async (): Promise<DeviceStats> => {
     return apiRequest({
         method: "GET",
-        url: window._env_.LAMASSU_DEVMANAGER + "/v1/stats"
+        url: window._env_.LAMASSU_DEVMANAGER_API + "/v1/stats"
     }) as Promise<DeviceStats>;
 };
 
 export const getDevices = async (params?: QueryParameters): Promise<ListResponse<Device>> => {
     return apiRequest({
         method: "GET",
-        url: `${window._env_.LAMASSU_DEVMANAGER}/v1/devices${queryParametersToURL(params)}`
+        url: `${window._env_.LAMASSU_DEVMANAGER_API}/v1/devices${queryParametersToURL(params)}`
     }) as Promise<ListResponse<Device>>;
 };
 
 export const getDeviceByID = async (id: string): Promise<Device> => {
     return apiRequest({
         method: "GET",
-        url: `${window._env_.LAMASSU_DEVMANAGER}/v1/devices/${id}`
+        url: `${window._env_.LAMASSU_DEVMANAGER_API}/v1/devices/${id}`
     }) as Promise<Device>;
 };
 
 export const createDevice = async (payload: CreateDevicePayload): Promise<ListResponse<Device>> => {
     return apiRequest({
         method: "POST",
-        url: `${window._env_.LAMASSU_DEVMANAGER}/v1/devices`,
+        url: `${window._env_.LAMASSU_DEVMANAGER_API}/v1/devices`,
         data: payload
     }) as Promise<ListResponse<Device>>;
 };
@@ -40,7 +40,7 @@ export const createDevice = async (payload: CreateDevicePayload): Promise<ListRe
 export const updateDeviceMetadata = async (id: string, meta: { [key: string]: any }): Promise<Device> => {
     return apiRequest({
         method: "PUT",
-        url: `${window._env_.LAMASSU_DEVMANAGER}/v1/devices/${id}/metadata`,
+        url: `${window._env_.LAMASSU_DEVMANAGER_API}/v1/devices/${id}/metadata`,
         data: {
             metadata: meta
         }
@@ -50,7 +50,7 @@ export const updateDeviceMetadata = async (id: string, meta: { [key: string]: an
 export const updateDeviceIdentitySlot = async (id: string, idSlot: Slot<string>): Promise<Device> => {
     return apiRequest({
         method: "PUT",
-        url: `${window._env_.LAMASSU_DEVMANAGER}/v1/devices/${id}/idslot`,
+        url: `${window._env_.LAMASSU_DEVMANAGER_API}/v1/devices/${id}/idslot`,
         data: idSlot
     }) as Promise<Device>;
 };
@@ -58,6 +58,6 @@ export const updateDeviceIdentitySlot = async (id: string, idSlot: Slot<string>)
 export const decommissionDevice = async (id: string): Promise<Device> => {
     return apiRequest({
         method: "DELETE",
-        url: `${window._env_.LAMASSU_DEVMANAGER}/v1/devices/${id}/decommission`
+        url: `${window._env_.LAMASSU_DEVMANAGER_API}/v1/devices/${id}/decommission`
     }) as Promise<Device>;
 };
