@@ -1,10 +1,11 @@
-import { Alert, Typography, useTheme } from "@mui/material";
+import { Alert, Chip, Typography, useTheme } from "@mui/material";
 import { KeyValueLabel } from "components/KeyValue";
 import { X509Certificate, parseCRT } from "utils/crypto/crt";
 import Grid from "@mui/material/Unstable_Grid2";
 import Label from "components/Label";
 import React, { useEffect, useState } from "react";
 import moment from "moment";
+import { SANExtension, SANExtensionType } from "utils/crypto/x509";
 
 interface CertificateDecoderProps {
     crtPem: string
@@ -97,16 +98,36 @@ const CertificateDecoder: React.FC<CertificateDecoderProps> = ({ crtPem }) => {
                         </Grid>
 
                         {
-                            crtProps && crtProps?.subjectAltName.dnss.length > 0 && (
+                            crtProps && crtProps?.subjectAltName.length > 0 && (
                                 <Grid xs={12}>
                                     <KeyValueLabel label="Subject Alternative Name" value={
                                         <Grid container spacing={1}>
                                             {
-                                                crtProps?.subjectAltName.dnss.map((dnsAltName: string, idx: number) => (
-                                                    <Grid key={idx}>
-                                                        <Label>{`DNS = ${dnsAltName}`}</Label>
-                                                    </Grid>
-                                                ))
+                                                crtProps?.subjectAltName.map((ext: SANExtension, idx: number) => {
+                                                    let val = "";
+                                                    switch (ext.type) {
+                                                    case SANExtensionType.DNSName:
+                                                        val = ext.DNSName!;
+                                                        break;
+                                                    case SANExtensionType.IPAddress:
+                                                        val = ext.IPAddress!;
+                                                        break;
+                                                    case SANExtensionType.Rfc822Name:
+                                                        val = ext.rfc822Name!;
+                                                        break;
+                                                    case SANExtensionType.URI:
+                                                        val = ext.URI!;
+                                                        break;
+                                                    default:
+                                                        break;
+                                                    }
+
+                                                    return (
+                                                        <Grid key={idx}>
+                                                            <Chip label={`${ext.type} = ${val}`} />
+                                                        </Grid>
+                                                    );
+                                                })
                                             }
                                         </Grid>
                                     } />

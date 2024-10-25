@@ -1,7 +1,7 @@
 import { Alert, Chip, Divider, useTheme } from "@mui/material";
 import { CodeCopier } from "./CodeCopier";
 import { KeyValueLabel } from "./KeyValue";
-import { X509 } from "utils/crypto/x509";
+import { SANExtension, SANExtensionType, X509 } from "utils/crypto/x509";
 import { parseCSR } from "utils/crypto/csr";
 import Grid from "@mui/material/Unstable_Grid2";
 import React, { useEffect, useState } from "react";
@@ -116,11 +116,31 @@ export const CSRDecoder: React.FC<CSRDecoderProps> = ({ csr }) => {
                                 <KeyValueLabel label="Subject Alternative Name" value={
                                     <Grid container spacing={1}>
                                         {
-                                            csrProps?.subjectAltName.dnss.map((dnsAltName: string, idx: number) => (
-                                                <Grid key={idx}>
-                                                    <Chip label={`DNS = ${dnsAltName}`} />
-                                                </Grid>
-                                            ))
+                                            csrProps?.subjectAltName.map((ext: SANExtension, idx: number) => {
+                                                let val = "";
+                                                switch (ext.type) {
+                                                case SANExtensionType.DNSName:
+                                                    val = ext.DNSName!;
+                                                    break;
+                                                case SANExtensionType.IPAddress:
+                                                    val = ext.IPAddress!;
+                                                    break;
+                                                case SANExtensionType.Rfc822Name:
+                                                    val = ext.rfc822Name!;
+                                                    break;
+                                                case SANExtensionType.URI:
+                                                    val = ext.URI!;
+                                                    break;
+                                                default:
+                                                    break;
+                                                }
+
+                                                return (
+                                                    <Grid key={idx}>
+                                                        <Chip label={`${ext.type} = ${val}`} />
+                                                    </Grid>
+                                                );
+                                            })
                                         }
                                     </Grid>
                                 } />

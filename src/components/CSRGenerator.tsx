@@ -86,7 +86,7 @@ const CSRFormGenerator: React.FC<CSRFormGeneratorProps> = ({ onCreate }) => {
             o: "",
             ou: ""
         },
-        sanDNSs: []
+        san: []
     });
 
     const validateCSRGenInputs = false;
@@ -116,9 +116,11 @@ const CSRFormGenerator: React.FC<CSRFormGeneratorProps> = ({ onCreate }) => {
                 </Grid>
                 <Grid >
                     <Button variant="contained" disabled={validateCSRGenInputs || loadingCryptoMaterial} onClick={async () => {
+                        console.log(x509FromValue.san);
+
                         setLoadingCryptoMaterial(true);
                         const keyPair = await createPrivateKey(x509FromValue.keyMetadata.type, x509FromValue.keyMetadata.size, "SHA-256");
-                        const csr = await createCSR(keyPair, "SHA-256", x509FromValue.subject, { dnss: x509FromValue.sanDNSs });
+                        const csr = await createCSR(keyPair, "SHA-256", x509FromValue.subject, x509FromValue.san);
                         const { privateKey } = await keyPairToPEM(keyPair);
                         onCreate(privateKey, csr);
                         setLoadingCryptoMaterial(false);

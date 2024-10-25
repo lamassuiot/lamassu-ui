@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 import * as asn1js from "asn1js";
 import * as pkijs from "pkijs";
-import { X509, X509Subject, fromPEM, parseRelativeDistinguishedNames, parseSANFromExtensions, parseSubjectPublicKeyInfo, toPEM } from "./x509";
+import { SANExtension, SANExtensionType, X509, X509Subject, fromPEM, parseRelativeDistinguishedNames, parseSANFromExtensions, parseSubjectPublicKeyInfo, toPEM } from "./x509";
 
 export const createPrivateKey = (keyType: "ECDSA" | "RSA", keySize: number, hashAlg: "SHA-1" | "SHA-256" | "SHA-384" | "SHA-512"): Promise<CryptoKeyPair> => {
     const crypto = pkijs.getCrypto(true);
@@ -33,7 +33,7 @@ export const keyPairToPEM = async (keyPair: CryptoKeyPair): Promise<{ privateKey
     };
 };
 
-export const createCSR = async (keyPair: CryptoKeyPair, hashAlg: "SHA-1" | "SHA-256" | "SHA-384" | "SHA-512", subject: X509Subject, san?: { dnss?: string[] }): Promise<string> => {
+export const createCSR = async (keyPair: CryptoKeyPair, hashAlg: "SHA-1" | "SHA-256" | "SHA-384" | "SHA-512", subject: X509Subject, san: SANExtension[]): Promise<string> => {
     const pkcs10 = new pkijs.CertificationRequest();
     await pkcs10.subjectPublicKeyInfo.importKey(keyPair.publicKey);
 
@@ -59,22 +59,49 @@ export const createCSR = async (keyPair: CryptoKeyPair, hashAlg: "SHA-1" | "SHA-
     }
 
     const extensions: pkijs.Extension[] = [];
-    let altNames: pkijs.GeneralNames | undefined;
 
-    if (san && san.dnss && san.dnss.length > 0) {
-        const dnsNames: pkijs.GeneralName[] = [];
-        if (san.dnss) {
-            san.dnss.forEach(dns => {
-                const name = new pkijs.GeneralName({
-                    type: 2,
-                    value: dns
-                });
-                dnsNames.push(name);
+    let altNames: pkijs.GeneralNames | undefined;
+    const sanNames: pkijs.GeneralName[] = [];
+
+    san.forEach(sanExt => {
+        let name: pkijs.GeneralName;
+        switch (sanExt.type) {
+        case SANExtensionType.Rfc822Name:
+            name = new pkijs.GeneralName({
+                type: 1,
+                value: sanExt.rfc822Name!
             });
+            break;
+        case SANExtensionType.DNSName:
+            name = new pkijs.GeneralName({
+                type: 2,
+                value: sanExt.DNSName!
+            });
+            break;
+        case SANExtensionType.URI:
+            name = new pkijs.GeneralName({
+                type: 6,
+                value: sanExt.URI!
+            });
+            break;
+        case SANExtensionType.IPAddress:
+            name = new pkijs.GeneralName({
+                type: 7,
+                value: new asn1js.OctetString({ valueHex: new Uint8Array(sanExt.IPAddress!.split(".").map(Number)) })
+            });
+            break;
+        default:
+            return;
         }
 
+        console.log("SAN", name);
+
+        sanNames.push(name);
+    });
+
+    if (sanNames.length > 0) {
         altNames = new pkijs.GeneralNames({
-            names: [...dnsNames]
+            names: [...sanNames]
         });
 
         extensions.push(
@@ -142,9 +169,7 @@ export const parseCSR = async (rawCSR: string): Promise<X509> => {
     const x509: X509 = {
         publicKey: await parseSubjectPublicKeyInfo(csr.subjectPublicKeyInfo),
         subject: await parseRelativeDistinguishedNames(csr.subject),
-        subjectAltName: {
-            dnss: []
-        }
+        subjectAltName: []
     };
 
     if (csr.attributes && csr.attributes.length > 0) {

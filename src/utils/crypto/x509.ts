@@ -12,8 +12,18 @@ export type X509Subject = {
     country?: string
 }
 
-export type X509SubjectAlternativeName = {
-    dnss: string[],
+export enum SANExtensionType {
+    Rfc822Name = "Rfc822Name",
+    DNSName = "DNSName",
+    URI = "URI",
+    IPAddress = "IPAddress"
+}
+export type SANExtension = {
+    type: SANExtensionType,
+    rfc822Name?: string; // Email address
+    DNSName?: string; // Domain name
+    URI?: string; // URI in IA5String format
+    IPAddress?: string; // IPv4 or IPv6 address
 }
 
 export type X509PublicKeyProps = {
@@ -23,7 +33,7 @@ export type X509PublicKeyProps = {
 
 export type X509 = {
     subject: X509Subject,
-    subjectAltName: X509SubjectAlternativeName,
+    subjectAltName: SANExtension[],
     publicKey: X509PublicKeyProps,
 }
 
@@ -72,7 +82,7 @@ export const parseRelativeDistinguishedNames = async (rdn: pkijs.RelativeDisting
     return subject;
 };
 
-export const parseSANFromExtensions = async (extensions: pkijs.Extension[]): Promise<X509SubjectAlternativeName> => {
+export const parseSANFromExtensions = async (extensions: pkijs.Extension[]): Promise<SANExtension[]> => {
     const getExtensionsForSANFromExtensions = (exts: pkijs.Extension[]) => {
         for (let i = 0; i < exts.length; i++) {
             const ext = exts[i];
@@ -86,16 +96,36 @@ export const parseSANFromExtensions = async (extensions: pkijs.Extension[]): Pro
         return undefined;
     };
 
-    const sanDNSs: string[] = [];
+    const sansExt: SANExtension[] = [];
 
-    const san = getExtensionsForSANFromExtensions(extensions);
-    if (san !== undefined) {
-        san.names.forEach(element => {
-            sanDNSs.push(element.value);
+    const sans = getExtensionsForSANFromExtensions(extensions);
+    if (sans !== undefined) {
+        sans.names.forEach(element => {
+            let sanExt = {} as SANExtension;
+            switch (element.type) {
+            case 1:
+                sanExt = { type: SANExtensionType.Rfc822Name, rfc822Name: element.value };
+                break;
+            case 2:
+                sanExt = { type: SANExtensionType.DNSName, DNSName: element.value };
+                break;
+            case 6:
+                sanExt = { type: SANExtensionType.URI, URI: element.value };
+                break;
+            case 7: {
+                const ipAsn1Octet = element.value as asn1js.OctetString;
+                sanExt = { type: SANExtensionType.IPAddress, IPAddress: Array.from(new Uint8Array(ipAsn1Octet.valueBlock.valueHexView)).join(".") };
+                break;
+            }
+            default:
+                break;
+            }
+
+            sansExt.push(sanExt);
         });
     }
 
-    return { dnss: sanDNSs };
+    return sansExt;
 };
 
 export const parseExtensions = async (extensions: pkijs.Extension[]): Promise<Map<string, string>> => {

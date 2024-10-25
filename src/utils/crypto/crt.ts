@@ -18,9 +18,7 @@ export const parseCRT = async (rawCRT: string): Promise<X509Certificate> => {
     const x509: X509 = {
         publicKey: await parseSubjectPublicKeyInfo(crt.subjectPublicKeyInfo),
         subject: await parseRelativeDistinguishedNames(crt.subject),
-        subjectAltName: {
-            dnss: []
-        }
+        subjectAltName: []
     };
 
     let exts = new Map<string, string>();
