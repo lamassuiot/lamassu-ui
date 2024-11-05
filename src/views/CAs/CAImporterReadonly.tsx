@@ -35,7 +35,7 @@ export const CAReadonlyImporter: React.FC<CAReadonlyImporterProps> = () => {
     return (
         <Grid container spacing={2} sx={{ width: "100%" }}>
             <Grid xs={12}>
-                <TextField label="CA ID" name="id" helperText="ID" value={caID} disabled />
+                <TextField label="CA ID" name="id" helperText="ID" value={caID} onChange={(e) => setCAID(e.target.value)} />
             </Grid>
             <Grid xs={12}>
                 <CertificateImporter onChange={(crt) => { setCrt(crt); }} />

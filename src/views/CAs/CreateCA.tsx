@@ -171,7 +171,7 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                         />
                     </Grid>
                     <Grid xs={12}>
-                        <FormTextField label="CA ID" control={control} name="id" helperText="ID" disabled />
+                        <FormTextField label="CA ID" control={control} name="id" helperText="ID" />
                     </Grid>
                     <Grid xs={12}>
                         <FormTextField label="CA Name" control={control} name="subject.commonName" helperText="Common Name can not be empty" error={watchSubject.commonName === ""} />
