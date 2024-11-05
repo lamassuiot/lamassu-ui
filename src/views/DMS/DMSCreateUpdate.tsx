@@ -15,7 +15,6 @@ import { Modal } from "components/Modal";
 import { TabsList } from "components/TabsList";
 import { TextField } from "components/TextField";
 import { Upload } from "antd";
-import { getCAs } from "ducks/features/cas/apicalls";
 import { useForm } from "react-hook-form";
 import Grid from "@mui/material/Unstable_Grid2";
 import React, { useEffect, useState } from "react";
@@ -208,7 +207,23 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
             if (!editMode) {
                 setLoading(false);
             } else {
-                const casResp = await getCAs({ bookmark: "", filters: [], pageSize: 25, sortField: "", sortMode: "asc" });
+                let caIDsToFetch: string[] = [];
+                caIDsToFetch = [
+                    dms.settings.enrollment_settings.enrollment_ca,
+                    ...dms.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.validation_cas,
+                    ...dms.settings.reenrollment_settings.additional_validation_cas,
+                    ...dms.settings.ca_distribution_settings.managed_cas
+                ];
+
+                console.log(caIDsToFetch);
+
+                const caPromises: Promise<CertificateAuthority>[] = [];
+                caIDsToFetch.forEach(caID => {
+                    caPromises.push(apicalls.cas.getCA(caID));
+                });
+
+                const fetchedCAs = await Promise.all(caPromises);
+
                 const updateDMS: FormData = {
                     dmsDefinition: {
                         id: dms.id,
@@ -218,11 +233,11 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         protocol: dms.settings.enrollment_settings.protocol,
                         estAuthMode: dms.settings.enrollment_settings.est_rfc7030_settings.auth_mode,
                         overrideEnrollment: dms.settings.enrollment_settings.enable_replaceable_enrollment,
-                        enrollmentCA: casResp.list.find(ca => ca.id === dms!.settings.enrollment_settings.enrollment_ca)!,
+                        enrollmentCA: fetchedCAs.find(ca => ca.id === dms!.settings.enrollment_settings.enrollment_ca)!,
                         registrationMode: dms!.settings.enrollment_settings.registration_mode,
                         certificateValidation: {
                             chainValidation: dms!.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.chain_level_validation,
-                            validationCAs: dms!.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.validation_cas.map(ca => casResp.list.find(caF => caF.id === ca)!),
+                            validationCAs: dms!.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.validation_cas.map(ca => fetchedCAs.find(caF => caF.id === ca)!),
                             allowExpired: dms!.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.allow_expired
                         }
                     },
@@ -237,7 +252,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                     reEnroll: {
                         allowedRenewalDelta: dms!.settings.reenrollment_settings.reenrollment_delta,
                         allowExpired: dms!.settings.reenrollment_settings.enable_expired_renewal,
-                        additionalValidationCAs: dms!.settings.reenrollment_settings.additional_validation_cas.map(ca => casResp.list.find(caF => caF.id === ca)!),
+                        additionalValidationCAs: dms!.settings.reenrollment_settings.additional_validation_cas.map(ca => fetchedCAs.find(caF => caF.id === ca)!),
                         preventiveDelta: dms.settings.reenrollment_settings.preventive_delta,
                         criticalDelta: dms.settings.reenrollment_settings.critical_delta
                     },
@@ -249,7 +264,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                     caDistribution: {
                         includeAuthorized: dms!.settings.ca_distribution_settings.include_enrollment_ca,
                         includeDownstream: dms!.settings.ca_distribution_settings.include_system_ca,
-                        managedCAs: dms!.settings.ca_distribution_settings.managed_cas.map(ca => casResp.list.find(caF => caF.id === ca)!)
+                        managedCAs: dms!.settings.ca_distribution_settings.managed_cas.map(ca => fetchedCAs.find(caF => caF.id === ca)!)
                     },
                     awsIotIntegration: {
                         id: "",

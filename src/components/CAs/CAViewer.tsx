@@ -11,7 +11,7 @@ import moment from "moment";
 
 export type Props = {
     caData: CertificateAuthority,
-    engine: CryptoEngine
+    engine?: CryptoEngine
     actions?: React.ReactNode[]
     elevation?: boolean
     clickDisplay?: boolean
@@ -28,7 +28,7 @@ const CAViewer: React.FC<Props> = ({ caData, engine, actions = [], elevation = t
                 {
                     caData.type !== "EXTERNAL" && (
                         <Grid xs="auto">
-                            <CryptoEngineViewer engine={engine} simple />
+                            <CryptoEngineViewer engine={engine!} simple />
                         </Grid>
                     )
                 }
