@@ -615,6 +615,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         },
                         {
                             label: "AWS IoT Integration",
+                            hidden: window._env_.CLOUD_CONNECTORS.filter(item => item.startsWith("aws.")).length === 0,
                             element: (
                                 <Grid container spacing={2} marginTop={"20px"}>
                                     <Grid xs={12}>
@@ -891,6 +892,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         },
                         {
                             label: "EMQX Integration",
+                            hidden: window._env_.CLOUD_CONNECTORS.filter(item => item.startsWith("emqx.")).length === 0,
                             element: (
                                 <Grid container marginTop={"20px"} spacing={2}>
                                     <Grid xs={12}>

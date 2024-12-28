@@ -12,6 +12,7 @@ interface TabsListProps {
 export interface TabsListItemsProps {
     label: React.ReactNode;
     element: React.ReactNode;
+    hidden?: boolean;
 }
 
 const TabsList: React.FC<TabsListProps> = ({ tabs, headerStyle = {}, contentStyle = {} }) => {
@@ -25,7 +26,7 @@ const TabsList: React.FC<TabsListProps> = ({ tabs, headerStyle = {}, contentStyl
             <Grid sx={{ borderBottom: 1, borderColor: "divider", ...headerStyle }}>
                 <Tabs value={value} onChange={handleChange}>
                     {
-                        tabs.map((elem, idx) => {
+                        tabs.filter(item => item.hidden !== true).map((elem, idx) => {
                             return (
                                 <Tab key={idx} label={elem.label} />
                             );
@@ -35,7 +36,7 @@ const TabsList: React.FC<TabsListProps> = ({ tabs, headerStyle = {}, contentStyl
             </Grid>
             <Grid xs={12} flex={1} sx={contentStyle}>
                 {
-                    tabs.map((elem, idx) => {
+                    tabs.filter(item => item.hidden !== true).map((elem, idx) => {
                         return (
                             <TabPanel key={idx} value={value} index={idx}>
                                 {elem.element}
