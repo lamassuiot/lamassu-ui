@@ -1,3 +1,5 @@
+const { warn } = require("console");
+
 module.exports = {
     env: {
         browser: true,
@@ -14,7 +16,8 @@ module.exports = {
             jsx: true
         },
         ecmaVersion: 12,
-        sourceType: "module"
+        sourceType: "module",
+        warnOnUnsupportedTypeScriptVersion: false
     },
     plugins: [
         "react",

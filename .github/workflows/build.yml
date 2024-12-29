@@ -1,0 +1,29 @@
+name: Build Workflow
+
+on:
+  push:
+
+jobs:
+    build:
+        name: "Build project"
+        runs-on: ubuntu-latest
+        env:
+            NODE_OPTIONS: "--max-old-space-size=16384 --openssl-legacy-provider"
+            GENERATE_SOURCEMAP: false
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                fetch-depth: 0
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                node-version: '18'
+            
+            - name: Install dependencies
+              run: npm install
+
+            - name: Build project
+              run: |
+                npm run build
