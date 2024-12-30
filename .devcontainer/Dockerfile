@@ -1,10 +1,9 @@
-FROM node:16
+FROM node:18
 
 RUN apt-get update
-
 RUN apt-get install -y zsh
 
-RUN yarn global add eslint
+ENV NODE_OPTIONS="--max-old-space-size=16384 --openssl-legacy-provider"
 
 RUN wget https://github.com/ohmyzsh/ohmyzsh/raw/master/tools/install.sh -O - | zsh || true
 
