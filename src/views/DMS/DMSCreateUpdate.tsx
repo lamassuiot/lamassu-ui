@@ -321,6 +321,10 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
     }
 
     const submit = handleSubmit(data => {
+        if (!data.enrollProtocol.enrollmentCA) {
+            enqueueSnackbar("Enrollment CA is required", { variant: "error" });
+            return;
+        }
         const run = async () => {
             let awsMeta = {};
             if (data.awsIotIntegration.id !== "") {
