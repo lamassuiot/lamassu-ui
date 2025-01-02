@@ -21,7 +21,7 @@ window._env_ =  {
     LAMASSU_DMS_MANAGER_API: `https://${DOMAIN}/api/dmsmanager`,
     LAMASSU_DEVMANAGER_API:`https://${DOMAIN}/api/devmanager`,
     LAMASSU_ALERTS_API:`https://${DOMAIN}/api/alerts`,
-    LAMASSU_VA:`https://${DOMAIN}/api/va`,
+    LAMASSU_VA_API:`https://${DOMAIN}/api/va`,
     LAMASSU_VDMS:``,
     LAMASSU_VDEVICE:``,
     CLOUD_CONNECTORS: $CLOUD_CONNECTORS

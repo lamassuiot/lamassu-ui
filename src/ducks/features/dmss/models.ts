@@ -32,6 +32,7 @@ export enum EnrollmentRegistrationMode {
 export enum ESTAuthMode {
     NoAuth = "NO_AUTH",
     ClientCertificate = "CLIENT_CERTIFICATE",
+    ExternalWebhook = "EXTERNAL_WEBHOOK",
 }
 
 export type AuthOptionsClientCertificate = {
@@ -43,6 +44,26 @@ export type AuthOptionsClientCertificate = {
 export type EST7030Settings = {
     auth_mode: ESTAuthMode,
     client_certificate_settings: AuthOptionsClientCertificate,
+    external_webhook?: Webhook,
+}
+
+export type Webhook = {
+    url: string,
+    name: string,
+    validate_server_cert: boolean,
+    config: {
+        log_level: string,
+        auth_mode: string,
+        oidc?: {
+            client_id: string,
+            client_secret: string,
+            well_known: string,
+        },
+        apikey?: {
+            header: string,
+            key: string,
+        }
+    }
 }
 
 export type EnrollmentSettings = {
@@ -63,13 +84,14 @@ export type ReEnrollmentSettings = {
     additional_validation_cas: string[],
     reenrollment_delta: string,
     enable_expired_renewal: boolean,
+    revoke_on_reenrollment: boolean,
     preventive_delta: string,
     critical_delta: string,
 }
 
 export type ServerKeygenSettings = {
     enabled: boolean,
-    key:{
+    key: {
         type: "RSA" | "ECDSA",
         bits: number
     }
