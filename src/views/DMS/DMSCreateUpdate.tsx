@@ -49,6 +49,24 @@ type FormData = {
             chainValidation: number;
             validationCAs: CertificateAuthority[];
             allowExpired: boolean;
+        },
+        external_webhook?: {
+            name: string;
+            url: string;
+            validateServeCert: boolean;
+            config: {
+                log_level: string;
+                auth_mode: "jwt" | "noauth" | "apikey" // mtls is also an option but requires handling persisting the client certificate in the fs as well as in the DB
+                oidc?: {
+                    well_known: string;
+                    client_id: string;
+                    client_secret: string;
+                },
+                apikey?: {
+                    header: string;
+                    key: string;
+                }
+            }
         }
     }
     enrollDeviceRegistration: {
@@ -60,6 +78,7 @@ type FormData = {
         preventiveDelta: string;
         criticalDelta: string;
         allowExpired: boolean;
+        revokeOnReenroll: boolean;
         additionalValidationCAs: CertificateAuthority[];
     },
     serverKeyGen: {
@@ -124,7 +143,25 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                 },
                 registrationMode: EnrollmentRegistrationMode.JITP,
                 overrideEnrollment: false,
-                enrollmentCA: undefined
+                enrollmentCA: undefined,
+                external_webhook: {
+                    name: "",
+                    url: "",
+                    validateServeCert: true,
+                    config: {
+                        log_level: "info",
+                        auth_mode: "noauth",
+                        oidc: {
+                            well_known: "",
+                            client_id: "",
+                            client_secret: ""
+                        },
+                        apikey: {
+                            header: "",
+                            key: ""
+                        }
+                    }
+                }
             },
             enrollDeviceRegistration: {
                 icon: {
@@ -135,6 +172,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                 tags: ["iot"]
             },
             reEnroll: {
+                revokeOnReenroll: true,
                 allowedRenewalDelta: "100d",
                 preventiveDelta: "31d",
                 criticalDelta: "7d",
@@ -171,6 +209,8 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
     const watchEnrollmentCA = watch("enrollProtocol.enrollmentCA");
     const watchAwsIotIntegration = watch("awsIotIntegration");
     const watchServerKeyGen = watch("serverKeyGen");
+    const watchEstAuthMode = watch("enrollProtocol.estAuthMode");
+    const watchEnrollAuthWebhook = watch("enrollProtocol.external_webhook");
 
     useEffect(() => {
         if (!editMode) {
@@ -236,6 +276,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                     },
                     reEnroll: {
                         allowedRenewalDelta: dms!.settings.reenrollment_settings.reenrollment_delta,
+                        revokeOnReenroll: dms!.settings.reenrollment_settings.revoke_on_reenrollment,
                         allowExpired: dms!.settings.reenrollment_settings.enable_expired_renewal,
                         additionalValidationCAs: dms!.settings.reenrollment_settings.additional_validation_cas.map(ca => casResp.list.find(caF => caF.id === ca)!),
                         preventiveDelta: dms.settings.reenrollment_settings.preventive_delta,
@@ -276,6 +317,21 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         enabled: dms.settings.server_keygen_settings.enabled,
                         keySize: dms.settings.server_keygen_settings.key.bits,
                         keyType: dms.settings.server_keygen_settings.key.type
+                    };
+                }
+
+                if (dms.settings.enrollment_settings.est_rfc7030_settings.external_webhook !== undefined) {
+                    const webhookConf = dms.settings.enrollment_settings.est_rfc7030_settings.external_webhook;
+                    updateDMS.enrollProtocol.external_webhook = {
+                        name: webhookConf.name,
+                        url: webhookConf.url,
+                        validateServeCert: webhookConf.validate_server_cert,
+                        config: {
+                            log_level: webhookConf.config.log_level,
+                            auth_mode: webhookConf.config.auth_mode as "jwt" | "noauth" | "apikey",
+                            oidc: webhookConf.config.oidc,
+                            apikey: webhookConf.config.apikey
+                        }
                     };
                 }
 
@@ -388,7 +444,24 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                 chain_level_validation: Number(data.enrollProtocol.certificateValidation.chainValidation),
                                 validation_cas: data.enrollProtocol.certificateValidation.validationCAs.map(ca => ca.id),
                                 allow_expired: data.enrollProtocol.certificateValidation.allowExpired
-                            }
+                            },
+                            external_webhook: data.enrollProtocol.estAuthMode === ESTAuthMode.ExternalWebhook
+                                ? {
+                                    name: data.enrollProtocol.external_webhook!.name,
+                                    url: data.enrollProtocol.external_webhook!.url,
+                                    validate_server_cert: data.enrollProtocol.external_webhook!.validateServeCert,
+                                    config: {
+                                        log_level: data.enrollProtocol.external_webhook!.config.log_level,
+                                        auth_mode: data.enrollProtocol.external_webhook!.config.auth_mode,
+                                        apikey: data.enrollProtocol.external_webhook!.config.auth_mode === "apikey"
+                                            ? data.enrollProtocol.external_webhook!.config.apikey
+                                            : undefined,
+                                        oidc: data.enrollProtocol.external_webhook!.config.auth_mode === "jwt"
+                                            ? data.enrollProtocol.external_webhook!.config.oidc
+                                            : undefined
+                                    }
+                                }
+                                : undefined
                         },
                         device_provisioning_profile: {
                             icon: data.enrollDeviceRegistration.icon.name,
@@ -399,6 +472,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         registration_mode: data.enrollProtocol.registrationMode
                     },
                     reenrollment_settings: {
+                        revoke_on_reenrollment: data.reEnroll.revokeOnReenroll,
                         enable_expired_renewal: data.reEnroll.allowExpired,
                         critical_delta: data.reEnroll.criticalDelta,
                         preventive_delta: data.reEnroll.preventiveDelta,
@@ -481,15 +555,6 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                             ]} />
                                         </Grid>
                                         <Grid xs={12}>
-                                            <FormSwitch control={control} name="enrollProtocol.overrideEnrollment" label="Allow Override Enrollment" />
-                                        </Grid>
-                                        <Grid xs={12}>
-                                            <FormSelect control={control} name="enrollProtocol.estAuthMode" label="Authentication Mode" options={[
-                                                { value: ESTAuthMode.ClientCertificate, render: "Client Certificate" },
-                                                { value: ESTAuthMode.NoAuth, render: "No Auth" }
-                                            ]} />
-                                        </Grid>
-                                        <Grid xs={12}>
                                             <CASelector value={getValues("enrollProtocol.enrollmentCA")} onSelect={(elems) => {
                                                 if (!Array.isArray(elems)) {
                                                     setValue("enrollProtocol.enrollmentCA", elems);
@@ -498,21 +563,92 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                             />
                                         </Grid>
                                         <Grid xs={12}>
-                                            <CASelector value={getValues("enrollProtocol.certificateValidation.validationCAs")} onSelect={(elems) => {
-                                                if (Array.isArray(elems)) {
-                                                    setValue("enrollProtocol.certificateValidation.validationCAs", elems);
-                                                }
-                                            }} multiple={true} label="Validation CAs"
-                                            />
+                                            <FormSwitch control={control} name="enrollProtocol.overrideEnrollment" label="Allow Override Enrollment" />
                                         </Grid>
                                         <Grid xs={12}>
-                                            <FormSwitch control={control} name="enrollProtocol.certificateValidation.allowExpired" label="Allow Authenticating Expired Certificates" />
-                                        </Grid>
-                                        <Grid xs={12}>
-                                            <FormTextField label="Chain Validation Level (-1 equals full chain)" control={control} name="enrollProtocol.certificateValidation.chainValidation" type="number" />
-                                        </Grid>
-                                    </Grid>
+                                            <FormSelect control={control} name="enrollProtocol.estAuthMode" label="Authentication Mode" options={[
+                                                { value: ESTAuthMode.ClientCertificate, render: "Client Certificate" },
+                                                { value: ESTAuthMode.ExternalWebhook, render: "External Webhook" },
+                                                { value: ESTAuthMode.NoAuth, render: "No Auth" }
 
+                                            ]} />
+                                        </Grid>
+                                        {
+                                            watchEstAuthMode === ESTAuthMode.ClientCertificate && (
+                                                <>
+                                                    <Grid xs={12}>
+                                                        <CASelector value={getValues("enrollProtocol.certificateValidation.validationCAs")} onSelect={(elems) => {
+                                                            if (Array.isArray(elems)) {
+                                                                setValue("enrollProtocol.certificateValidation.validationCAs", elems);
+                                                            }
+                                                        }} multiple={true} label="Validation CAs"
+                                                        />
+                                                    </Grid>
+                                                    <Grid xs={12}>
+                                                        <FormSwitch control={control} name="enrollProtocol.certificateValidation.allowExpired" label="Allow Authenticating Expired Certificates" />
+                                                    </Grid>
+                                                    <Grid xs={12}>
+                                                        <FormTextField label="Chain Validation Level (-1 equals full chain)" control={control} name="enrollProtocol.certificateValidation.chainValidation" type="number" />
+                                                    </Grid>
+                                                </>
+                                            )
+                                        }
+                                        {
+                                            watchEstAuthMode === ESTAuthMode.ExternalWebhook && (
+                                                <>
+                                                    <Grid xs={12} md={3}>
+                                                        <FormTextField label="Webhook Name" control={control} name="enrollProtocol.external_webhook.name" placeholder="MyValidationFunc" />
+                                                    </Grid>
+                                                    <Grid xs={12} md={9}>
+                                                        <FormTextField label="Webhook URL" control={control} name="enrollProtocol.external_webhook.url" placeholder="http://localhost:8080/verify" />
+                                                    </Grid>
+                                                    <Grid xs={12} md={3}>
+                                                        <FormSelect control={control} name="enrollProtocol.external_webhook.config.log_level" label="Webhook Log Level" options={[
+                                                            { value: "info", render: "Info" },
+                                                            { value: "debug", render: "Debug" },
+                                                            { value: "trace", render: "Trace" }
+                                                        ]} />
+                                                    </Grid>
+                                                    <Grid xs={12} md={3}>
+                                                        <FormSelect control={control} name="enrollProtocol.external_webhook.config.auth_mode" label="Webhook Auth Mode" options={[
+                                                            { value: "jwt", render: "OIDC" },
+                                                            { value: "apikey", render: "API Key" },
+                                                            { value: "noauth", render: "No Auth" }
+                                                        ]} />
+                                                    </Grid>
+                                                    {
+                                                        watchEnrollAuthWebhook!.config.auth_mode === "jwt" && (
+                                                            <>
+                                                                <Grid xs={12} md={3}>
+                                                                    <FormTextField label="OIDC Client ID" control={control} name="enrollProtocol.external_webhook.config.oidc.client_id" />
+                                                                </Grid>
+                                                                <Grid xs={12} md={3}>
+                                                                    <FormTextField label="OIDC Client Secret" control={control} name="enrollProtocol.external_webhook.config.oidc.client_secret" />
+                                                                </Grid>
+                                                                <Grid xs={12} md={12}>
+                                                                    <FormTextField label="OIDC Well Known" control={control} name="enrollProtocol.external_webhook.config.oidc.well_known" placeholder="https://my-oidc-provider.com/auth/realms/lamassu/.well-known/openid-configuration"/>
+                                                                </Grid>
+                                                            </>
+                                                        )
+                                                    },
+                                                    {
+                                                        watchEnrollAuthWebhook!.config.auth_mode === "apikey" && (
+                                                            <>
+                                                                <Grid xs={0} md={3}>
+                                                                </Grid>
+                                                                <Grid xs={12} md={3}>
+                                                                    <FormTextField label="API Header" control={control} name="enrollProtocol.external_webhook.config.apikey.header" />
+                                                                </Grid>
+                                                                <Grid xs={12} md={9}>
+                                                                    <FormTextField label="API Key" control={control} name="enrollProtocol.external_webhook.config.apikey.key" />
+                                                                </Grid>
+                                                            </>
+                                                        )
+                                                    }
+                                                </>
+                                            )
+                                        }
+                                    </Grid>
                                     <Grid xs={12} >
                                         <Divider />
                                     </Grid>
@@ -520,6 +656,9 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                     <Grid xs={12} container spacing={2}>
                                         <Grid xs={12}>
                                             <Typography variant="h4">ReEnrollment Settings</Typography>
+                                        </Grid>
+                                        <Grid xs={12}>
+                                            <FormSwitch control={control} name="reEnroll.revokeOnReenroll" label="Revoke On ReEnroll" />
                                         </Grid>
                                         <Grid xs={12}>
                                             <FormSwitch control={control} name="reEnroll.allowExpired" label="Allow Expired Renewal" />
