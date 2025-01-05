@@ -664,7 +664,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                             <FormSwitch control={control} name="reEnroll.allowExpired" label="Allow Expired Renewal" />
                                         </Grid>
                                         <Grid xs={12} md={3}>
-                                            <TextField value={watchEnrollmentCA?.issuance_expiration.type === "Duration" ? watchEnrollmentCA?.issuance_expiration.duration : watchEnrollmentCA?.issuance_expiration.time} label="Certificate Lifespan" disabled />
+                                            <TextField value={watchEnrollmentCA?.validity.type === "Duration" ? watchEnrollmentCA?.validity.duration : watchEnrollmentCA?.validity.time} label="Certificate Lifespan" disabled />
                                         </Grid>
                                         <Grid xs={12} md={3}>
                                             <FormTextField control={control} name="reEnroll.allowedRenewalDelta" label="Allowed Renewal Delta" tooltip="Duration from the certificate's expiration time backwards that enables ReEnrolling. For instance, if the certificate being renew has 150 days left and the 'Allowed Renewal Delta' field is set to 100 days, the ReEnroll request will be denied. If instead the certificate will expire in 99 days, the ReEnroll request will be allowed." />

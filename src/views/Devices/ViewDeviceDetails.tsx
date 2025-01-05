@@ -211,7 +211,7 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device, onChange })
                         navigate(`/cas/${row.ca!.id}`);
                     }}
                     >
-                        {row.ca.subject.common_name}
+                        {row.ca.certificate.subject.common_name}
                     </Label>;
                 }
 

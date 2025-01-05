@@ -47,6 +47,8 @@ export const getRevocationReasonDescription = (reason: RevocationReason): string
 export type Certificate = {
     status: CertificateStatus
     serial_number: string
+    key_id: string
+    engine_id: string
     certificate: string
     key_metadata: {
         type: "ECDSA" | "RSA"
@@ -65,8 +67,8 @@ export type Certificate = {
     valid_to: Moment
     revocation_timestamp: Moment
     revocation_reason: string
+    type: "MANAGED" | "EXTERNAL" | "IMPORTED"
     metadata: any
-    level: number
     issuer_metadata: {
         level: number
         id: string
@@ -117,17 +119,18 @@ export interface CryptoEngine {
         sizes: number[],
     }>
 }
-export interface CertificateAuthority extends Certificate {
-    engine_id: string,
+export interface CertificateAuthority {
     id: string,
+    certificate: Certificate,
+    serial_number: string,
     metadata: any
-    issuance_expiration: {
+    validity: {
         type: "Duration" | "Time"
         duration: string
         time: Moment
     },
-    type: "MANAGED" | "EXTERNAL" | "IMPORTED"
     creation_ts: Moment
+    level: number
 }
 
 export type SignPayloadResponse = {

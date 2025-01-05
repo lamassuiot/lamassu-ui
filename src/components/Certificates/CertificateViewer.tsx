@@ -41,7 +41,7 @@ export const CertificateViewer: React.FC<Props> = ({ certificate, issuerCA, acti
                     {
                         issuerCA && (
                             <Grid xs>
-                                <Typography sx={{ fontSize: "0.8rem", color: lighten(theme.palette.text.primary, 0.4) }}>{`Issued By: ${certificate.issuer_metadata.id} (${issuerCA.subject.common_name})`}</Typography>
+                                <Typography sx={{ fontSize: "0.8rem", color: lighten(theme.palette.text.primary, 0.4) }}>{`Issued By: ${certificate.issuer_metadata.id} (${issuerCA.certificate.subject.common_name})`}</Typography>
                             </Grid>
                         )
                     }

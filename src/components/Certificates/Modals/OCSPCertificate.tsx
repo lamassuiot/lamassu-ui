@@ -23,7 +23,7 @@ export const OCSPCertificateVerificationModal = (props: Props) => {
 
     const createRequest = async () => {
         const issuer = await apicalls.cas.getCA(props.certificate.issuer_metadata.id);
-        const issuerCert = toPKIJSCertificate(issuer.certificate);
+        const issuerCert = toPKIJSCertificate(issuer.certificate.certificate);
         const crt = toPKIJSCertificate(props.certificate.certificate);
 
         // Code extracted from: https://pkijs.org/docs/examples/certificates-and-revocation/working-with-OCSP-requests

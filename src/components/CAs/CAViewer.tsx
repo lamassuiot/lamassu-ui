@@ -26,7 +26,7 @@ const CAViewer: React.FC<Props> = ({ caData, engine, actions = [], elevation = t
         <Box {...elevation && { component: Paper }} sx={{ padding: "10px", background: elevation ? theme.palette.background.paper : "none", cursor: "pointer", width: "calc(100% - 20px)", ...sx }} >
             <Grid container columnGap={2} alignItems={"center"}>
                 {
-                    caData.type !== "EXTERNAL" && (
+                    caData.certificate.type !== "EXTERNAL" && (
                         <Grid xs="auto">
                             <CryptoEngineViewer engine={engine} simple />
                         </Grid>
@@ -35,26 +35,26 @@ const CAViewer: React.FC<Props> = ({ caData, engine, actions = [], elevation = t
 
                 <Grid xs container flexDirection={"column"}>
                     <Grid xs>
-                        <Typography sx={{ wordBreak: "break-word" }}>{caData.subject.common_name}</Typography>
+                        <Typography sx={{ wordBreak: "break-word" }}>{caData.certificate.subject.common_name}</Typography>
                     </Grid>
                     <Grid xs>
                         <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 12 }}>{`CA ID: ${caData.id}`}</Typography>
                     </Grid>
                     <Grid xs>
                         {
-                            caData.status === CertificateStatus.Revoked
+                            caData.certificate.status === CertificateStatus.Revoked
                                 ? (
-                                    <Label color={"error"}>{`${caData.status} ·  ${moment.duration(moment(caData.revocation_timestamp).diff(moment())).humanize(true)}`}</Label>
+                                    <Label color={"error"}>{`${caData.certificate.status} ·  ${moment.duration(moment(caData.certificate.revocation_timestamp).diff(moment())).humanize(true)}`}</Label>
                                 )
                                 : (
-                                    <Label color="grey">{`${caData.status} ·  ${moment.duration(moment(caData.valid_to).diff(moment())).humanize(true)}`}</Label>
+                                    <Label color="grey">{`${caData.certificate.status} ·  ${moment.duration(moment(caData.certificate.valid_to).diff(moment())).humanize(true)}`}</Label>
                                 )
                         }
                     </Grid>
                 </Grid>
                 {
-                    caData.type !== "MANAGED" && (
-                        <Label color="primary">{caData.type}</Label>
+                    caData.certificate.type !== "MANAGED" && (
+                        <Label color="primary">{caData.certificate.type}</Label>
                     )
                 }
                 {
@@ -91,10 +91,10 @@ const CAViewer: React.FC<Props> = ({ caData, engine, actions = [], elevation = t
                         <DialogContent>
                             <Grid container spacing={2} flexDirection={"column"}>
                                 <Grid>
-                                    <CodeCopier code={atob(displayCA.certificate)} />
+                                    <CodeCopier code={atob(displayCA.certificate.certificate)} />
                                 </Grid>
                                 <Grid>
-                                    <CertificateDecoder crtPem={atob(displayCA.certificate)} />
+                                    <CertificateDecoder crtPem={atob(displayCA.certificate.certificate)} />
                                 </Grid>
                             </Grid>
                         </DialogContent>

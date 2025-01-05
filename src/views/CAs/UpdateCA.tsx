@@ -38,8 +38,8 @@ export const UpdateCA: React.FC<UpdateCAProps> = (props) => {
         defaultValues: {
             issuerExpiration: {
                 type: "duration",
-                duration: props.caData.issuance_expiration.type === "Duration" ? props.caData.issuance_expiration.duration : "100d",
-                date: props.caData.issuance_expiration.type === "Time" ? moment(props.caData.issuance_expiration.time) : moment().add(100, "days")
+                duration: props.caData.validity.type === "Duration" ? props.caData.validity.duration : "100d",
+                date: props.caData.validity.type === "Time" ? moment(props.caData.validity.time) : moment().add(100, "days")
             }
         }
     });

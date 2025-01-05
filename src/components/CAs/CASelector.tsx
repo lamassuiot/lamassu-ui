@@ -44,7 +44,7 @@ export const CASelector: React.FC<Props> = (props: Props) => {
                     optionID={(item) => item.id}
                     optionLabel={(item) => item.id}
                     renderOption={(props, ca, selected) => (
-                        <CAViewer elevation={false} caData={ca} engine={engines.find(eng => eng.id === ca.engine_id)!} />
+                        <CAViewer elevation={false} caData={ca} engine={engines.find(eng => eng.id === ca.certificate.engine_id)!} />
                     )}
                     onSelect={(item) => {
                         props.onSelect(item);

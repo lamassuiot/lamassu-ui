@@ -15,7 +15,7 @@ const Viewer = (props: Props, ref: Ref<FetchHandle>) => {
             return <FetchViewer
                 fetcher={() => apicalls.cas.getEngines()}
                 renderer={(engines) => {
-                    const engine = engines.find(eng => eng.id === ca.engine_id);
+                    const engine = engines.find(eng => eng.id === ca.certificate.engine_id);
                     if (engine) {
                         return <CAViewer {...props} caData={ca} engine={engine} />;
                     }

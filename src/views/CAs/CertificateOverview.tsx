@@ -24,7 +24,7 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
 
     useEffect(() => {
         const run = async () => {
-            const crt = await parseCRT(window.atob(caData.certificate));
+            const crt = await parseCRT(window.atob(caData.certificate.certificate));
             setParsedCertificate(crt);
         };
         run();
@@ -42,15 +42,15 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
     const certificateProperties: any = {
         serialNumber: {
             title: "Serial Number",
-            value: caData.serial_number
+            value: caData.certificate.serial_number
         },
         validFrom: {
             title: "Valid From",
-            value: moment(caData.valid_from).format("D MMMM YYYY")
+            value: moment(caData.certificate.valid_from).format("D MMMM YYYY")
         },
         validTo: {
             title: "Valid To",
-            value: moment(caData.valid_to).format("D MMMM YYYY")
+            value: moment(caData.certificate.valid_to).format("D MMMM YYYY")
         }
     };
 
@@ -72,38 +72,38 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
     return (
         <Grid container columns={12} spacing={2} sx={{ width: "100%" }}>
             {
-                caData.type !== "EXTERNAL" && (
+                caData.certificate.type !== "EXTERNAL" && (
                     <>
                         <Grid xs height={"75px"}>
                             <CATimeline
-                                caIssuedAt={moment(caData.valid_from)}
-                                caExpiration={moment(caData.valid_to)}
-                                issuanceDuration={caData.issuance_expiration.type === "Duration" ? caData.issuance_expiration.duration : (caData.issuance_expiration.type === "Time" ? caData.issuance_expiration.time : "")}
+                                caIssuedAt={moment(caData.certificate.valid_from)}
+                                caExpiration={moment(caData.certificate.valid_to)}
+                                issuanceDuration={caData.validity.type === "Duration" ? caData.validity.duration : (caData.validity.type === "Time" ? caData.validity.time : "")}
                             />
                         </Grid>
                     </>
                 )
             }
             {
-                caData.issuer_metadata.id !== caData.id && (
+                caData.certificate.issuer_metadata.id !== caData.id && (
                     <Grid xs={12} container flexDirection={"column"}>
                         <Grid>
                             <Typography variant="h4">Parent CA</Typography>
                         </Grid>
                         <Grid flexDirection={"column"} spacing={1}>
-                            <CAFetchViewer id={caData.issuer_metadata.id} />
+                            <CAFetchViewer id={caData.certificate.issuer_metadata.id} />
                         </Grid>
                     </Grid>
                 )
             }
             {
-                caData.type !== "EXTERNAL" && (
+                caData.certificate.type !== "EXTERNAL" && (
                     <Grid xs={12} container flexDirection={"column"}>
                         <Grid>
                             <Typography variant="h4">Crypto Engine</Typography>
                         </Grid>
                         <Grid flexDirection={"column"} spacing={1}>
-                            <CryptoEngineViewer engine={engines.find(engine => engine.id === caData.engine_id)!} withDebugMetadata />
+                            <CryptoEngineViewer engine={engines.find(engine => engine.id === caData.certificate.engine_id)!} withDebugMetadata />
                         </Grid>
                     </Grid>
                 )
@@ -116,7 +116,7 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
                 <Grid xs={12} container spacing={1}>
                     <Grid container xs={12} spacing={1} alignItems={"end"}>
                         <Grid xs>
-                            <TextField label="Issuance Expiration" value={caData.issuance_expiration.type + ": " + (caData.issuance_expiration.type === "Duration" ? caData.issuance_expiration.duration : moment(caData.issuance_expiration.time).format("D MMMM YYYY HH:mm"))} fullWidth disabled />
+                            <TextField label="Issuance Expiration" value={caData.validity.type + ": " + (caData.validity.type === "Duration" ? caData.validity.duration : moment(caData.validity.time).format("D MMMM YYYY HH:mm"))} fullWidth disabled />
                         </Grid>
                         <Grid xs={"auto"}>
                             <IconButton onClick={() => {
@@ -138,7 +138,7 @@ export const CertificateOverview: React.FC<Props> = ({ caData, engines }) => {
                         Object.keys(certificateSubject).map(key => (
                             <Grid key={key}>
                                 {/* @ts-ignore} */}
-                                <TextField label={certificateSubject[key]} value={caData.subject[key]} fullWidth disabled />
+                                <TextField label={certificateSubject[key]} value={caData.certificate.subject[key]} fullWidth disabled />
                             </Grid>
                         ))
                     }

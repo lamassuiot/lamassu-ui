@@ -89,7 +89,7 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
                         navigate(`/cas/${row.ca!.id}`);
                     }}
                     >
-                        {row.ca.subject.common_name}
+                        {row.ca.certificate.subject.common_name}
                     </Label>;
                 }
 

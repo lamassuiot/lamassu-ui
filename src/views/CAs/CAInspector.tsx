@@ -81,10 +81,10 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                             <div style={{ margin: "0 35px" }}>
                                 <Grid container padding={"20px 0px"}>
                                     <Grid xs={12} md={6}>
-                                        <CertificateView certificate={caData} />
+                                        <CertificateView certificate={caData.certificate} />
                                     </Grid>
                                     <Grid xs={12} md={6}>
-                                        <CertificateDecoder crtPem={window.window.atob(caData.certificate)} />
+                                        <CertificateDecoder crtPem={window.window.atob(caData.certificate.certificate)} />
                                     </Grid>
                                 </Grid>
                             </div>
@@ -92,7 +92,7 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                     }
                 ];
 
-                if (caData.type !== "EXTERNAL") {
+                if (caData.certificate.type !== "EXTERNAL") {
                     tabs = [...tabs, {
                         label: "Issued Certificate",
                         path: "certificates",
@@ -125,11 +125,11 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                                     <Grid xs="auto" container spacing={1} flex={"auto"}>
                                         {
                                             <Grid xs="auto">
-                                                <Label color={"primary"}>{caData.type}</Label>
+                                                <Label color={"primary"}>{caData.certificate.type}</Label>
                                             </Grid>
                                         }
                                         <Grid xs="auto">
-                                            <Label color={caData.status !== CertificateStatus.Active ? "error" : "grey"}>{caData.status}</Label>
+                                            <Label color={caData.certificate.status !== CertificateStatus.Active ? "error" : "grey"}>{caData.certificate.status}</Label>
                                         </Grid>
                                     </Grid>
                                 </Grid>
@@ -148,9 +148,9 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                                                 setLoadingCRLResp(true);
                                                 try {
                                                     const crl = await apicalls.va.getCRL(caData.id);
-                                                    download(`${caData.subject.common_name}.crl`, crl);
+                                                    download(`${caData.certificate.subject.common_name}.crl`, crl);
                                                 } catch (e) {
-                                                    enqueueSnackbar(`Error while downloading CRL for CA with ID ${caData.id} and CN ${caData.subject.common_name}: ${e}`, { variant: "error" });
+                                                    enqueueSnackbar(`Error while downloading CRL for CA with ID ${caData.id} and CN ${caData.certificate.subject.common_name}: ${e}`, { variant: "error" });
                                                 }
                                                 setLoadingCRLResp(false);
                                             }} style={{ background: lighten(theme.palette.primary.main, 0.7) }} endIcon={ <FileDownloadRoundedIcon fontSize={"small"} />}>
@@ -160,7 +160,7 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                                     </Grid>
 
                                     {
-                                        (caData.type !== "EXTERNAL" && caData.status !== CertificateStatus.Revoked) && (
+                                        (caData.certificate.type !== "EXTERNAL" && caData.certificate.status !== CertificateStatus.Revoked) && (
                                             <Grid xs="auto">
                                                 <Tooltip title="Revoke CA">
                                                     <IconButton onClick={() => setRevokeDialog(caData)} style={{ background: lighten(theme.palette.error.main, 0.7) }}>
@@ -171,15 +171,15 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                                         )
                                     }
                                     {
-                                        ((caData.type !== "EXTERNAL" && caData.status === CertificateStatus.Revoked) || (caData.type === "EXTERNAL")) && (
+                                        ((caData.certificate.type !== "EXTERNAL" && caData.certificate.status === CertificateStatus.Revoked) || (caData.certificate.type === "EXTERNAL")) && (
                                             <Grid xs="auto">
                                                 <Button variant="contained" color="error" onClick={async () => {
                                                     try {
                                                         await apicalls.cas.deleteCA(caData.id);
                                                         navigate("/cas");
-                                                        enqueueSnackbar(`CA with ID ${caData.id} and CN ${caData.subject.common_name} deleted`, { variant: "success" });
+                                                        enqueueSnackbar(`CA with ID ${caData.id} and CN ${caData.certificate.subject.common_name} deleted`, { variant: "success" });
                                                     } catch (e) {
-                                                        enqueueSnackbar(`Error while deleting CA with ID ${caData.id} and CN ${caData.subject.common_name}: ${e}`, { variant: "error" });
+                                                        enqueueSnackbar(`Error while deleting CA with ID ${caData.id} and CN ${caData.certificate.subject.common_name}: ${e}`, { variant: "error" });
                                                     }
                                                 }}>Permanently Delete</Button>
                                             </Grid>
@@ -190,22 +190,22 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                             <Grid container spacing={2} style={{ marginTop: 0 }}>
                                 <Grid xs="auto">
                                     <Grid xs={12}>
-                                        <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 26, lineHeight: "24px", marginRight: "10px", marginBottom: "5px" }}>{caData.subject.common_name}</Typography>
+                                        <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 26, lineHeight: "24px", marginRight: "10px", marginBottom: "5px" }}>{caData.certificate.subject.common_name}</Typography>
                                         <Label>{caData.id}</Label>
                                     </Grid>
                                     <Grid style={{ paddingTop: 0 }}>
-                                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 13 }}>{`${caData.key_metadata.type} ${caData.key_metadata.bits} - ${caData.key_metadata.strength}`}</Typography>
+                                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "500", fontSize: 13 }}>{`${caData.certificate.key_metadata.type} ${caData.certificate.key_metadata.bits} - ${caData.certificate.key_metadata.strength}`}</Typography>
                                     </Grid>
                                     <Grid style={{ paddingTop: 0 }}>
                                         <Box style={{ display: "flex", alignItems: "center" }}>
                                             <AccessTimeIcon style={{ color: theme.palette.text.secondary, fontSize: 15, marginRight: 5 }} />
-                                            <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>{`Expiration date: ${moment(caData.valid_to).format("DD/MM/YYYY")}`}</Typography>
+                                            <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>{`Expiration date: ${moment(caData.certificate.valid_to).format("DD/MM/YYYY")}`}</Typography>
                                         </Box>
                                     </Grid>
                                 </Grid>
                                 <Grid xs="auto">
                                     {
-                                        caData.type !== "EXTERNAL" && (
+                                        caData.certificate.type !== "EXTERNAL" && (
                                             <FetchViewer
                                                 fetcher={() => apicalls.cas.getStatsByCA(caName)}
                                                 renderer={(caStats) => {
@@ -271,10 +271,10 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                                                     <TextField label="CA ID" value={revokeDialog!.id} disabled />
                                                 </Grid>
                                                 <Grid>
-                                                    <TextField label="CA Certificate Serial Number" value={revokeDialog!.serial_number} disabled />
+                                                    <TextField label="CA Certificate Serial Number" value={revokeDialog!.certificate.serial_number} disabled />
                                                 </Grid>
                                                 <Grid>
-                                                    <TextField label="CA Common Name" value={revokeDialog!.subject.common_name} disabled />
+                                                    <TextField label="CA Common Name" value={revokeDialog!.certificate.subject.common_name} disabled />
                                                 </Grid>
                                             </Grid>
                                             <Grid container flexDirection={"column"} spacing={2}>
@@ -311,10 +311,10 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                                             try {
                                                 apicalls.cas.updateCAStatus(revokeDialog!.id, CertificateStatus.Revoked, revokeReason);
                                                 refreshAction();
-                                                enqueueSnackbar(`CA with ID ${revokeDialog?.id} and CN ${revokeDialog?.subject.common_name} revoked`, { variant: "success" });
+                                                enqueueSnackbar(`CA with ID ${revokeDialog?.id} and CN ${revokeDialog?.certificate.subject.common_name} revoked`, { variant: "success" });
                                                 setRevokeDialog(undefined);
                                             } catch (err) {
-                                                enqueueSnackbar(`Error while revoking CA with ID ${revokeDialog?.id} and CN ${revokeDialog?.subject.common_name}: ${err}`, { variant: "error" });
+                                                enqueueSnackbar(`Error while revoking CA with ID ${revokeDialog?.id} and CN ${revokeDialog?.certificate.subject.common_name}: ${err}`, { variant: "error" });
                                             }
                                         }}>Revoke Certificate</Button>
                                     </Grid>
