@@ -74,6 +74,7 @@ export type Certificate = {
         id: string
         serial_number: string
     },
+    is_ca: boolean
 }
 
 export interface CAStats {
