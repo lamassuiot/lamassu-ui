@@ -64,6 +64,23 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
                 return <Label color={row.status === CertificateStatus.Active ? ["#ffffff", "#008000"] : (row.status === CertificateStatus.Revoked ? "error" : "grey")}>{row.status}</Label>;
             }
         },
+        {
+            field: "cert_hierarchy",
+            headerName: "Relation",
+            headerAlign: "center",
+            align: "center",
+            minWidth: 100,
+            renderCell: ({ value, row, id }) => {
+                if (row.is_ca) {
+                    if (row.serial_number === row.issuer_metadata.serial_number) {
+                        return <Label color={"black"}>Root</Label>;
+                    }
+                    return <Label color={"grey"}>Sub CA</Label>;
+                }
+
+                return <></>;
+            }
+        },
         { field: "subject.common_name", valueGetter: (value, row) => { return row.subject.common_name; }, headerName: "Common Name", width: 150, flex: 0.2 },
         {
             field: "key",
