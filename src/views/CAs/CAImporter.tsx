@@ -108,7 +108,7 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
             </Grid>
 
             <Grid xs={12} >
-                <FormTextField label="CA ID" name={"id"} control={control} disabled />
+                <FormTextField label="CA ID" name={"id"} control={control} />
             </Grid>
             <Grid xs={12} >
                 <CASelector
