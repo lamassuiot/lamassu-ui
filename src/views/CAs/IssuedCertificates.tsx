@@ -22,6 +22,7 @@ import PublishIcon from "@mui/icons-material/Publish";
 import React, { useEffect, useState } from "react";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import apicalls from "ducks/apicalls";
+import { errorToString } from "ducks/services/api-client";
 
 const queryableFields = [
     { key: "subject.common_name", title: "Common Name", operator: "contains" },
@@ -64,8 +65,12 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
         component: (
             <CSRInBrowserGenerator onCreate={async (key, csr) => {
                 setImportSignStatus({ loading: true, errMessage: "", response: undefined });
-                const singResp = await apicalls.cas.signCertificateRequest(caData.id, window.window.btoa(csr));
-                setImportSignStatus({ loading: false, errMessage: "", response: singResp });
+                try {
+                    const singResp = await apicalls.cas.signCertificateRequest(caData.id, window.window.btoa(csr));
+                    setImportSignStatus({ loading: false, errMessage: "", response: singResp });
+                } catch (error: any) {
+                    setImportSignStatus({ loading: false, errMessage: errorToString(error), response: undefined });
+                }
             }} />
         )
     }, {
@@ -289,7 +294,17 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
                                                     ? (
                                                         importSignStatus.errMessage !== ""
                                                             ? (
-                                                                <>{importSignStatus.errMessage}</>
+                                                                <Grid container spacing={2}>
+                                                                    <Grid xs={12}>
+                                                                        <Alert severity="error" action={
+                                                                            <Button variant="contained" color="error" size="small" onClick={() => { resetAddCertificate(); setDisplayIssueCert(false); }}>
+                                                                        Go Back
+                                                                            </Button>
+                                                                        }>
+                                                                            {importSignStatus.errMessage}
+                                                                        </Alert>
+                                                                    </Grid>
+                                                                </Grid>
                                                             )
                                                             : (
                                                                 importSignStatus.response !== undefined

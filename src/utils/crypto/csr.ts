@@ -53,7 +53,7 @@ export const createCSR = async (keyPair: CryptoKeyPair, hashAlg: "SHA-1" | "SHA-
         if (subjectProps[key]) {
             pkcs10.subject.typesAndValues.push(new pkijs.AttributeTypeAndValue({
                 type: key,
-                value: new asn1js.PrintableString({ value: subjectProps[key] })
+                value: new asn1js.Utf8String({ value: subjectProps[key] })
             }));
         }
     }
