@@ -1,4 +1,4 @@
-name: Docker Releaser Workflow
+name: "Release Workflow"
 
 on:
   workflow_dispatch:
@@ -6,6 +6,9 @@ on:
       release_version:
         type: string
         description: release version when building docker containers (example; 2.0.0)
+
+run-name: >-
+  ${{ format('Release {0}', github.event.inputs.release_version) }}
         
 jobs:
   build_aws_connector_docker_image:
