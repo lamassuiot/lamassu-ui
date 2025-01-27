@@ -166,6 +166,69 @@ export type CreateCAPayload = {
     }
     issuance_expiration: ExpirationFormat
 }
+
+export type Profile = {
+    key_usage: KeyUsage[]
+    extended_key_usage: ExtendedKeyUsage[]
+    sign_as_ca: boolean
+    honor_subject: boolean
+    honor_extensions: boolean
+    validity: {
+        type: "Duration" | "Time"
+        duration?: string
+        time?: string
+    }
+}
+
+export enum KeyUsage {
+    DigitalSignature = "DigitalSignature",
+   ContentCommitment = "ContentCommitment",
+    KeyEncipherment = "KeyEncipherment",
+    DataEncipherment = "DataEncipherment",
+    KeyAgreement = "KeyAgreement",
+    CertSign = "CertSign",
+    CRLSign = "CRLSign",
+}
+
+export enum ExtendedKeyUsage {
+    ServerAuth = "ServerAuth",
+    ClientAuth = "ClientAuth",
+    CodeSigning = "CodeSigning",
+    EmailProtection = "EmailProtection",
+    IPSECEndSystem = "IPSECEndSystem",
+    IPSECTunnel = "IPSECTunnel",
+    IPSECUser = "IPSECUser",
+    TimeStamping = "TimeStamping",
+    OCSPSigning = "OCSPSigning",
+}
+
+export interface CertificateAuthorityRequest {
+    id: string,
+    metadata: any
+    key_id: string
+    engine_id: string
+    csr: string
+    creation_ts: Moment
+    level: number
+}
+
+export type RequestCAPayload = {
+    id: string | undefined
+    engine_id: string | undefined
+    subject: {
+        common_name: string
+        organization: string
+        organization_unit: string
+        country: string
+        state: string
+        locality: string
+    },
+    key_metadata: {
+        type: string
+        bits: number
+    },
+}
+
 export type ExpirationFormat = {
     type: "Duration" | "Time"
     duration?: string

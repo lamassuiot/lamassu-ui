@@ -161,13 +161,13 @@ export const verifyPayload = async (caName: string, signature: string, message: 
     });
 };
 
-export const signCertificateRequest = async (caName: string, csr: string): Promise<models.Certificate> => {
+export const signCertificateRequest = async (caName: string, csr: string, profile: models.Profile): Promise<models.Certificate> => {
     return apiRequest({
         method: "POST",
         url: window._env_.LAMASSU_CA_API + "/v1/cas/" + caName + "/certificates/sign",
         data: {
             csr,
-            sign_verbatim: true
+            profile
         }
     });
 };

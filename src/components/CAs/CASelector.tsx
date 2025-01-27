@@ -21,7 +21,7 @@ export const CASelector: React.FC<Props> = (props: Props) => {
             renderer={(engines) => {
                 return <GenericSelector
                     fetcher={async (query, controller) => {
-                        let params: QueryParameters |undefined;
+                        let params: QueryParameters | undefined;
                         if (query !== "") {
                             params = {
                                 filters: [`id=[contains]${query}`]

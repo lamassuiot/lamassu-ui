@@ -63,10 +63,10 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
         disabled: caData.certificate.status !== "ACTIVE",
         icon: <AddCircleOutlineIcon fontSize="large" color="primary" />,
         component: (
-            <CSRInBrowserGenerator onCreate={async (key, csr) => {
+            <CSRInBrowserGenerator onCreate={async (key, csr, profile) => {
                 setImportSignStatus({ loading: true, errMessage: "", response: undefined });
                 try {
-                    const singResp = await apicalls.cas.signCertificateRequest(caData.id, window.window.btoa(csr));
+                    const singResp = await apicalls.cas.signCertificateRequest(caData.id, window.window.btoa(csr), profile);
                     setImportSignStatus({ loading: false, errMessage: "", response: singResp });
                 } catch (error: any) {
                     setImportSignStatus({ loading: false, errMessage: errorToString(error), response: undefined });
@@ -78,9 +78,9 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
         disabled: caData.certificate.status !== "ACTIVE",
         icon: <ArticleOutlinedIcon fontSize="large" color="primary" />,
         component: (
-            <CSRImporter onCreate={async (csr) => {
+            <CSRImporter onCreate={async (csr, profile) => {
                 setImportSignStatus({ loading: true, errMessage: "", response: undefined });
-                const singResp = await apicalls.cas.signCertificateRequest(caData.id, window.window.btoa(csr));
+                const singResp = await apicalls.cas.signCertificateRequest(caData.id, window.window.btoa(csr), profile);
                 setImportSignStatus({ loading: false, errMessage: "", response: singResp });
             }} />
         )

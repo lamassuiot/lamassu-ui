@@ -2,6 +2,7 @@ import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, useThem
 import Grid from "@mui/material/Unstable_Grid2";
 import React, { useEffect, useState } from "react";
 import apicalls from "ducks/apicalls";
+import { ExtendedKeyUsage, KeyUsage } from "ducks/features/cas/models";
 
 interface Props {
     caName: string,
@@ -25,7 +26,21 @@ export const IssueCert: React.FC<Props> = ({ caName, isOpen, onClose = () => { }
             if (step === 1) {
                 setLoading(true);
                 try {
-                    const resp = await apicalls.cas.signCertificateRequest(caName!, window.btoa(csr!));
+                    const resp = await apicalls.cas.signCertificateRequest(caName!, window.btoa(csr!), {
+                        honor_subject: true,
+                        honor_extensions: true,
+                        sign_as_ca: false,
+                        key_usage: [
+                            KeyUsage.DigitalSignature
+                        ],
+                        extended_key_usage: [
+                            ExtendedKeyUsage.ClientAuth
+                        ],
+                        validity: {
+                            type: "Duration",
+                            duration: "1h"
+                        }
+                    });
                     setRawCrt(resp.certificate);
                     setLoading(false);
                     setStep(step + 1);

@@ -1,8 +1,11 @@
+import { Routes, Route } from "react-router-dom";
 import { CertificateListView } from "./CertificatesList";
 import React from "react";
 
 export const CertificatesView = () => {
     return (
-        <CertificateListView />
+        <Routes>
+            <Route path="*" element={<CertificateListView />} />
+        </Routes>
     );
 };

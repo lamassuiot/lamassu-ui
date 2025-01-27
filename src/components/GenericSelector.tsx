@@ -22,7 +22,7 @@ interface WrapperProps<T> {
 
 type GenericSelectorProps<T> = React.PropsWithChildren<WrapperProps<T>>;
 
-export const GenericSelector = <T extends object>(props: GenericSelectorProps<T>) => {
+export const GenericSelector = <T extends any>(props: GenericSelectorProps<T>) => {
     const [inputValue, setInputValue] = React.useState("");
     const [fastTypeQuery, setFastTypeQuery] = React.useState(inputValue);
     React.useEffect(() => {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Alert, Button, Divider, LinearProgress, Typography } from "@mui/material";
 import { CSRViewer } from "./CSRViewer";
 import { CodeCopier } from "./CodeCopier";
@@ -5,9 +6,11 @@ import { createCSR, createPrivateKey, keyPairToPEM } from "utils/crypto/csr";
 import Grid from "@mui/material/Unstable_Grid2";
 import React, { useState } from "react";
 import X509Form, { X509Value } from "./x509Form";
+import { Profile } from "ducks/features/cas/models";
+import { IssuanceProfile } from "./IssuanceProfile";
 
 interface CSRInBrowserGeneratorProps {
-    onCreate: (privKey: string, csr: string) => void
+    onCreate: (privKey: string, csr: string, profile: Profile) => void
 }
 
 const CSRInBrowserGenerator: React.FC<CSRInBrowserGeneratorProps> = ({ onCreate }) => {
@@ -15,17 +18,21 @@ const CSRInBrowserGenerator: React.FC<CSRInBrowserGeneratorProps> = ({ onCreate 
     const [csr, setCsr] = useState<string | undefined>();
     const [privKey, setPrivKey] = useState<string | undefined>();
 
+    const [profile, setProfile] = useState<Profile | undefined>();
+
     return (
         <Grid container spacing={2} flexDirection={"column"}>
             {
                 step === 0 && (
-                    <Grid>
-                        <CSRFormGenerator onCreate={(privKey, csr) => {
-                            setCsr(csr);
-                            setPrivKey(privKey);
-                            setStep(step + 1);
-                        }} />
-                    </Grid>
+                    <>
+                        <Grid xs={12}>
+                            <CSRFormGenerator onCreate={(privKey, csr) => {
+                                setCsr(csr);
+                                setPrivKey(privKey);
+                                setStep(step + 1);
+                            }} />
+                        </Grid>
+                    </>
                 )
             }
             {
@@ -57,7 +64,29 @@ const CSRInBrowserGenerator: React.FC<CSRInBrowserGeneratorProps> = ({ onCreate 
                                 <Button onClick={() => setStep(step - 1)}>Back</Button>
                             </Grid>
                             <Grid xs="auto">
-                                <Button variant="contained" onClick={() => onCreate(privKey!, csr!)}>Confirm</Button>
+                                <Button variant="contained" onClick={() => setStep(step + 1)}>Next</Button>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                )
+            }
+            {
+                step === 2 && (
+                    <Grid container spacing={1}>
+                        <Grid xs={12} container spacing={2} padding={2}>
+                            <IssuanceProfile onChange={(profile) => setProfile(profile)} />
+                        </Grid>
+                        <Grid xs={12}>
+                            <Divider />
+                        </Grid>
+                        <Grid xs={12} container spacing={2}>
+                            <Grid xs>
+                                <Button onClick={() => setStep(step - 1)}>Back</Button>
+                            </Grid>
+                            <Grid xs="auto">
+                                <Button variant="contained" onClick={() => {
+                                    onCreate(privKey!, csr!, profile!);
+                                }}>Confirm</Button>
                             </Grid>
                         </Grid>
                     </Grid>

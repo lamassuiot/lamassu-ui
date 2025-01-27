@@ -1,6 +1,6 @@
 import { Alert, Box, Button, Divider, IconButton, Menu, MenuItem, Paper, Skeleton, Tooltip, Typography, lighten, useTheme } from "@mui/material";
 import { CASelector } from "components/CAs/CASelector";
-import { Certificate, CertificateAuthority } from "ducks/features/cas/models";
+import { Certificate, CertificateAuthority, ExtendedKeyUsage, KeyUsage } from "ducks/features/cas/models";
 import { CodeCopier } from "components/CodeCopier";
 import { DMS } from "ducks/features/dmss/models";
 import { FetchHandle } from "components/TableFetcherView";
@@ -470,7 +470,21 @@ const BootstrapGenerator: React.FC<BootstrapGeneratorProps> = ({ cn, ca }) => {
                 const csr = await createCSR(keyPair, "SHA-256", { cn: "ui-generated-bootstrap" }, []);
                 const { privateKey } = await keyPairToPEM(keyPair);
 
-                const cert = await apicalls.cas.signCertificateRequest(ca.id, window.window.btoa(csr));
+                const cert = await apicalls.cas.signCertificateRequest(ca.id, window.window.btoa(csr), {
+                    honor_subject: true,
+                    honor_extensions: true,
+                    sign_as_ca: false,
+                    key_usage: [
+                        KeyUsage.DigitalSignature
+                    ],
+                    extended_key_usage: [
+                        ExtendedKeyUsage.ClientAuth
+                    ],
+                    validity: {
+                        type: "Duration",
+                        duration: "1h"
+                    }
+                });
 
                 setResult({ loading: false, crt: cert, errMsg: "", privateKey });
             } catch (err: any) {

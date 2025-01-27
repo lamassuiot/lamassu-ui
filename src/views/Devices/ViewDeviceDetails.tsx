@@ -290,7 +290,7 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device, onChange })
                             <Tooltip title="Go to Certificate view">
                                 <Box component={Paper} elevation={0} style={{ borderRadius: 8, background: lighten(theme.palette.primary.light, 0.8), width: 35, height: 35 }}>
                                     <IconButton onClick={() => {
-                                        navigate(`/certs/${row.serial_number}`);
+                                        navigate(`/certs?sn=${row.serial_number}`);
                                     }}>
                                         <ArrowForwardIcon sx={{ color: theme.palette.primary.main }} fontSize={"small"} />
                                     </IconButton>
