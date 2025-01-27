@@ -470,6 +470,11 @@ const BootstrapGenerator: React.FC<BootstrapGeneratorProps> = ({ cn, ca }) => {
                 const csr = await createCSR(keyPair, "SHA-256", { cn: "ui-generated-bootstrap" }, []);
                 const { privateKey } = await keyPairToPEM(keyPair);
 
+                const validity: any = ca.validity;
+                if (validity.type === "Time") {
+                    validity.timme = ca.validity.time.format();
+                }
+
                 const cert = await apicalls.cas.signCertificateRequest(ca.id, window.window.btoa(csr), {
                     honor_subject: true,
                     honor_extensions: true,
@@ -480,10 +485,7 @@ const BootstrapGenerator: React.FC<BootstrapGeneratorProps> = ({ cn, ca }) => {
                     extended_key_usage: [
                         ExtendedKeyUsage.ClientAuth
                     ],
-                    validity: {
-                        type: "Duration",
-                        duration: "1h"
-                    }
+                    validity
                 });
 
                 setResult({ loading: false, crt: cert, errMsg: "", privateKey });
