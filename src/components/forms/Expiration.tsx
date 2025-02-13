@@ -1,6 +1,6 @@
 import { Control, Controller, FieldPath, FieldValues, useForm } from "react-hook-form";
 import Grid from "@mui/material/Unstable_Grid2";
-import React, { useEffect } from "react";
+import React from "react";
 import { FormSelect } from "./Select";
 import { Moment } from "moment";
 import { validDurationRegex } from "utils/duration";
@@ -47,9 +47,12 @@ export const ExpirationInput = (props: ExpirationInputProps) => {
 
     const watchAll = watch();
 
-    useEffect(() => {
-        props.onChange(watchAll);
-    }, [watchAll]);
+    React.useEffect(() => {
+        const subscription = watch((value, { name, type }) => {
+            props.onChange(value as FormData);
+        });
+        return () => subscription.unsubscribe();
+    }, [watch]);
 
     return (
         <Grid container spacing={2} alignItems={"end"}>
