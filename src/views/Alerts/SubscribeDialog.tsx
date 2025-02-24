@@ -130,6 +130,12 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose, ...re
             try {
                 setIsJsonFilterValid(JSONPath(jsonFilter, JSON.parse(JSON.stringify(event)), undefined, undefined).length > 0);
             } catch (ex) { }
+        } else if (selectedConditionType === SubscriptionConditionType.Javascript) {
+            try {
+                setIsJsonFilterValid
+                    // eslint-disable-next-line no-new-func
+                    (new Function("event", jsonFilter)(event));
+            } catch (ex) { }
         }
     }, [jsonFilter, selectedConditionType]);
 
@@ -269,7 +275,8 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose, ...re
                             options={[
                                 { value: "None", render: () => <i>None</i> },
                                 { value: SubscriptionConditionType.JsonSchema, render: "JSON Schema" },
-                                { value: SubscriptionConditionType.JsonPath, render: "JSON Path" }
+                                { value: SubscriptionConditionType.JsonPath, render: "JSON Path" },
+                                { value: SubscriptionConditionType.Javascript, render: "Javascript" }
                             ]}
                         />
                     </Grid>
@@ -300,11 +307,24 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose, ...re
                                                 </Box>
                                             </Grid>
                                         )
-                                        : (
-                                            <Grid xs={12}>
-                                                <TextField label="JSON Path Expression" fullWidth value={jsonFilter} onChange={(ev) => setJsonFilter(ev.target.value.trim())} />
-                                            </Grid>
-                                        )
+                                        :  selectedConditionType === SubscriptionConditionType.JsonPath ?
+                                            (
+                                                <Grid xs={12}>
+                                                    <TextField label="JSON Path Expression" fullWidth value={jsonFilter} onChange={(ev) => setJsonFilter(ev.target.value.trim())} />
+                                                </Grid>
+                                            )
+                                            : (
+                                                <Grid xs={12}>
+                                                    <Editor
+                                                        theme="vs-dark"
+                                                        defaultLanguage="javascript"
+                                                        height="50vh"
+                                                        value={jsonFilter}
+                                                        defaultValue="{}"
+                                                        onChange={(value, ev) => setJsonFilter(value ? value.trim() : "")}
+                                                    />
+                                                </Grid>
+                                            )
                                 }
                                 <Grid xs={12} container spacing={2} sx={{ padding: "15px" }}>
                                     <Grid xs={12} md={6} container>
