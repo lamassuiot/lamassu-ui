@@ -16,12 +16,13 @@ import { Editor } from "@monaco-editor/react";
 import { ChannelChip } from "./SubscriptionChip";
 import apicalls from "ducks/apicalls";
 import { enqueueSnackbar } from "notistack";
+import Sandbox from "@nyariv/sandboxjs";
 
 interface Props {
     event: CloudEvent,
     isOpen: boolean,
-    onClose: ()=>void
-    onSubscribe: ()=>void
+    onClose: () => void
+    onSubscribe: () => void
 }
 
 export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose, ...rest }) => {
@@ -114,10 +115,19 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose, ...re
     }, [currentStep, subscription]);
 
     useEffect(() => {
-        if (selectedConditionType === SubscriptionConditionType.JsonSchema) {
+        switch (selectedConditionType) {
+        case SubscriptionConditionType.JsonSchema:
             setJsonFilter(JSON.stringify(createSchema(event), null, 4));
-        } else {
+            break;
+        case SubscriptionConditionType.JsonPath:
             setJsonFilter("$.data");
+            break;
+        case SubscriptionConditionType.Javascript:
+            setJsonFilter("function (event) {return true;}");
+            break;
+        default:
+            setJsonFilter("");
+            break;
         }
     }, [selectedConditionType, event]);
 
@@ -130,6 +140,21 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose, ...re
             try {
                 setIsJsonFilterValid(JSONPath(jsonFilter, JSON.parse(JSON.stringify(event)), undefined, undefined).length > 0);
             } catch (ex) { }
+        } else if (selectedConditionType === SubscriptionConditionType.Javascript) {
+            try {
+                const untrustedCode = `
+                    const event = ${JSON.stringify(event)};
+                    const f = ${jsonFilter}
+                    return f(event);
+                `;
+                const sandbox = new Sandbox();
+                const exec = sandbox.compile(untrustedCode);
+                const result = exec().run();
+                setIsJsonFilterValid(result === true);
+            } catch (ex) {
+                setIsJsonFilterValid(false);
+                console.log(ex);
+            }
         }
     }, [jsonFilter, selectedConditionType]);
 
@@ -269,7 +294,8 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose, ...re
                             options={[
                                 { value: "None", render: () => <i>None</i> },
                                 { value: SubscriptionConditionType.JsonSchema, render: "JSON Schema" },
-                                { value: SubscriptionConditionType.JsonPath, render: "JSON Path" }
+                                { value: SubscriptionConditionType.JsonPath, render: "JSON Path" },
+                                { value: SubscriptionConditionType.Javascript, render: "Javascript" }
                             ]}
                         />
                     </Grid>
@@ -300,11 +326,24 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose, ...re
                                                 </Box>
                                             </Grid>
                                         )
-                                        : (
-                                            <Grid xs={12}>
-                                                <TextField label="JSON Path Expression" fullWidth value={jsonFilter} onChange={(ev) => setJsonFilter(ev.target.value.trim())} />
-                                            </Grid>
-                                        )
+                                        : selectedConditionType === SubscriptionConditionType.JsonPath
+                                            ? (
+                                                <Grid xs={12}>
+                                                    <TextField label="JSON Path Expression" fullWidth value={jsonFilter} onChange={(ev) => setJsonFilter(ev.target.value.trim())} />
+                                                </Grid>
+                                            )
+                                            : (
+                                                <Grid xs={12}>
+                                                    <Editor
+                                                        theme="vs-dark"
+                                                        defaultLanguage="javascript"
+                                                        height="15vh"
+                                                        value={jsonFilter}
+                                                        defaultValue="{}"
+                                                        onChange={(value, ev) => setJsonFilter(value ? value.trim() : "")}
+                                                    />
+                                                </Grid>
+                                            )
                                 }
                                 <Grid xs={12} container spacing={2} sx={{ padding: "15px" }}>
                                     <Grid xs={12} md={6} container>
@@ -398,6 +437,19 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose, ...re
                                             selectedConditionType === SubscriptionConditionType.JsonPath && (
                                                 <Grid xs="auto">
                                                     <Typography variant="button" style={{ padding: 5, fontSize: 12 }}>{jsonFilter}</Typography>
+                                                </Grid>
+                                            )
+                                        }
+                                        {
+                                            selectedConditionType === SubscriptionConditionType.Javascript && (
+                                                <Grid xs={12}>
+                                                    <Editor
+                                                        theme="vs-dark"
+                                                        defaultLanguage="javascript"
+                                                        height="25vh"
+                                                        value={jsonFilter}
+                                                        defaultValue="{}"
+                                                    />
                                                 </Grid>
                                             )
                                         }

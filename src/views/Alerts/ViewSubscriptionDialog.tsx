@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, Typography, useTheme } from "@mui/material";
-import { SubChannelType, Subscription } from "ducks/features/alerts/models";
+import { SubChannelType, Subscription, SubscriptionConditionType } from "ducks/features/alerts/models";
 import { Editor } from "@monaco-editor/react";
 import { Modal } from "components/Modal";
 import Label from "components/Label";
@@ -67,7 +67,7 @@ export const ViewSubscriptionDialog: React.FC<Props> = ({ subscription, isOpen, 
                             <Editor
                                 theme="vs-dark"
                                 defaultLanguage="json"
-                                height="50vh"
+                                height="20vh"
                                 value={JSON.stringify(subscription.channel.config, null, 4)}
                                 defaultValue="{}"
                             />
@@ -86,18 +86,27 @@ export const ViewSubscriptionDialog: React.FC<Props> = ({ subscription, isOpen, 
                                         </Grid>
                                     )
                                     : (
-                                        subscription.conditions.map((condition, index) => (
-                                            <Grid key={index} xs={6} container>
-                                                <Grid xs={12} container sx={{ background: theme.palette.mode === "light" ? "#fafafa" : "#263238", borderRadius: "10px", padding: "5px", overflowX: "auto", maxHeight: "320px" }}>
+                                        subscription.conditions.map((condition, index) => {
+                                            let language = "json";
+                                            let expression = "";
+                                            if (condition.type === SubscriptionConditionType.Javascript) {
+                                                language = "javascript";
+                                                expression = condition.condition;
+                                            } else {
+                                                expression = JSON.stringify(JSON.parse(condition.condition), null, 4);
+                                            }
+                                            return (
+                                                <Grid key={index} xs={12} container>
                                                     <Editor
                                                         theme="vs-dark"
-                                                        defaultLanguage="json"
-                                                        value={JSON.stringify(JSON.parse(condition.condition), null, 4)}
+                                                        defaultLanguage={language}
+                                                        height="20vh"
+                                                        value={expression}
                                                         defaultValue="{}"
                                                     />
                                                 </Grid>
-                                            </Grid>
-                                        ))
+                                            );
+                                        })
                                     )
                             }
                         </Grid>
