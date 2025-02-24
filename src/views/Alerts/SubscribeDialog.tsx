@@ -16,12 +16,13 @@ import { Editor } from "@monaco-editor/react";
 import { ChannelChip } from "./SubscriptionChip";
 import apicalls from "ducks/apicalls";
 import { enqueueSnackbar } from "notistack";
+import Sandbox from "@nyariv/sandboxjs";
 
 interface Props {
     event: CloudEvent,
     isOpen: boolean,
-    onClose: ()=>void
-    onSubscribe: ()=>void
+    onClose: () => void
+    onSubscribe: () => void
 }
 
 export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose, ...rest }) => {
@@ -115,18 +116,18 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose, ...re
 
     useEffect(() => {
         switch (selectedConditionType) {
-            case SubscriptionConditionType.JsonSchema:
-                setJsonFilter(JSON.stringify(createSchema(event), null, 4));
-                break;
-            case SubscriptionConditionType.JsonPath:
-                setJsonFilter("$.data");
-                break;
-            case SubscriptionConditionType.Javascript:
-                setJsonFilter("function filter(event) {return true;}");
-                break;
-            default:
-                setJsonFilter("");
-                break;
+        case SubscriptionConditionType.JsonSchema:
+            setJsonFilter(JSON.stringify(createSchema(event), null, 4));
+            break;
+        case SubscriptionConditionType.JsonPath:
+            setJsonFilter("$.data");
+            break;
+        case SubscriptionConditionType.Javascript:
+            setJsonFilter("function (event) {return true;}");
+            break;
+        default:
+            setJsonFilter("");
+            break;
         }
     }, [selectedConditionType, event]);
 
@@ -141,8 +142,19 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose, ...re
             } catch (ex) { }
         } else if (selectedConditionType === SubscriptionConditionType.Javascript) {
             try {
-                //   setIsJsonFilterValid(new Function("event", jsonFilter)(event));
-            } catch (ex) { }
+                const untrustedCode = `
+                    const event = ${JSON.stringify(event)};
+                    const f = ${jsonFilter}
+                    return f(event);
+                `;
+                const sandbox = new Sandbox();
+                const exec = sandbox.compile(untrustedCode);
+                const result = exec().run();
+                setIsJsonFilterValid(result === true);
+            } catch (ex) {
+                setIsJsonFilterValid(false);
+                console.log(ex);
+            }
         }
     }, [jsonFilter, selectedConditionType]);
 

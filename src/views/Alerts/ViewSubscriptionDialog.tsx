@@ -105,8 +105,8 @@ export const ViewSubscriptionDialog: React.FC<Props> = ({ subscription, isOpen, 
                                                         defaultValue="{}"
                                                     />
                                                 </Grid>
-                                            )
-        })
+                                            );
+                                        })
                                     )
                             }
                         </Grid>

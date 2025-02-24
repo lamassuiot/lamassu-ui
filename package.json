@@ -12,6 +12,7 @@
     "@mui/material": "^5.15.15",
     "@mui/x-data-grid": "^7.3.1",
     "@mui/x-date-pickers": "^7.3.1",
+    "@nyariv/sandboxjs": "^0.8.23",
     "@tufjs/models": "^2.0.1",
     "add": "^2.0.6",
     "antd": "^5.0.0",
