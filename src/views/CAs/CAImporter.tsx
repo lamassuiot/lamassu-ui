@@ -1,5 +1,4 @@
 import { Alert, Typography, useTheme } from "@mui/material";
-import { CASelector } from "components/CAs/CASelector";
 import { CATimeline } from "./CATimeline";
 import { CertificateAuthority, CryptoEngine, ExpirationFormat } from "ducks/features/cas/models";
 import { FormTextField } from "components/forms/Textfield";
@@ -109,17 +108,6 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
 
             <Grid xs={12} >
                 <FormTextField label="CA ID" name={"id"} control={control} disabled />
-            </Grid>
-            <Grid xs={12} >
-                <CASelector
-                    value={getValues("parentCA")}
-                    onSelect={(elems) => {
-                        if (!Array.isArray(elems)) {
-                            setValue("parentCA", elems);
-                        }
-                    }}
-                    multiple={false} label="Parent CA"
-                />
             </Grid>
             <Grid xs={12}>
                 <CertificateImporter onChange={async (crt) => {
