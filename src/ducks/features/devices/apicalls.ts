@@ -42,7 +42,13 @@ export const updateDeviceMetadata = async (id: string, meta: { [key: string]: an
         method: "PUT",
         url: `${window._env_.LAMASSU_DEVMANAGER_API}/v1/devices/${id}/metadata`,
         data: {
-            metadata: meta
+            patches: [
+                {
+                    op: "add",
+                    path: "",
+                    value: meta
+                }
+            ]
         }
     }) as Promise<Device>;
 };

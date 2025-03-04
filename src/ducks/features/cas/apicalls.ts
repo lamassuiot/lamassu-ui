@@ -113,7 +113,13 @@ export const updateCAMetadata = async (caName: string, metadata: any): Promise<m
         method: "PUT",
         url: `${window._env_.LAMASSU_CA_API}/v1/cas/${caName}/metadata`,
         data: {
-            metadata
+            patches: [
+                {
+                    op: "add",
+                    path: "",
+                    value: metadata
+                }
+            ]
         }
     });
 };
@@ -123,7 +129,13 @@ export const updateCertificateMetadata = async (certSN: string, metadata: any): 
         method: "PUT",
         url: `${window._env_.LAMASSU_CA_API}/v1/certificates/${certSN}/metadata`,
         data: {
-            metadata
+            patches: [
+                {
+                    op: "add",
+                    path: "",
+                    value: metadata
+                }
+            ]
         }
     });
 };
