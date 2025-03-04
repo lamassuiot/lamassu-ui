@@ -153,14 +153,14 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                                                     enqueueSnackbar(`Error while downloading CRL for CA with ID ${caData.id} and CN ${caData.certificate.subject.common_name}: ${e}`, { variant: "error" });
                                                 }
                                                 setLoadingCRLResp(false);
-                                            }} style={{ background: lighten(theme.palette.primary.main, 0.7) }} endIcon={ <FileDownloadRoundedIcon fontSize={"small"} />}>
+                                            }} style={{ background: lighten(theme.palette.primary.main, 0.7) }} endIcon={<FileDownloadRoundedIcon fontSize={"small"} />}>
                                                 CRL
                                             </LoadingButton>
                                         </Tooltip >
                                     </Grid>
 
                                     {
-                                        (caData.certificate.type !== "EXTERNAL" && caData.certificate.status !== CertificateStatus.Revoked) && (
+                                        (caData.certificate.type !== "EXTERNAL" && caData.certificate.status === CertificateStatus.Active) && (
                                             <Grid xs="auto">
                                                 <Tooltip title="Revoke CA">
                                                     <IconButton onClick={() => setRevokeDialog(caData)} style={{ background: lighten(theme.palette.error.main, 0.7) }}>
@@ -171,7 +171,10 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                                         )
                                     }
                                     {
-                                        ((caData.certificate.type !== "EXTERNAL" && caData.certificate.status === CertificateStatus.Revoked) || (caData.certificate.type === "EXTERNAL")) && (
+                                        (
+                                            (caData.certificate.type !== "EXTERNAL" && caData.certificate.status !== CertificateStatus.Active) ||
+                                            (caData.certificate.type === "EXTERNAL")
+                                        ) && (
                                             <Grid xs="auto">
                                                 <Button variant="contained" color="error" onClick={async () => {
                                                     try {
