@@ -172,9 +172,7 @@ export const CAInspector: React.FC<Props> = ({ caName, engines }) => {
                                     }
                                     {
                                         (
-                                            (caData.certificate.type !== "EXTERNAL" && caData.certificate.status !== CertificateStatus.Active) ||
-                                            (caData.certificate.type === "EXTERNAL")
-                                        ) && (
+                                            (caData.certificate.type === "EXTERNAL" || caData.certificate.status !== CertificateStatus.Active)) && (
                                             <Grid xs="auto">
                                                 <Button variant="contained" color="error" onClick={async () => {
                                                     try {
