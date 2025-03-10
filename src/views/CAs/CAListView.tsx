@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { AiOutlineSafetyCertificate } from "react-icons/ai";
 import { Box, Breadcrumbs, Divider, IconButton, Paper, Slide, ToggleButton, ToggleButtonGroup, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { CAListFetchViewer } from "components/CAs/CAListFetchViewer";
-import { CertificateAuthority, CertificateStatus, CryptoEngine } from "ducks/features/cas/models";
+import { Certificate, CertificateStatus, CryptoEngine } from "ducks/features/cas/models";
 import { CryptoEngineViewer, EnginesIcons } from "components/CryptoEngines/CryptoEngineViewer";
 import { FetchHandle } from "components/FetchViewer";
 import { MapInteractionCSS } from "react-map-interaction";
@@ -45,7 +45,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
     const containerRef = React.useRef(null);
     const caListRef = React.useRef<FetchHandle>(null);
 
-    const [rootChain, setRootChain] = useState<CertificateAuthority[]>([]);
+    const [rootChain, setRootChain] = useState<Certificate[]>([]);
 
     const [query, setQuery] = React.useState<{ value: string, field: string, operator: string }>({ value: "", field: "", operator: "" });
     const filters: string[] = [];
@@ -61,26 +61,26 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
         setViewMode("list");
     }, [isMediumScreen]);
 
-    const renderCAHierarchy = (caList: CertificateAuthority[], parentChain: CertificateAuthority[], ca: CertificateAuthority) => {
+    const renderCAHierarchy = (caList: Certificate[], parentChain: Certificate[], ca: Certificate) => {
         return (
             <TreeNode label={
                 <div style={{ marginTop: "8px", display: "flex", justifyContent: "center" }}>
                     <CertificateCard
                         onClick={() => {
-                            setSelectedCa(ca.id);
-                            navigate(ca.id);
+                            setSelectedCa(ca.subject_key_id);
+                            navigate(ca.subject_key_id);
                             setRootChain(parentChain);
                             setViewMode("list");
                         }}
                         ca={ca}
                         style={{ minWidth: "400px", maxWidth: "500px", width: "100%" }}
-                        engine={engines.find(engine => ca.certificate.engine_id === engine.id)!}
+                        engine={engines.find(engine => ca.engine_id === engine.id)!}
                         selected={false}
                     />
                 </div>
             }>
                 {
-                    caList.filter(caItem => caItem.certificate.issuer_metadata.id === ca.id && caItem.level === ca.level + 1).map(caItem => renderCAHierarchy(caList, [...parentChain, ca], caItem))
+                    caList.filter(caItem => caItem.issuer_metadata.id === ca.subject_key_id && caItem.level === ca.level + 1).map(caItem => renderCAHierarchy(caList, [...parentChain, ca], caItem))
                 }
             </TreeNode>
         );
@@ -94,7 +94,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                         <CASelector multiple={false} label="" onSelect={(ca) => {
                             if (!Array.isArray(ca) && ca) {
                                 setIsMainModalOpen(true);
-                                navigate(ca.id);
+                                navigate(ca.subject_key_id);
                             }
                         }} />
                     </Grid>
@@ -205,10 +205,10 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                                                                 />
                                                                 {
                                                                     rootChain.map(ca => {
-                                                                        const caEngine = engines.find(engine => ca.certificate.engine_id === engine.id);
+                                                                        const caEngine = engines.find(engine => ca.engine_id === engine.id);
                                                                         return (
                                                                             <StyledBreadcrumb
-                                                                                key={ca.id}
+                                                                                key={ca.subject_key_id}
                                                                                 component="a"
                                                                                 href="#"
                                                                                 onClick={() => {
@@ -218,7 +218,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                                                                                 }}
                                                                                 label={`${ca.level === 0 ? "Root: " : ""} Level ${ca.level}`}
                                                                                 icon={
-                                                                                    ca.certificate.type !== "EXTERNAL"
+                                                                                    ca.type !== "EXTERNAL"
                                                                                         ? (
                                                                                             <Box sx={{ height: "20px", width: "20px", paddingLeft: "5px" }}>
                                                                                                 {EnginesIcons.find(ei => ei.uniqueID === caEngine!.type)!.icon}
@@ -233,7 +233,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                                                                     })
                                                                 }
                                                             </Breadcrumbs>
-                                                            <CAViewer elevation={false} caData={rootChain[rootChain.length - 1]} engine={engines.find(engine => rootChain[rootChain.length - 1].certificate.engine_id === engine.id)!} />
+                                                            <CAViewer elevation={false} caData={rootChain[rootChain.length - 1]} engine={engines.find(engine => rootChain[rootChain.length - 1].engine_id === engine.id)!} />
                                                         </Box>
                                                     </Grid>
                                                 </>
@@ -245,18 +245,18 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                                                     if (rootChain.length === 0) {
                                                         return ca.level === 0;
                                                     }
-                                                    return ca.level === rootChain.length && ca.certificate.issuer_metadata.id === rootChain[rootChain.length - 1].id;
+                                                    return ca.level === rootChain.length && ca.issuer_metadata.id === rootChain[rootChain.length - 1].subject_key_id;
                                                 }).map((caItem) => (
-                                                    <Grid key={caItem.id}>
+                                                    <Grid key={caItem.subject_key_id}>
                                                         <CertificateCard
                                                             onClick={() => {
                                                                 setIsMainModalOpen(true);
-                                                                navigate(caItem.id);
+                                                                navigate(caItem.subject_key_id);
                                                                 setRootChain([...rootChain, caItem]);
                                                             }}
                                                             ca={caItem}
-                                                            engine={engines.find(engine => caItem.certificate.engine_id === engine.id)!}
-                                                            selected={selectedCa !== undefined ? caItem.id === selectedCa : false}
+                                                            engine={engines.find(engine => caItem.engine_id === engine.id)!}
+                                                            selected={selectedCa !== undefined ? caItem.subject_key_id === selectedCa : false}
                                                         />
                                                     </Grid>
                                                 ))
@@ -332,7 +332,7 @@ const StyledBreadcrumb = styled(Chip)(({ theme }) => {
 }) as typeof Chip; // TypeScript only: need a type cast here because https://github.com/Microsoft/TypeScript/issues/26591
 
 interface CertificateCardProps {
-    ca: CertificateAuthority
+    ca: Certificate
     engine: CryptoEngine
     selected: boolean,
     elevation?: boolean,
@@ -357,7 +357,7 @@ export const CertificateCard: React.FC<CertificateCardProps> = ({ ca, engine, el
                         <Box style={{ padding: "0 10px 0 20px" }}>
                             <Grid container justifyContent="center" alignItems="center" spacing={1}>
                                 {
-                                    ca.certificate.type !== "EXTERNAL" && (
+                                    ca.type !== "EXTERNAL" && (
                                         <Grid xs="auto">
                                             <CryptoEngineViewer engine={engine} simple />
                                         </Grid>
@@ -365,9 +365,9 @@ export const CertificateCard: React.FC<CertificateCardProps> = ({ ca, engine, el
                                 }
 
                                 <Grid xs={12} lg>
-                                    <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>{`${ca.certificate.key_metadata.type} ${ca.certificate.key_metadata.bits} - ${ca.certificate.key_metadata.strength}`}</Typography>
-                                    <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 20, lineHeight: "24px", wordBreak: "break-word" }}>{ca.certificate.subject.common_name}</Typography>
-                                    <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 12 }}>{ca.id}</Typography>
+                                    <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 13 }}>{`${ca.key_metadata.type} ${ca.key_metadata.bits} - ${ca.key_metadata.strength}`}</Typography>
+                                    <Typography style={{ color: theme.palette.text.primary, fontWeight: "500", fontSize: 20, lineHeight: "24px", wordBreak: "break-word" }}>{ca.subject.common_name}</Typography>
+                                    <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 12 }}>{ca.subject_key_id}</Typography>
                                 </Grid>
 
                                 <Grid xs={12} lg="auto" container direction="column" justifyContent="center" alignItems="center">
@@ -391,21 +391,21 @@ export const CertificateCard: React.FC<CertificateCardProps> = ({ ca, engine, el
                             <Grid container justifyContent="space-between" alignItems="center">
                                 <Grid xs>
                                     {
-                                        ca.certificate.status !== CertificateStatus.Active
+                                        ca.status !== CertificateStatus.Active
                                             ? (
                                                 <Label color={"error"}>
-                                                    {`${ca.certificate.status} · ${moment(ca.certificate.valid_to).format("DD/MM/YYYY")} ·  ${moment.duration(moment(ca.certificate.status === CertificateStatus.Revoked ? ca.certificate.revocation_timestamp : ca.certificate.valid_to).diff(moment())).humanize(true)}`}
+                                                    {`${ca.status} · ${moment(ca.valid_to).format("DD/MM/YYYY")} ·  ${moment.duration(moment(ca.status === CertificateStatus.Revoked ? ca.revocation_timestamp : ca.valid_to).diff(moment())).humanize(true)}`}
                                                 </Label>
                                             )
                                             : (
-                                                <Typography style={{ fontWeight: "400", fontSize: "13px" }} >{`${ca.certificate.status} · ${moment(ca.certificate.valid_to).format("DD/MM/YYYY")} ·  ${moment.duration((moment(ca.certificate.valid_to).diff(moment()))).humanize(true)}`}</Typography>
+                                                <Typography style={{ fontWeight: "400", fontSize: "13px" }} >{`${ca.status} · ${moment(ca.valid_to).format("DD/MM/YYYY")} ·  ${moment.duration((moment(ca.valid_to).diff(moment()))).humanize(true)}`}</Typography>
                                             )
                                     }
                                 </Grid>
                                 <Grid xs="auto">
                                     {
-                                        ca.certificate.type !== "MANAGED" && (
-                                            <Label color="primary">{ca.certificate.type}</Label>
+                                        ca.type !== "MANAGED" && (
+                                            <Label color="primary">{ca.type}</Label>
                                         )
                                     }
                                 </Grid>

@@ -1,4 +1,4 @@
-import { CertificateAuthority } from "ducks/features/cas/models";
+import { Certificate } from "ducks/features/cas/models";
 import { FetchHandle, FetchViewer } from "components/FetchViewer";
 import { Typography } from "@mui/material";
 import React, { ReactElement, Ref, useEffect } from "react";
@@ -6,7 +6,7 @@ import apicalls from "ducks/apicalls";
 
 type Props = {
     id: string
-    renderer: (item: CertificateAuthority) => React.ReactElement
+    renderer: (item: Certificate) => React.ReactElement
 }
 
 const Viewer = (props: Props, ref: Ref<FetchHandle>) => {
@@ -25,7 +25,7 @@ const Viewer = (props: Props, ref: Ref<FetchHandle>) => {
     return (
         <FetchViewer
             fetcher={(controller) => { return apicalls.cas.getCA(props.id); }}
-            renderer={(item: CertificateAuthority) => props.renderer(item)}
+            renderer={(item: Certificate) => props.renderer(item)}
             ref={ref}
         />
     );

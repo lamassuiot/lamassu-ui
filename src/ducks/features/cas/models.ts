@@ -47,7 +47,8 @@ export const getRevocationReasonDescription = (reason: RevocationReason): string
 export type Certificate = {
     status: CertificateStatus
     serial_number: string
-    key_id: string
+    subject_key_id: string
+    authority_key_id: string
     engine_id: string
     certificate: string
     key_metadata: {
@@ -56,6 +57,14 @@ export type Certificate = {
         strength: "HIGH"
     }
     subject: {
+        common_name: string
+        organization: string
+        organization_unit: string
+        country: string
+        state: string
+        locality: string
+    }
+    issuer: {
         common_name: string
         organization: string
         organization_unit: string
@@ -74,7 +83,8 @@ export type Certificate = {
         id: string
         serial_number: string
     },
-    is_ca: boolean
+    is_ca: boolean,
+    level: number
 }
 
 export interface CAStats {
@@ -119,19 +129,6 @@ export interface CryptoEngine {
         type: "RSA" | "ECDSA",
         sizes: number[],
     }>
-}
-export interface CertificateAuthority {
-    id: string,
-    certificate: Certificate,
-    serial_number: string,
-    metadata: any
-    validity: {
-        type: "Duration" | "Time"
-        duration: string
-        time: Moment
-    },
-    creation_ts: Moment
-    level: number
 }
 
 export type SignPayloadResponse = {

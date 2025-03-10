@@ -29,18 +29,18 @@ export const getEngines = async (): Promise<models.CryptoEngine[]> => {
     }) as Promise<models.CryptoEngine[]>;
 };
 
-export const getCAs = async (params?: QueryParameters): Promise<ListResponse<models.CertificateAuthority>> => {
+export const getCAs = async (params?: QueryParameters): Promise<ListResponse<models.Certificate>> => {
     return apiRequest({
         method: "GET",
         url: `${window._env_.LAMASSU_CA_API}/v1/cas${queryParametersToURL(params)}`
-    }) as Promise<ListResponse<models.CertificateAuthority>>;
+    }) as Promise<ListResponse<models.Certificate>>;
 };
 
-export const getCA = async (caID: string): Promise<models.CertificateAuthority> => {
+export const getCA = async (caID: string): Promise<models.Certificate> => {
     return apiRequest({
         method: "GET",
         url: `${window._env_.LAMASSU_CA_API}/v1/cas/${caID}`
-    }) as Promise<models.CertificateAuthority>;
+    }) as Promise<models.Certificate>;
 };
 
 export const getIssuedCertificatesByCA = async (caID: string, params?: QueryParameters): Promise<ListResponse<models.Certificate>> => {
@@ -64,27 +64,22 @@ export const getCertificates = async (params?: QueryParameters): Promise<ListRes
     }) as Promise<ListResponse<models.Certificate>>;
 };
 
-export const createCA = async (payload: models.CreateCAPayload): Promise<models.CertificateAuthority> => {
+export const createCA = async (payload: models.CreateCAPayload): Promise<models.Certificate> => {
     return apiRequest({
         method: "POST",
         url: `${window._env_.LAMASSU_CA_API}/v1/cas`,
         data: payload
-    }) as Promise<models.CertificateAuthority>;
+    }) as Promise<models.Certificate>;
 };
 
-export const importCA = async (id: string, engineID: string, certificateB64: string, privKeyB64: string, expiration: models.ExpirationFormat, parentCAID: string): Promise<models.CertificateAuthority> => {
+export const importCA = async (id: string, engineID: string, certificateB64: string, privKeyB64: string, expiration: models.ExpirationFormat, parentCAID: string): Promise<models.Certificate> => {
     return apiRequest({
         method: "POST",
-        url: `${window._env_.LAMASSU_CA_API}/v1/cas/import`,
+        url: `${window._env_.LAMASSU_CA_API}/v1/certificates/import`,
         data: {
-            id,
             engine_id: engineID,
             private_key: privKeyB64,
-            ca: certificateB64,
-            ca_chain: [],
-            ca_type: "IMPORTED",
-            issuance_expiration: expiration,
-            parent_id: parentCAID
+            certificate: certificateB64
         }
     });
 };
@@ -95,20 +90,17 @@ export const deleteCA = async (id: string): Promise<{}> => {
     }) as Promise<{}>;
 };
 
-export const importReadOnlyCA = async (id: string, certificateB64: string): Promise<models.CertificateAuthority> => {
+export const importReadOnlyCA = async (id: string, certificateB64: string): Promise<models.Certificate> => {
     return apiRequest({
         method: "POST",
-        url: `${window._env_.LAMASSU_CA_API}/v1/cas/import`,
+        url: `${window._env_.LAMASSU_CA_API}/v1/certificates/import`,
         data: {
-            id,
-            ca: certificateB64,
-            ca_chain: [],
-            ca_type: "EXTERNAL"
+            certificate: certificateB64
         }
     });
 };
 
-export const updateCAMetadata = async (caName: string, metadata: any): Promise<models.CertificateAuthority> => {
+export const updateCAMetadata = async (caName: string, metadata: any): Promise<models.Certificate> => {
     return apiRequest({
         method: "PUT",
         url: `${window._env_.LAMASSU_CA_API}/v1/cas/${caName}/metadata`,
@@ -128,7 +120,7 @@ export const updateCertificateMetadata = async (certSN: string, metadata: any): 
     });
 };
 
-export const updateCAIssuanceExpiration = async (caID: string, expiration: models.ExpirationFormat): Promise<models.CertificateAuthority> => {
+export const updateCAIssuanceExpiration = async (caID: string, expiration: models.ExpirationFormat): Promise<models.Certificate> => {
     return apiRequest({
         method: "PUT",
         url: `${window._env_.LAMASSU_CA_API}/v1/cas/${caID}/issuance-expiration`,
@@ -198,7 +190,7 @@ export const updateCertificateStatus = async (certSerial: string, status: models
     });
 };
 
-export const updateCAStatus = async (caID: string, status: models.CertificateStatus, revocationReason?: string): Promise<models.CertificateAuthority> => {
+export const updateCAStatus = async (caID: string, status: models.CertificateStatus, revocationReason?: string): Promise<models.Certificate> => {
     const body: any = {
         status
     };

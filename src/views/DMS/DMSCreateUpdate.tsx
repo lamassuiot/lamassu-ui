@@ -2,7 +2,7 @@
 import { AWSIoTDMSMetadata, AWSIoTDMSMetadataRegistrationMode, AWSIoTPolicy, CreateUpdateDMSPayload, DMS, ESTAuthMode, EnrollmentProtocols, EnrollmentRegistrationMode } from "ducks/features/dmss/models";
 import { Alert, Button, Chip, Divider, Paper, Skeleton, Typography, useTheme } from "@mui/material";
 import { CASelector } from "components/CAs/CASelector";
-import { AWSCAMetadata, AWSCAMetadataRegistrationStatus, CertificateAuthority } from "ducks/features/cas/models";
+import { AWSCAMetadata, AWSCAMetadataRegistrationStatus, Certificate } from "ducks/features/cas/models";
 import { Editor } from "@monaco-editor/react";
 import { FormIconInput } from "components/forms/IconInput";
 import { FormSelect } from "components/forms/Select";
@@ -42,12 +42,12 @@ type FormData = {
     enrollProtocol: {
         protocol: EnrollmentProtocols
         registrationMode: EnrollmentRegistrationMode;
-        enrollmentCA: undefined | CertificateAuthority;
+        enrollmentCA: undefined | Certificate;
         overrideEnrollment: boolean,
         estAuthMode: ESTAuthMode;
         certificateValidation: {
             chainValidation: number;
-            validationCAs: CertificateAuthority[];
+            validationCAs: Certificate[];
             allowExpired: boolean;
         },
         external_webhook?: {
@@ -79,7 +79,7 @@ type FormData = {
         criticalDelta: string;
         allowExpired: boolean;
         revokeOnReenroll: boolean;
-        additionalValidationCAs: CertificateAuthority[];
+        additionalValidationCAs: Certificate[];
     },
     serverKeyGen: {
         enabled: boolean;
@@ -89,7 +89,7 @@ type FormData = {
     caDistribution: {
         includeDownstream: boolean;
         includeAuthorized: boolean;
-        managedCAs: CertificateAuthority[]
+        managedCAs: Certificate[]
     },
     awsIotIntegration: {
         id: string
@@ -107,7 +107,7 @@ type FormData = {
         id: string
         controlBroker: boolean,
         port: number;
-        serviceCA: CertificateAuthority | undefined
+        serviceCA: Certificate | undefined
     }
 };
 
@@ -258,11 +258,11 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         protocol: dms.settings.enrollment_settings.protocol,
                         estAuthMode: dms.settings.enrollment_settings.est_rfc7030_settings.auth_mode,
                         overrideEnrollment: dms.settings.enrollment_settings.enable_replaceable_enrollment,
-                        enrollmentCA: casResp.list.find(ca => ca.id === dms!.settings.enrollment_settings.enrollment_ca)!,
+                        enrollmentCA: casResp.list.find(ca => ca.subject_key_id === dms!.settings.enrollment_settings.enrollment_ca)!,
                         registrationMode: dms!.settings.enrollment_settings.registration_mode,
                         certificateValidation: {
                             chainValidation: dms!.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.chain_level_validation,
-                            validationCAs: dms!.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.validation_cas.map(ca => casResp.list.find(caF => caF.id === ca)!),
+                            validationCAs: dms!.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.validation_cas.map(ca => casResp.list.find(caF => caF.subject_key_id === ca)!),
                             allowExpired: dms!.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.allow_expired
                         }
                     },
@@ -278,7 +278,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         allowedRenewalDelta: dms!.settings.reenrollment_settings.reenrollment_delta,
                         revokeOnReenroll: dms!.settings.reenrollment_settings.revoke_on_reenrollment,
                         allowExpired: dms!.settings.reenrollment_settings.enable_expired_renewal,
-                        additionalValidationCAs: dms!.settings.reenrollment_settings.additional_validation_cas.map(ca => casResp.list.find(caF => caF.id === ca)!),
+                        additionalValidationCAs: dms!.settings.reenrollment_settings.additional_validation_cas.map(ca => casResp.list.find(caF => caF.subject_key_id === ca)!),
                         preventiveDelta: dms.settings.reenrollment_settings.preventive_delta,
                         criticalDelta: dms.settings.reenrollment_settings.critical_delta
                     },
@@ -290,7 +290,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                     caDistribution: {
                         includeAuthorized: dms!.settings.ca_distribution_settings.include_enrollment_ca,
                         includeDownstream: dms!.settings.ca_distribution_settings.include_system_ca,
-                        managedCAs: dms!.settings.ca_distribution_settings.managed_cas.map(ca => casResp.list.find(caF => caF.id === ca)!)
+                        managedCAs: dms!.settings.ca_distribution_settings.managed_cas.map(ca => casResp.list.find(caF => caF.subject_key_id === ca)!)
                     },
                     awsIotIntegration: {
                         id: "",
@@ -435,14 +435,14 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                 metadata: { ...awsMeta },
                 settings: {
                     enrollment_settings: {
-                        enrollment_ca: data.enrollProtocol.enrollmentCA!.id,
+                        enrollment_ca: data.enrollProtocol.enrollmentCA!.subject_key_id,
                         protocol: data.enrollProtocol.protocol,
                         enable_replaceable_enrollment: data.enrollProtocol.overrideEnrollment,
                         est_rfc7030_settings: {
                             auth_mode: data.enrollProtocol.estAuthMode,
                             client_certificate_settings: {
                                 chain_level_validation: Number(data.enrollProtocol.certificateValidation.chainValidation),
-                                validation_cas: data.enrollProtocol.certificateValidation.validationCAs.map(ca => ca.id),
+                                validation_cas: data.enrollProtocol.certificateValidation.validationCAs.map(ca => ca.subject_key_id),
                                 allow_expired: data.enrollProtocol.certificateValidation.allowExpired
                             },
                             external_webhook: data.enrollProtocol.estAuthMode === ESTAuthMode.ExternalWebhook
@@ -477,7 +477,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         critical_delta: data.reEnroll.criticalDelta,
                         preventive_delta: data.reEnroll.preventiveDelta,
                         reenrollment_delta: data.reEnroll.allowedRenewalDelta,
-                        additional_validation_cas: data.reEnroll.additionalValidationCAs.map(ca => ca.id)
+                        additional_validation_cas: data.reEnroll.additionalValidationCAs.map(ca => ca.subject_key_id)
                     },
                     server_keygen_settings: {
                         enabled: data.serverKeyGen.enabled,
@@ -489,7 +489,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                     ca_distribution_settings: {
                         include_enrollment_ca: false,
                         include_system_ca: data.caDistribution.includeDownstream,
-                        managed_cas: data.caDistribution.managedCAs.map(ca => ca.id)
+                        managed_cas: data.caDistribution.managedCAs.map(ca => ca.subject_key_id)
                     }
                 }
             };
@@ -663,9 +663,9 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                         <Grid xs={12}>
                                             <FormSwitch control={control} name="reEnroll.allowExpired" label="Allow Expired Renewal" />
                                         </Grid>
-                                        <Grid xs={12} md={3}>
+                                        {/* <Grid xs={12} md={3}>
                                             <TextField value={watchEnrollmentCA?.validity.type === "Duration" ? watchEnrollmentCA?.validity.duration : watchEnrollmentCA?.validity.time} label="Certificate Lifespan" disabled />
-                                        </Grid>
+                                        </Grid> */}
                                         <Grid xs={12} md={3}>
                                             <FormTextField control={control} name="reEnroll.allowedRenewalDelta" label="Allowed Renewal Delta" tooltip="Duration from the certificate's expiration time backwards that enables ReEnrolling. For instance, if the certificate being renew has 150 days left and the 'Allowed Renewal Delta' field is set to 100 days, the ReEnroll request will be denied. If instead the certificate will expire in 99 days, the ReEnroll request will be allowed." />
                                         </Grid>
@@ -839,11 +839,11 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                                                                                 };
 
                                                                                                 try {
-                                                                                                    await apicalls.cas.updateCAMetadata(watchEnrollmentCA.id, {
+                                                                                                    await apicalls.cas.updateCAMetadata(watchEnrollmentCA.subject_key_id, {
                                                                                                         ...watchEnrollmentCA.metadata,
                                                                                                         [registeredInAWSKey]: caRegAWS
                                                                                                     });
-                                                                                                    const ca = await apicalls.cas.getCA(watchEnrollmentCA.id);
+                                                                                                    const ca = await apicalls.cas.getCA(watchEnrollmentCA.subject_key_id);
                                                                                                     setValue("enrollProtocol.enrollmentCA", ca);
                                                                                                     enqueueSnackbar("CA Metadata updated", { variant: "success" });
                                                                                                 } catch (e) {
@@ -877,7 +877,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                                                                                 </Grid>
                                                                                                 <Grid xs={12}>
                                                                                                     <Button onClick={async () => {
-                                                                                                        const ca = await apicalls.cas.getCA(watchEnrollmentCA.id);
+                                                                                                        const ca = await apicalls.cas.getCA(watchEnrollmentCA.subject_key_id);
                                                                                                         setValue("enrollProtocol.enrollmentCA", ca);
                                                                                                     }}>
                                                                                                         Reload & Check

@@ -1,5 +1,5 @@
 import { Box, IconButton, Paper, Tooltip, Typography, lighten, useTheme } from "@mui/material";
-import { Certificate, CertificateAuthority, CertificateStatus } from "ducks/features/cas/models";
+import { Certificate, CertificateStatus } from "ducks/features/cas/models";
 import Grid from "@mui/material/Unstable_Grid2";
 import React, { useState } from "react";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
@@ -14,7 +14,7 @@ import { RevokeCertificateModal } from "./Modals/RevokeCertificate";
 
 export type Props = {
     certificate: Certificate,
-    issuerCA?: CertificateAuthority,
+    issuerCA?: Certificate,
     actions?: React.ReactNode[]
     clickDisplay?: boolean
     clickRevoke?: boolean
@@ -41,7 +41,7 @@ export const CertificateViewer: React.FC<Props> = ({ certificate, issuerCA, acti
                     {
                         issuerCA && (
                             <Grid xs>
-                                <Typography sx={{ fontSize: "0.8rem", color: lighten(theme.palette.text.primary, 0.4) }}>{`Issued By: ${certificate.issuer_metadata.id} (${issuerCA.certificate.subject.common_name})`}</Typography>
+                                <Typography sx={{ fontSize: "0.8rem", color: lighten(theme.palette.text.primary, 0.4) }}>{`Issued By: ${certificate.issuer_metadata.id} (${issuerCA.subject.common_name})`}</Typography>
                             </Grid>
                         )
                     }

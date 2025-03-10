@@ -1,6 +1,6 @@
 import { Alert, Typography, useTheme } from "@mui/material";
 import { CATimeline } from "./CATimeline";
-import { CertificateAuthority, CryptoEngine, ExpirationFormat } from "ducks/features/cas/models";
+import { Certificate, CryptoEngine, ExpirationFormat } from "ducks/features/cas/models";
 import { FormTextField } from "components/forms/Textfield";
 import { LoadingButton } from "@mui/lab";
 import { X509Certificate, parseCRT } from "utils/crypto/crt";
@@ -23,7 +23,7 @@ uywNx1FjrBpX2j6DBnyp1owBUY0Y1RVWpw==
 
 type FormData = {
     cryptoEngine: CryptoEngine
-    parentCA: CertificateAuthority | undefined
+    parentCA: Certificate | undefined
     id: string
     certificate: string | undefined
     parsedCertificate: X509Certificate | undefined
@@ -43,7 +43,7 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
     const theme = useTheme();
     const navigate = useNavigate();
 
-    const [preselectedCAParent] = useOutletContext<[CertificateAuthority | undefined]>();
+    const [preselectedCAParent] = useOutletContext<[Certificate | undefined]>();
 
     const { control, getValues, setValue, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
         defaultValues: {
@@ -83,7 +83,7 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
             };
         }
         try {
-            await apicalls.cas.importCA(data.id, data.cryptoEngine.id, window.btoa(data.certificate!), window.btoa(data.privateKey), issuanceDur, data.parentCA ? data.parentCA.id : "");
+            await apicalls.cas.importCA(data.id, data.cryptoEngine.id, window.btoa(data.certificate!), window.btoa(data.privateKey), issuanceDur, data.parentCA ? data.parentCA.subject_key_id : "");
             navigate(`/cas/${data.id}`);
         } catch (error) {
             console.log(error);
@@ -144,7 +144,7 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
                             <CATimeline
                                 caIssuedAt={watchAll.parsedCertificate.notBefore}
                                 caExpiration={watchAll.parsedCertificate.notAfter}
-                                issuanceDuration={watchIssuanceExpiration.type === "duration" ? watchIssuanceExpiration.duration : (watchIssuanceExpiration.type === "date" ? watchIssuanceExpiration.date : "")}
+                                // issuanceDuration={watchIssuanceExpiration.type === "duration" ? watchIssuanceExpiration.duration : (watchIssuanceExpiration.type === "date" ? watchIssuanceExpiration.date : "")}
                             />
 
                         )

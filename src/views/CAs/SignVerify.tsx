@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import { Alert, Typography, useTheme } from "@mui/material";
-import { CertificateAuthority } from "ducks/features/cas/models";
+import { Certificate } from "ducks/features/cas/models";
 import { CodeCopier } from "components/CodeCopier";
 import { FormSelect } from "components/forms/Select";
 import { FormTextField } from "components/forms/Textfield";
@@ -12,7 +12,7 @@ import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import apicalls from "ducks/apicalls";
 
 interface Props {
-    caData: CertificateAuthority
+    caData: Certificate
 }
 
 type SignVerifyFormData = {
@@ -138,7 +138,7 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
                 if (data.sign.messageTypeEncoding === "PlainText") {
                     msg = window.btoa(msg);
                 }
-                const resp = await apicalls.cas.signPayload(caData.id, msg, data.sign.messageType, data.sign.algorithm);
+                const resp = await apicalls.cas.signPayload(caData.subject_key_id, msg, data.sign.messageType, data.sign.algorithm);
                 setSignResult(resp.signed_data);
             } catch (error) {
                 if (typeof error === "string") {
@@ -165,7 +165,7 @@ export const SignVerifyView: React.FC<Props> = ({ caData }) => {
                 if (data.verify.messageTypeEncoding === "PlainText") {
                     msg = window.btoa(msg);
                 }
-                const resp = await apicalls.cas.verifyPayload(caData.id, data.verify.signature, msg, data.verify.messageType, data.verify.algorithm);
+                const resp = await apicalls.cas.verifyPayload(caData.subject_key_id, data.verify.signature, msg, data.verify.messageType, data.verify.algorithm);
                 setVerifyResult(resp.valid);
             } catch (error) {
                 if (typeof error === "string") {

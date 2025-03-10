@@ -1,5 +1,5 @@
 import { Box, Dialog, DialogContent, DialogTitle, IconButton, Paper, SxProps, Typography, useTheme } from "@mui/material";
-import { CertificateAuthority, CertificateStatus, CryptoEngine } from "ducks/features/cas/models";
+import { Certificate, CertificateStatus, CryptoEngine } from "ducks/features/cas/models";
 import { CertificateDecoder } from "components/Certificates/CertificateDecoder";
 import { CodeCopier } from "components/CodeCopier";
 import { CryptoEngineViewer } from "components/CryptoEngines/CryptoEngineViewer";
@@ -10,7 +10,7 @@ import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import moment from "moment";
 
 export type Props = {
-    caData: CertificateAuthority,
+    caData: Certificate,
     engine: CryptoEngine
     actions?: React.ReactNode[]
     elevation?: boolean
@@ -20,13 +20,13 @@ export type Props = {
 
 const CAViewer: React.FC<Props> = ({ caData, engine, actions = [], elevation = true, clickDisplay = false, sx = {} }) => {
     const theme = useTheme();
-    const [displayCA, setDisplayCA] = React.useState<CertificateAuthority | undefined>(undefined);
+    const [displayCA, setDisplayCA] = React.useState<Certificate | undefined>(undefined);
 
     return (
         <Box {...elevation && { component: Paper }} sx={{ padding: "10px", background: elevation ? theme.palette.background.paper : "none", cursor: "pointer", width: "calc(100% - 20px)", ...sx }} >
             <Grid container columnGap={2} alignItems={"center"}>
                 {
-                    caData.certificate.type !== "EXTERNAL" && (
+                    caData.type !== "EXTERNAL" && (
                         <Grid xs="auto">
                             <CryptoEngineViewer engine={engine} simple />
                         </Grid>
@@ -35,26 +35,26 @@ const CAViewer: React.FC<Props> = ({ caData, engine, actions = [], elevation = t
 
                 <Grid xs container flexDirection={"column"}>
                     <Grid xs>
-                        <Typography sx={{ wordBreak: "break-word" }}>{caData.certificate.subject.common_name}</Typography>
+                        <Typography sx={{ wordBreak: "break-word" }}>{caData.subject.common_name}</Typography>
                     </Grid>
                     <Grid xs>
-                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 12 }}>{`CA ID: ${caData.id}`}</Typography>
+                        <Typography style={{ color: theme.palette.text.secondary, fontWeight: "400", fontSize: 12 }}>{`CA ID: ${caData.subject_key_id}`}</Typography>
                     </Grid>
                     <Grid xs>
                         {
-                            caData.certificate.status === CertificateStatus.Revoked
+                            caData.status === CertificateStatus.Revoked
                                 ? (
-                                    <Label color={"error"}>{`${caData.certificate.status} ·  ${moment.duration(moment(caData.certificate.revocation_timestamp).diff(moment())).humanize(true)}`}</Label>
+                                    <Label color={"error"}>{`${caData.status} ·  ${moment.duration(moment(caData.revocation_timestamp).diff(moment())).humanize(true)}`}</Label>
                                 )
                                 : (
-                                    <Label color="grey">{`${caData.certificate.status} ·  ${moment.duration(moment(caData.certificate.valid_to).diff(moment())).humanize(true)}`}</Label>
+                                    <Label color="grey">{`${caData.status} ·  ${moment.duration(moment(caData.valid_to).diff(moment())).humanize(true)}`}</Label>
                                 )
                         }
                     </Grid>
                 </Grid>
                 {
-                    caData.certificate.type !== "MANAGED" && (
-                        <Label color="primary">{caData.certificate.type}</Label>
+                    caData.type !== "MANAGED" && (
+                        <Label color="primary">{caData.type}</Label>
                     )
                 }
                 {
@@ -86,15 +86,15 @@ const CAViewer: React.FC<Props> = ({ caData, engine, actions = [], elevation = t
                 displayCA && (
                     <Dialog open={true} onClose={() => setDisplayCA(undefined)} maxWidth={"md"}>
                         <DialogTitle>
-                            <Typography variant="h2" sx={{ fontWeight: "500", fontSize: "1.25rem" }}>{displayCA.id}</Typography>
+                            <Typography variant="h2" sx={{ fontWeight: "500", fontSize: "1.25rem" }}>{displayCA.subject_key_id}</Typography>
                         </DialogTitle>
                         <DialogContent>
                             <Grid container spacing={2} flexDirection={"column"}>
                                 <Grid>
-                                    <CodeCopier code={atob(displayCA.certificate.certificate)} />
+                                    <CodeCopier code={atob(displayCA.certificate)} />
                                 </Grid>
                                 <Grid>
-                                    <CertificateDecoder crtPem={atob(displayCA.certificate.certificate)} />
+                                    <CertificateDecoder crtPem={atob(displayCA.certificate)} />
                                 </Grid>
                             </Grid>
                         </DialogContent>

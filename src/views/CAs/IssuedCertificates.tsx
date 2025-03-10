@@ -1,5 +1,5 @@
 import { Alert, Box, Breadcrumbs, Button, Divider, IconButton, Link, Paper, Skeleton, Slide, Tooltip, Typography, lighten, useTheme } from "@mui/material";
-import { Certificate, CertificateAuthority, CertificateStatus, RevocationReason, getRevocationReasonDescription } from "ducks/features/cas/models";
+import { Certificate, CertificateStatus, RevocationReason, getRevocationReasonDescription } from "ducks/features/cas/models";
 import { CertificatesTable } from "components/Certificates/CertificatesTable";
 import { CodeCopier } from "components/CodeCopier";
 import { FetchHandle } from "components/TableFetcherView";
@@ -30,7 +30,7 @@ const queryableFields = [
 ];
 
 interface Props {
-    caData: CertificateAuthority
+    caData: Certificate
 }
 
 export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
@@ -60,13 +60,13 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
 
     const tabs = [{
         title: "In Place Generation",
-        disabled: caData.certificate.status !== "ACTIVE",
+        disabled: caData.status !== "ACTIVE",
         icon: <AddCircleOutlineIcon fontSize="large" color="primary" />,
         component: (
             <CSRInBrowserGenerator onCreate={async (key, csr, profile) => {
                 setImportSignStatus({ loading: true, errMessage: "", response: undefined });
                 try {
-                    const singResp = await apicalls.cas.signCertificateRequest(caData.id, window.window.btoa(csr), profile);
+                    const singResp = await apicalls.cas.signCertificateRequest(caData.subject_key_id, window.window.btoa(csr), profile);
                     setImportSignStatus({ loading: false, errMessage: "", response: singResp });
                 } catch (error: any) {
                     setImportSignStatus({ loading: false, errMessage: errorToString(error), response: undefined });
@@ -75,12 +75,12 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
         )
     }, {
         title: "Import And Sign CSR",
-        disabled: caData.certificate.status !== "ACTIVE",
+        disabled: caData.status !== "ACTIVE",
         icon: <ArticleOutlinedIcon fontSize="large" color="primary" />,
         component: (
             <CSRImporter onCreate={async (csr, profile) => {
                 setImportSignStatus({ loading: true, errMessage: "", response: undefined });
-                const singResp = await apicalls.cas.signCertificateRequest(caData.id, window.window.btoa(csr), profile);
+                const singResp = await apicalls.cas.signCertificateRequest(caData.subject_key_id, window.window.btoa(csr), profile);
                 setImportSignStatus({ loading: false, errMessage: "", response: singResp });
             }} />
         )
@@ -89,7 +89,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
         disabled: false,
         icon: <PublishIcon fontSize="large" color="primary" />,
         component: (
-            <CertificateImporterForm caSubjectCN={caData.certificate.subject.common_name} caId={caData.id} onCreate={async (crt) => {
+            <CertificateImporterForm caSubjectCN={caData.subject.common_name} caId={caData.subject_key_id} onCreate={async (crt) => {
                 setImportSignStatus({ loading: true, errMessage: "", response: undefined });
                 const singResp = await apicalls.cas.importCertificate(window.window.btoa(crt));
                 setImportSignStatus({ loading: false, errMessage: "", response: singResp });
@@ -128,7 +128,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
                             </Grid>
                         </Grid>
                         <Grid>
-                            <CertificatesTable ref={tableRef} caID={caData.id} query={query} />
+                            <CertificatesTable ref={tableRef} caID={caData.subject_key_id} query={query} />
                         </Grid>
                     </Grid>
                     {/* {
@@ -155,7 +155,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
                                             value={(
                                                 <FetchViewer fetcher={() => apicalls.cas.getEngines()} errorPrefix="Could not fetch Crypto Engines" renderer={(engines) => {
                                                     return (
-                                                        <CAViewer caData={caData} engine={engines.find(eng => eng.id === caData.certificate.engine_id)!} />
+                                                        <CAViewer caData={caData} engine={engines.find(eng => eng.id === caData.engine_id)!} />
                                                     );
                                                 }} />
                                             )}
@@ -245,7 +245,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
                                     ? (
                                         <Grid container spacing={3}>
                                             {
-                                                caData.certificate.status !== "ACTIVE" && (
+                                                caData.status !== "ACTIVE" && (
                                                     <Grid xs={12}>
                                                         <Alert severity="warning">
                                                             The CA is not active. Certificates cannot be issued (Only Import External Certificate is allowed)

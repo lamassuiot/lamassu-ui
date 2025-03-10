@@ -6,12 +6,12 @@ import assert from "assert";
 import moment, { Moment } from "moment";
 
 interface Props {
-    issuanceDuration: string | Moment
+    // issuanceDuration: string | Moment
     caIssuedAt: Moment
     caExpiration: string | Moment
 }
 
-export const CATimeline: React.FC<Props> = ({ issuanceDuration, caIssuedAt, caExpiration }) => {
+export const CATimeline: React.FC<Props> = ({ /* issuanceDuration, */ caIssuedAt, caExpiration }) => {
     const theme = useTheme();
     const [timelineStages, setTimelineStages] = useState<{
         label: string,
@@ -23,7 +23,7 @@ export const CATimeline: React.FC<Props> = ({ issuanceDuration, caIssuedAt, caEx
     }[]>([]);
 
     useEffect(() => {
-        let inactiveDate = caIssuedAt.clone();
+        const inactiveDate = caIssuedAt.clone();
         let expDate = caIssuedAt.clone();
 
         if (typeof caExpiration === "string" && duration.validDurationRegex(caExpiration)) {
@@ -42,7 +42,7 @@ export const CATimeline: React.FC<Props> = ({ issuanceDuration, caIssuedAt, caEx
             expDate = moment("99991231T235959Z");
         }
 
-        if (typeof issuanceDuration === "string" && duration.validDurationRegex(issuanceDuration)) {
+        /* if (typeof issuanceDuration === "string" && duration.validDurationRegex(issuanceDuration)) {
             const expDurSplit = issuanceDuration.match(duration.durationValueUnitSplitRegex);
             inactiveDate = expDate.clone();
 
@@ -57,7 +57,7 @@ export const CATimeline: React.FC<Props> = ({ issuanceDuration, caIssuedAt, caEx
             }
         } else if (moment.isMoment(issuanceDuration)) {
             inactiveDate = issuanceDuration;
-        }
+        } */
 
         const timelineStages = [
             {
@@ -97,7 +97,8 @@ export const CATimeline: React.FC<Props> = ({ issuanceDuration, caIssuedAt, caEx
             }
         }
         setTimelineStages(timelineStages);
-    }, [issuanceDuration, caExpiration]);
+    }, [caExpiration]);
+    // }, [ issuanceDuration,  caExpiration]);
 
     return (
         <Timeline stages={timelineStages} />

@@ -1,5 +1,5 @@
 import { Box, IconButton, Paper, Tooltip, Typography, lighten, useTheme } from "@mui/material";
-import { Certificate, CertificateAuthority, CertificateStatus } from "ducks/features/cas/models";
+import { Certificate, CertificateStatus } from "ducks/features/cas/models";
 import { FetchHandle, TableFetchViewer } from "components/TableFetcherView";
 import { GridColDef, GridFilterItem } from "@mui/x-data-grid";
 import { ListResponse } from "ducks/services/api-client";
@@ -26,7 +26,7 @@ interface Props {
     caID?: string
 }
 
-type CertificateWithCA = Certificate & { ca: CertificateAuthority | undefined }; // Imported certificates may not belong to any CA
+type CertificateWithCA = Certificate & { ca: Certificate | undefined }; // Imported certificates may not belong to any CA
 
 const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
     const tableRef = React.useRef<FetchHandle>(null);
@@ -103,10 +103,10 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
             renderCell: ({ value, row, id }) => {
                 if (row.ca) {
                     return <Label color={"primary"} onClick={() => {
-                        navigate(`/cas/${row.ca!.id}`);
+                        navigate(`/cas/${row.ca!.subject_key_id}`);
                     }}
                     >
-                        {row.ca.certificate.subject.common_name}
+                        {row.ca.subject.common_name}
                     </Label>;
                 }
 
@@ -282,11 +282,11 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
                     }
 
                     const uniqueCAIDs = Array.from(new Set(certsList.list.map((cert) => cert.issuer_metadata.id)));
-                    const casPromises: Promise<CertificateAuthority>[] = uniqueCAIDs.map((caID) => {
+                    const casPromises: Promise<Certificate>[] = uniqueCAIDs.map((caID) => {
                         return apicalls.cas.getCA(caID);
                     });
 
-                    let cas: CertificateAuthority[] = [];
+                    let cas: Certificate[] = [];
                     try {
                         cas = await Promise.all(casPromises);
                     } catch (err) {
@@ -296,7 +296,7 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
                     return new Promise<ListResponse<CertificateWithCA>>(resolve => {
                         resolve({
                             list: certsList.list.map((cert) => {
-                                const ca = cas.find((ca) => ca.id === cert.issuer_metadata.id);
+                                const ca = cas.find((ca) => ca.subject_key_id === cert.issuer_metadata.id);
                                 return { ...cert, ca };
                             }),
                             next: certsList.next

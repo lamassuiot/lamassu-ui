@@ -1,6 +1,6 @@
 import { Alert, Box, Button, Divider, IconButton, Menu, MenuItem, Paper, Skeleton, Tooltip, Typography, lighten, useTheme } from "@mui/material";
 import { CASelector } from "components/CAs/CASelector";
-import { Certificate, CertificateAuthority, ExtendedKeyUsage, KeyUsage } from "ducks/features/cas/models";
+import { Certificate, ExtendedKeyUsage, KeyUsage } from "ducks/features/cas/models";
 import { CodeCopier } from "components/CodeCopier";
 import { DMS } from "ducks/features/dmss/models";
 import { FetchHandle } from "components/TableFetcherView";
@@ -106,7 +106,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms, onDelete }) => {
         open: boolean,
         dmsName: string,
         deviceID: string,
-        bootstrapCA: CertificateAuthority | undefined,
+        bootstrapCA: Certificate | undefined,
         commonNameBootstrap: string,
         insecure: boolean,
     }>({ open: false, dmsName: "", bootstrapCA: undefined, deviceID: "", insecure: false, commonNameBootstrap: "" });
@@ -453,7 +453,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms, onDelete }) => {
 
 interface BootstrapGeneratorProps {
     cn: string
-    ca: CertificateAuthority
+    ca: Certificate
 }
 
 const BootstrapGenerator: React.FC<BootstrapGeneratorProps> = ({ cn, ca }) => {
@@ -470,12 +470,14 @@ const BootstrapGenerator: React.FC<BootstrapGeneratorProps> = ({ cn, ca }) => {
                 const csr = await createCSR(keyPair, "SHA-256", { cn: "ui-generated-bootstrap" }, []);
                 const { privateKey } = await keyPairToPEM(keyPair);
 
-                const validity: any = ca.validity;
+                /* const validity: any = ca.validity;
                 if (validity.type === "Time") {
                     validity.timme = ca.validity.time.format();
-                }
+                } */
 
-                const cert = await apicalls.cas.signCertificateRequest(ca.id, window.window.btoa(csr), {
+                const validity: any = "100d";
+
+                const cert = await apicalls.cas.signCertificateRequest(ca.subject_key_id, window.window.btoa(csr), {
                     honor_subject: true,
                     honor_extensions: true,
                     sign_as_ca: false,

@@ -1,5 +1,5 @@
 import { Box } from "@mui/system";
-import { Certificate, CertificateAuthority, CertificateStatus } from "ducks/features/cas/models";
+import { Certificate, CertificateStatus } from "ducks/features/cas/models";
 import { Device, DeviceEvent, DeviceEventType, DeviceStatus, Slot, deviceStatusToColor, slotStatusToColor } from "ducks/features/devices/models";
 import { IconButton, Paper, Tooltip, Typography, lighten, useTheme, useMediaQuery } from "@mui/material";
 import { FetchHandle, TableFetchViewer } from "components/TableFetcherView";
@@ -32,7 +32,7 @@ interface Props {
     onChange: () => void
 }
 
-type CertificateWithVersionAndCA = Certificate & { version: number, ca: CertificateAuthority | undefined }; // Imported certificates may not belong to any CA
+type CertificateWithVersionAndCA = Certificate & { version: number, ca: Certificate | undefined }; // Imported certificates may not belong to any CA
 
 type DeviceLog = {
     event: DeviceEvent,
@@ -208,10 +208,10 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device, onChange })
             renderCell: ({ value, row, id }) => {
                 if (row.ca) {
                     return <Label color={"primary"} onClick={() => {
-                        navigate(`/cas/${row.ca!.id}`);
+                        navigate(`/cas/${row.ca!.subject_key_id}`);
                     }}
                     >
-                        {row.ca.certificate.subject.common_name}
+                        {row.ca.subject.common_name}
                     </Label>;
                 }
 
@@ -362,7 +362,7 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device, onChange })
                                             const responses = await Promise.all(promises);
 
                                             const uniqueCAIDs = Array.from(new Set(responses.map((cert) => cert.issuer_metadata.id)));
-                                            const casPromises: Promise<CertificateAuthority>[] = uniqueCAIDs.map((caID) => {
+                                            const casPromises: Promise<Certificate>[] = uniqueCAIDs.map((caID) => {
                                                 return apicalls.cas.getCA(caID);
                                             });
 
@@ -372,7 +372,7 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device, onChange })
                                                 resolve({
                                                     list: responses.map((cert) => {
                                                         const version = versionedSN.indexOf(cert.serial_number);
-                                                        const ca = cas.find((ca) => ca.id === cert.issuer_metadata.id);
+                                                        const ca = cas.find((ca) => ca.subject_key_id === cert.issuer_metadata.id);
                                                         return { ...cert, version, ca };
                                                     }),
                                                     next: ""

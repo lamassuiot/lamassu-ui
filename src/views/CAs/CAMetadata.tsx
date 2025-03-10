@@ -1,4 +1,4 @@
-import { CertificateAuthority } from "ducks/features/cas/models";
+import { Certificate } from "ducks/features/cas/models";
 import { useTheme } from "@mui/system";
 import Grid from "@mui/material/Unstable_Grid2";
 import React from "react";
@@ -8,7 +8,7 @@ import { enqueueSnackbar } from "notistack";
 import { errorToString } from "ducks/services/api-client";
 
 interface Props {
-    caData: CertificateAuthority
+    caData: Certificate
     onMetadataChange: (metadata: { [key: string]: any }) => void
 }
 
@@ -20,7 +20,7 @@ export const CAMetadata: React.FC<Props> = ({ caData, onMetadataChange }) => {
             <Grid container flexDirection={"column"}>
                 <MetadataInput label="" value={caData.metadata} onChange={async (meta) => {
                     try {
-                        await apicalls.cas.updateCAMetadata(caData.id, meta);
+                        await apicalls.cas.updateCAMetadata(caData.subject_key_id, meta);
                         enqueueSnackbar("CA metadata updated", { variant: "success" });
                         onMetadataChange(meta);
                     } catch (e) {

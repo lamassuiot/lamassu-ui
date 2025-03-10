@@ -1,7 +1,7 @@
 import { Alert, Divider, Typography, useTheme } from "@mui/material";
 import { CASelector } from "components/CAs/CASelector";
 import { CATimeline } from "./CATimeline";
-import { CertificateAuthority, CryptoEngine } from "ducks/features/cas/models";
+import { Certificate, CryptoEngine } from "ducks/features/cas/models";
 import { FormSelect } from "components/forms/Select";
 import { FormTextField } from "components/forms/Textfield";
 import { LoadingButton } from "@mui/lab";
@@ -18,7 +18,7 @@ import { FormExpirationInput } from "components/forms/Expiration";
 
 type FormData = {
     cryptoEngine: CryptoEngine
-    parentCA: CertificateAuthority | undefined
+    parentCA: Certificate | undefined
     id: string
     subject: {
         commonName: string;
@@ -52,7 +52,7 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
     const theme = useTheme();
 
     const navigate = useNavigate();
-    const [preselectedCAParent] = useOutletContext<[CertificateAuthority | undefined]>();
+    const [preselectedCAParent] = useOutletContext<[Certificate | undefined]>();
 
     const [error, setError] = useState<string | undefined>();
     const [loading, setLoading] = useState(false);
@@ -98,7 +98,7 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
             setLoading(true);
             try {
                 await apicalls.cas.createCA({
-                    parent_id: formData.parentCA ? formData.parentCA.id : undefined,
+                    parent_id: formData.parentCA ? formData.parentCA.subject_key_id : undefined,
                     id: formData.id,
                     engine_id: formData.cryptoEngine.id,
                     subject: {
@@ -257,7 +257,7 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
                         <CATimeline
                             caIssuedAt={moment()}
                             caExpiration={watchCAExpiration.type === "duration" ? watchCAExpiration.duration : (watchCAExpiration.type === "date" ? watchCAExpiration.date : "")}
-                            issuanceDuration={watchIssuanceExpiration.type === "duration" ? watchIssuanceExpiration.duration : (watchIssuanceExpiration.type === "date" ? watchIssuanceExpiration.date : "")}
+                            // issuanceDuration={watchIssuanceExpiration.type === "duration" ? watchIssuanceExpiration.duration : (watchIssuanceExpiration.type === "date" ? watchIssuanceExpiration.date : "")}
                         />
                     </Grid>
                 </Grid>

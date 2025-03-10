@@ -10,7 +10,7 @@ import moment, { Moment } from "moment";
 import { FormExpirationInput } from "components/forms/Expiration";
 import { FormattedView } from "components/FormattedView";
 import apicalls from "ducks/apicalls";
-import { CertificateAuthority } from "ducks/features/cas/models";
+import { Certificate } from "ducks/features/cas/models";
 import { enqueueSnackbar } from "notistack";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
@@ -23,7 +23,7 @@ type FormData = {
 };
 
 interface UpdateCAProps {
-    caData: CertificateAuthority
+    caData: Certificate
 }
 
 export const UpdateCA: React.FC<UpdateCAProps> = (props) => {
@@ -36,11 +36,11 @@ export const UpdateCA: React.FC<UpdateCAProps> = (props) => {
 
     const { control, getValues, setValue, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
         defaultValues: {
-            issuerExpiration: {
+            /* issuerExpiration: {
                 type: "duration",
                 duration: props.caData.validity.type === "Duration" ? props.caData.validity.duration : "100d",
                 date: props.caData.validity.type === "Time" ? moment(props.caData.validity.time) : moment().add(100, "days")
-            }
+            } */
         }
     });
 
@@ -51,7 +51,7 @@ export const UpdateCA: React.FC<UpdateCAProps> = (props) => {
             setError(undefined);
             setLoading(true);
             try {
-                await apicalls.cas.updateCAIssuanceExpiration(props.caData.id, {
+                await apicalls.cas.updateCAIssuanceExpiration(props.caData.subject_key_id, {
                     type: formData.issuerExpiration.type === "duration" ? "Duration" : "Time",
                     duration: formData.issuerExpiration.duration,
                     time: formData.issuerExpiration.type === "date-infinity" ? moment("99991231T225959Z").format() : formData.issuerExpiration.date.format()
