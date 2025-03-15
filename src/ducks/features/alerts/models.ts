@@ -16,6 +16,7 @@ export type Subscription = {
 export enum SubscriptionConditionType {
     JsonSchema = "JSON-SCHEMA",
     JsonPath = "JSON-PATH",
+    Javascript = "JAVASCRIPT",
 }
 export type SubscriptionCondition = {
     type: SubscriptionConditionType,
