@@ -33,6 +33,7 @@ import { ArrowCircleUpRegular, ArrowSyncRegular, DismissRegular, ServerRegular, 
 import apicalls from "ducks/apicalls";
 import { Editor } from "@monaco-editor/react";
 import { helmYaml } from "./test";
+import lamassuLogoSquare from "assets/lamassu/lamassu-logo-square.svg";
 
 type ServiceInfo = {
     name: string
@@ -144,7 +145,7 @@ export const InfoView = () => {
                                             <Avatar
                                                 shape="square"
                                                 aria-label="square avatar"
-                                                image={{ src: process.env.PUBLIC_URL + "/assets/lamassu/lamassu-logo-square.svg" }}
+                                                image={{ src: lamassuLogoSquare }}
                                                 color="blue"
                                             />
                                         }
@@ -342,7 +343,7 @@ export const InfoView = () => {
                                                 shape="square"
                                                 aria-label="square avatar"
                                                 initials=""
-                                                image={{ src: process.env.PUBLIC_URL + "/assets/AWS.png" }}
+                                                image={{ src: "/assets/AWS.png" }}
                                                 color="steel"
                                             />
                                         }
@@ -383,7 +384,7 @@ export const InfoView = () => {
                                                 shape="square"
                                                 aria-label="square avatar"
                                                 initials=""
-                                                image={{ src: process.env.PUBLIC_URL + "/assets/AZURE.png" }}
+                                                image={{ src: "/assets/AZURE.png" }}
                                                 color="steel"
                                             />
                                         }
@@ -424,7 +425,7 @@ export const InfoView = () => {
                                                 shape="square"
                                                 aria-label="square avatar"
                                                 initials=""
-                                                image={{ src: process.env.PUBLIC_URL + "/assets/emqx.svg", style: {} }}
+                                                image={{ src: "/assets/emqx.svg", style: {} }}
                                                 color="steel"
                                             />
                                         }

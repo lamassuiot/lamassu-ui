@@ -21,6 +21,8 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import ViewListIcon from "@mui/icons-material/ViewList";
 import moment from "moment";
 import { CASelector } from "components/CAs/CASelector";
+import lamassuFullBlue from "assets/lamassu/lamassu_full_blue.svg";
+import lamassuFullWhite from "assets/lamassu/lamassu_full_white.svg";
 
 interface Props {
     preSelectedCaID?: string
@@ -279,7 +281,7 @@ export const CAListView: React.FC<Props> = ({ preSelectedCaID, engines }) => {
                                                 label={
                                                     <Grid container justifyContent={"center"}>
                                                         <Grid>
-                                                            <img src={process.env.PUBLIC_URL + theme.palette.mode === "light" ? "/assets/lamassu/lamassu_full_blue.svg" : "/assets/lamassu_full_white.svg"} height={"60px"} />
+                                                            <img src={theme.palette.mode === "light" ? lamassuFullBlue : lamassuFullWhite} height={"60px"} />
                                                         </Grid>
                                                     </Grid>
                                                 }>

@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
-    "baseUrl": "./src",
-    "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "baseUrl": ".",
+    "paths": {
+      "assets/*":["./src/assets/*"],
+      "auths/*":["./src/auths/*"],
+      "components/*":["./src/components/*"],
+      "ducks/*": ["./src/ducks/*"],
+      "utils/*": ["./src/utils/*"],
+      "views/*": ["./src/views/*"],
+    },
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,

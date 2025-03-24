@@ -2,7 +2,6 @@ import * as duration from "utils/duration";
 import { Timeline } from "components/Charts/Timeline";
 import { Typography, useTheme } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import assert from "assert";
 import moment, { Moment } from "moment";
 
 interface Props {
@@ -28,8 +27,10 @@ export const CATimeline: React.FC<Props> = ({ issuanceDuration, caIssuedAt, caEx
 
         if (typeof caExpiration === "string" && duration.validDurationRegex(caExpiration)) {
             const expDurSplit = caExpiration.match(duration.durationValueUnitSplitRegex);
-            assert.ok(expDurSplit !== null);
-            assert.ok(expDurSplit!.length % 2 === 0);
+
+            if (expDurSplit === null) throw new Error("expDurSplit no debe ser null");
+            if (expDurSplit.length % 2 !== 0) throw new Error("expDurSplit debe tener una longitud par");
+
             for (let i = 0; i < expDurSplit.length; i = i + 2) {
                 const tupleV = expDurSplit[i];
                 const tupleU = expDurSplit[i + 1];
@@ -46,8 +47,8 @@ export const CATimeline: React.FC<Props> = ({ issuanceDuration, caIssuedAt, caEx
             const expDurSplit = issuanceDuration.match(duration.durationValueUnitSplitRegex);
             inactiveDate = expDate.clone();
 
-            assert.ok(expDurSplit !== null);
-            assert.ok(expDurSplit!.length % 2 === 0);
+            if (expDurSplit === null) throw new Error("expDurSplit no debe ser null");
+            if (expDurSplit.length % 2 !== 0) throw new Error("expDurSplit debe tener una longitud par");
 
             for (let i = 0; i < expDurSplit.length; i = i + 2) {
                 const tupleV = expDurSplit[i];

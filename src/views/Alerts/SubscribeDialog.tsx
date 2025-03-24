@@ -17,6 +17,7 @@ import { ChannelChip } from "./SubscriptionChip";
 import apicalls from "ducks/apicalls";
 import { enqueueSnackbar } from "notistack";
 import Sandbox from "@nyariv/sandboxjs";
+import msteams from "assets/msteams.png"
 
 interface Props {
     event: CloudEvent,
@@ -207,7 +208,7 @@ export const SubscribeDialog: React.FC<Props> = ({ event, isOpen, onClose, ...re
                                     render: () => (
                                         <Grid container spacing={2} alignItems={"center"}>
                                             <Grid xs="auto">
-                                                <img src={process.env.PUBLIC_URL + "assets/msteams.png"} height="20px" />
+                                                <img src={msteams} height="20px" />
                                             </Grid>
                                             <Grid xs>
                                                 <Typography>Microsoft Teams Webhook</Typography>

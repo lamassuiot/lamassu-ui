@@ -3,13 +3,14 @@ import { Chip } from "@mui/material";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import WebhookOutlinedIcon from "@mui/icons-material/WebhookOutlined";
 import { SubChannel, SubChannelType, Subscription } from "ducks/features/alerts/models";
+import msteams from "assets/msteams.png";
 
 export const renderChannelIcon = (channelType: SubChannelType) => {
     let icon = <></>;
     if (channelType === SubChannelType.Email) {
         icon = <EmailOutlinedIcon />;
     } else if (channelType === SubChannelType.MsTeams) {
-        icon = <img src={process.env.PUBLIC_URL + "assets/msteams.png"} height="18px" />;
+        icon = <img src={msteams} height="18px" />;
     } else if (channelType === SubChannelType.Webhook) {
         icon = <WebhookOutlinedIcon />;
     }

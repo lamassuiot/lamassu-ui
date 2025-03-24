@@ -25,6 +25,7 @@ import { KeyValueLabel } from "components/KeyValue";
 import { TabsListWithRouter } from "components/TabsListWithRouter";
 import { MetadataInput } from "components/forms/MetadataInput";
 import { enqueueSnackbar } from "notistack";
+import aws from "assets/AWS.png";
 
 interface Props {
     slotID?: string | undefined,
@@ -443,7 +444,7 @@ export const ViewDeviceDetails: React.FC<Props> = ({ slotID, device, onChange })
                                                                         {
                                                                             ev.event.type === DeviceEventType.ShadowUpdated && (
                                                                                 <Grid xs="auto">
-                                                                                    <img src={process.env.PUBLIC_URL + "/assets/AWS.png"} alt="Shadow Updated" style={{ width: "35px", height: "35px" }} />
+                                                                                    <img src={aws} alt="Shadow Updated" style={{ width: "35px", height: "35px" }} />
                                                                                 </Grid>
                                                                             )
                                                                         }

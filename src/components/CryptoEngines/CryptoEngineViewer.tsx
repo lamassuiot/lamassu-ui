@@ -9,30 +9,34 @@ import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import Label from "components/Label";
 import React, { useState } from "react";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
+import awsSn from "assets/AWS-SM.png";
+import awsKms from "assets/AWS-KMS.png";
+import hashicorpVault from "assets/HASHICORP-VAULT.png";
+import pkcs11 from "assets/PKCS11.png";
 
 export const EnginesIcons = [
     {
         uniqueID: "AWS_SECRETS_MANAGER",
         icon: (
-            <img src={process.env.PUBLIC_URL + "/assets/AWS-SM.png"} height={"100%"} width={"100%"} />
+            <img src={awsSn} height={"100%"} width={"100%"} />
         )
     },
     {
         uniqueID: "AWS_KMS",
         icon: (
-            <img src={process.env.PUBLIC_URL + "/assets/AWS-KMS.png"} height={"100%"} width={"100%"} />
+            <img src={awsKms} height={"100%"} width={"100%"} />
         )
     },
     {
         uniqueID: "HASHICORP_VAULT_KV_V2",
         icon: (
-            <img src={process.env.PUBLIC_URL + "/assets/HASHICORP-VAULT.png"} height={"100%"} width={"100%"} />
+            <img src={hashicorpVault} height={"100%"} width={"100%"} />
         )
     },
     {
         uniqueID: "PKCS11",
         icon: (
-            <img src={process.env.PUBLIC_URL + "/assets/PKCS11.png"} height={"100%"} width={"100%"} />
+            <img src={pkcs11} height={"100%"} width={"100%"} />
         )
     },
     {

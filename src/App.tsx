@@ -21,6 +21,10 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { InfoView } from "views/Info/info";
 import MenuIcon from "@mui/icons-material/Menu";
 import { AlertsViewList } from "views/Alerts/AlertsList";
+import lamassuFullWhite from "assets/lamassu/lamassu_full_white.svg";
+import lamassuBackground from "assets/lamassu/lamassu-background.png";
+import titleImg from "assets/lamassu/title.png";
+import { useLoading } from "components/Spinner/LoadingContext";
 
 type SidebarSection = {
     sectionTitle: string, sectionItems: Array<SidebarItem>
@@ -167,6 +171,9 @@ export default function Dashboard () {
 
     const interval = React.useRef<number>();
 
+    const [isChecking, setIsCheking] = useState(false);
+    const { setLoading } = useLoading();
+
     React.useEffect(() => {
         if (window._env_.AUTH.ENABLED) {
             if (!auth.isLoading && !auth.isAuthenticated) {
@@ -184,22 +191,8 @@ export default function Dashboard () {
     }, [auth.isAuthenticated, auth.isLoading]);
 
     if (window._env_.AUTH.ENABLED) {
-        if (auth.error) {
-            return <Landing>
-                <Alert severity="error">
-                    <AlertTitle sx={{ fontWeight: "bold" }}>Error</AlertTitle>
-                Oops... {auth.error.message}
-                </Alert>
-            </Landing>;
-        }
-
-        if (!auth.isAuthenticated) {
-            return <Landing>
-                <Alert severity="info">
-                    <AlertTitle sx={{ fontWeight: "bold" }}>Info</AlertTitle>
-                Not authenticated
-                </Alert>
-            </Landing>;
+        if (isChecking){
+            return <Landing><span>hola</span></Landing>;
         }
     }
 
@@ -217,7 +210,7 @@ export default function Dashboard () {
                         )
                     }
                     <Grid xs>
-                        <img src={process.env.PUBLIC_URL + "/assets/lamassu/lamassu_full_white.svg"} height={24} style={{ marginLeft: "10px" }} />
+                        <img src={lamassuFullWhite} height={24} style={{ marginLeft: "10px" }} />
                     </Grid>
                 </Grid>
                 <Grid flexGrow={1} container sx={{ height: "calc(100% - 50px)" }}>
@@ -274,7 +267,7 @@ const Landing = React.memo<LandingProps>((props) => {
         <Grid sx={{
             width: "100%",
             height: "100%",
-            backgroundImage: `url("${process.env.PUBLIC_URL + "/assets/lamassu/lamassu-background.png"}")`,
+            backgroundImage: `url("${lamassuBackground}")`,
             backgroundPosition: "center",
             backgroundSize: "cover",
             backgroundRepeat: "no-repeat"
@@ -286,7 +279,7 @@ const Landing = React.memo<LandingProps>((props) => {
         flexDirection={"column"}
         >
             <Grid sx={{ marginBottom: "75px" }}>
-                <img src={process.env.PUBLIC_URL + "/assets/lamassu/title.png"} style={{ margin: "0px auto" }} />
+                <img src={titleImg} style={{ margin: "0px auto" }} />
             </Grid>
             <Grid>
                 <Box component={Paper} sx={{ padding: "20px 40px 30px 40px", maxWidth: "500px" }}>
