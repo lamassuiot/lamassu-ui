@@ -128,7 +128,7 @@ export default function Dashboard () {
             ]
         },
         {
-            sectionTitle: "Notificaitons",
+            sectionTitle: "Notifications",
             sectionItems: [
                 {
                     kind: "navigation",
