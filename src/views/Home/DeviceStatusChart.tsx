@@ -55,7 +55,7 @@ export const DeviceStatusChart : React.FC<Props> = ({ deviceStats, ...props }) =
                 }
             }}
             primaryStat={primaryStat}
-            statLabel={"Provisioned Devices"}
+            statLabel={isMobileScreen ? "" : "Provisioned Devices"}
             percentage={enablePrimaryStat}
             cardColor={theme.palette.primary.main}
             primaryTextColor={theme.palette.primary.contrastText}

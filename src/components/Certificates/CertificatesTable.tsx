@@ -260,19 +260,6 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
             <TableFetchViewer
                 columns={cols}
                 fetcher={async (params, controller) => {
-                    // if (props.query && props.query.field && props.query.value) {
-                    // check if params has filter
-                    // if (params.filters) {
-                    //     const queryIdx = params.filters.findIndex((f) => f.startsWith(props.query!.field!));
-                    //     const filter = `${props.query.field}[${props.query.operator}]${props.query.value}`;
-                    //     if (queryIdx !== -1) {
-                    //         params.filters[queryIdx] = filter;
-                    //     } else {
-                    //         params.filters.push(filter);
-                    //     }
-                    // }
-                    // }
-
                     let certsList: ListResponse<Certificate>;
 
                     if (props.caID !== undefined && props.caID !== "") {
@@ -290,7 +277,7 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
                     try {
                         cas = await Promise.all(casPromises);
                     } catch (err) {
-                        console.log("Error while fetching CAs: ", err);
+                        console.error("Error while fetching CAs: ", err);
                     }
 
                     return new Promise<ListResponse<CertificateWithCA>>(resolve => {

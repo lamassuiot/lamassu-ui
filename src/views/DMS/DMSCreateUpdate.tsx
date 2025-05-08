@@ -1,6 +1,6 @@
 /* eslint-disable no-template-curly-in-string */
 import { AWSIoTDMSMetadata, AWSIoTDMSMetadataRegistrationMode, AWSIoTPolicy, CreateUpdateDMSPayload, DMS, ESTAuthMode, EnrollmentProtocols, EnrollmentRegistrationMode } from "ducks/features/dmss/models";
-import { Alert, Button, Chip, Divider, Paper, Skeleton, Typography, useTheme } from "@mui/material";
+import { Alert, Button, Chip, Divider, Paper, Skeleton, Typography } from "@mui/material";
 import { CASelector } from "components/CAs/CASelector";
 import { AWSCAMetadata, AWSCAMetadataRegistrationStatus, CertificateAuthority } from "ducks/features/cas/models";
 import { Editor } from "@monaco-editor/react";
@@ -25,6 +25,7 @@ import { Select } from "components/Select";
 import moment from "moment";
 import { enqueueSnackbar } from "notistack";
 import Label from "components/Label";
+import { useNavigate } from "react-router-dom";
 
 const { Dragger } = Upload;
 
@@ -113,7 +114,7 @@ type FormData = {
 
 interface Props {
     dms?: DMS,
-    onSubmit: (dms: CreateUpdateDMSPayload) => void,
+    onSubmit?: (dms: CreateUpdateDMSPayload) => void,
     actionLabel?: string
 }
 
@@ -123,7 +124,20 @@ const defaultLamassuPolicyName = (dmsid: string) => `${dmsid}.${baseDefaultAWSPo
 export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create" }) => {
     const editMode = dms !== undefined;
     const [loading, setLoading] = useState(true);
-    const theme = useTheme();
+
+    const navigate = useNavigate();
+
+    // Revisar esto para ponerlo mas txukun
+    const handleOnSubmit = async (dms: CreateUpdateDMSPayload) => {
+        try {
+            await apicalls.dmss.createDMS(dms);
+            enqueueSnackbar(`DMS ${dms.name} registered`, { variant: "success" });
+            navigate("/dms");
+        } catch (e) {
+            enqueueSnackbar(`Failed to register DMS ${dms.name}: ${e}`, { variant: "error" });
+        }
+    };
+    onSubmit = onSubmit || handleOnSubmit;
 
     const [awsCARegisterAsPrimaryAccount, setAwsCARegisterAsPrimaryAccount] = useState(true);
 

@@ -1,6 +1,6 @@
 /* eslint-disable no-else-return */
 import { Button, useTheme } from "@mui/material";
-import { CreateDevicePayload, Device } from "ducks/features/devices/models";
+import { CreateDevicePayload } from "ducks/features/devices/models";
 import { DMS } from "ducks/features/dmss/models";
 import { DMSSelector } from "components/DMSs/DMSSelector";
 import { FormTextField } from "components/forms/Textfield";
@@ -10,6 +10,8 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import Grid from "@mui/material/Unstable_Grid2";
 import React from "react";
+import apicalls from "ducks/apicalls";
+import { enqueueSnackbar } from "notistack";
 
 type FormData = {
     deviceReg: {
@@ -20,12 +22,8 @@ type FormData = {
         dms: DMS | undefined
     },
 };
-interface Props {
-    device?: Device,
-    onSubmit: (dms: CreateDevicePayload) => void
-}
 
-export const CreateDevice: React.FC<Props> = ({ onSubmit }) => {
+export const CreateDevice: React.FC = () => {
     const editMode = false;
 
     const theme = useTheme();
@@ -62,6 +60,16 @@ export const CreateDevice: React.FC<Props> = ({ onSubmit }) => {
         };
         run();
     });
+
+    const onSubmit = async (device: CreateDevicePayload) => {
+        try {
+            await apicalls.devices.createDevice(device);
+            enqueueSnackbar(`Device ${device.id} registered`, { variant: "success" });
+            navigate("/devices");
+        } catch (e) {
+            enqueueSnackbar(`Failed to register device ${device.id}: ${e}`, { variant: "error" });
+        }
+    };
 
     return (
         <FormattedView

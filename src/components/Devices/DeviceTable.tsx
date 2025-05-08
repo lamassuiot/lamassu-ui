@@ -4,7 +4,6 @@ import { FetchHandle, TableFetchViewer } from "components/TableFetcherView";
 import { GridColDef, GridFilterItem } from "@mui/x-data-grid";
 import { IconInput } from "components/IconInput";
 import { useNavigate } from "react-router-dom";
-import { useSnackbar } from "notistack";
 import Grid from "@mui/material/Unstable_Grid2";
 import Label from "components/Label";
 import React, { Ref, useEffect, useImperativeHandle } from "react";
@@ -21,19 +20,16 @@ interface Props {
 
 const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
     const tableRef = React.useRef<FetchHandle>(null);
-    const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
     const theme = useTheme();
 
     const isMobileScreen = useMediaQuery(theme.breakpoints.down("md"));
 
     useEffect(() => {
-        tableRef.current?.refresh();
-    }, [props.query]);
-
-    useEffect(() => {
-        tableRef.current?.refresh();
-    }, [props.filter]);
+        if (props.query?.value || props.filter) {
+            tableRef.current?.refresh();
+        }
+    }, [props.query, props.filter]);
 
     useImperativeHandle(ref, () => ({
         refresh () {
@@ -140,29 +136,7 @@ const Table = React.forwardRef((props: Props, ref: Ref<FetchHandle>) => {
     return (
         <TableFetchViewer
             columns={cols}
-            fetcher={(params, controller) => {
-                // let newFilters: string[] = [];
-                // if (params.filters) {
-                //     newFilters = [...params.filters];
-                // }
-
-                // if (props.query && props.query.field && props.query.value) {
-                //     // check if params has filter
-                //     const filter = `${props.query.field}[${props.query.operator}]${props.query.value}`;
-                //     if (newFilters) {
-                //         const queryIdx = newFilters.findIndex((f) => f.startsWith(props.query!.field!));
-                //         if (queryIdx !== -1) {
-                //             newFilters[queryIdx] = filter;
-                //         } else {
-                //             newFilters.push(filter);
-                //         }
-                //     } else {
-                //         newFilters = [filter];
-                //     }
-                // }
-
-                // params.filters = newFilters;
-
+            fetcher={(params, _controller) => {
                 return apicalls.devices.getDevices(params);
             }}
             id={(item) => item.id}

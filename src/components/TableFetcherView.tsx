@@ -33,7 +33,8 @@ const PAGE_SIZE = 10;
 
 type ComponentProps<T extends GridValidRowModel> = React.PropsWithChildren<WrapperComponentProps<T>>;
 const Fetcher = <T extends GridValidRowModel>(props: ComponentProps<T>, ref: Ref<FetchHandle>) => {
-    const [sortMode, setSortMode] = useState<"server" | "client">(props.sortMode || "server");
+    const sortMode = props.sortMode || "server";
+
     const [data, setData] = React.useState<ListResponse<T> | undefined>(undefined);
     const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState<any | undefined>(undefined);
@@ -42,13 +43,15 @@ const Fetcher = <T extends GridValidRowModel>(props: ComponentProps<T>, ref: Ref
         props.sortField || { field: "id", sort: "asc" }
     ]);
 
+    const [alreadyFetched, setAlreadyFetched] = useState(false);
+
     const [rowCountState, setRowCountState] = React.useState(-1);
     const [filterModel, setFilterModel] = useState<GridFilterModel>({ items: props.filter ? [props.filter] : [] });
     const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: props.pageSize || PAGE_SIZE });
     const mapPageToNextCursor = React.useRef<{ [page: number]: GridRowId }>({});
 
     const paginationMetaRef = React.useRef<GridPaginationMeta>();
-    // Memoize to avoid flickering when the `hasNextPage` is `undefined` during refetch
+    // Memorize to avoid flickering when the `hasNextPage` is `undefined` during refetch
     const paginationMeta = React.useMemo(() => {
         if (data?.next !== undefined && paginationMetaRef.current?.hasNextPage !== (data?.next !== "")) {
             paginationMetaRef.current = { hasNextPage: data?.next !== "" };
@@ -57,8 +60,9 @@ const Fetcher = <T extends GridValidRowModel>(props: ComponentProps<T>, ref: Ref
     }, [data?.next]);
 
     useEffect(() => {
-        console.log("Filter changed", props.filter);
-        setFilterModel({ ...filterModel, items: props.filter ? [props.filter] : [] });
+        if (props.filter !== undefined && shouldUpdateFilters()) {
+            setFilterModel({ ...filterModel, items: props.filter ? [props.filter] : [] });
+        }
     }, [props.filter]);
 
     useEffect(() => {
@@ -66,7 +70,8 @@ const Fetcher = <T extends GridValidRowModel>(props: ComponentProps<T>, ref: Ref
         paginationMetaRef.current = {};
         mapPageToNextCursor.current = {};
         setRowCountState(-1);
-        setPaginationModel({ pageSize: PAGE_SIZE, page: 0 });
+        setPaginationModel({ page: 0, pageSize: PAGE_SIZE });
+        setAlreadyFetched(true);
 
         const controller = new AbortController();
         fetchData(controller);
@@ -74,10 +79,27 @@ const Fetcher = <T extends GridValidRowModel>(props: ComponentProps<T>, ref: Ref
     }, [filterModel, sortModel]);
 
     useEffect(() => {
-        const controller = new AbortController();
-        fetchData(controller);
-        return () => controller.abort();
+        if (!alreadyFetched && !isLoading) {
+            const controller = new AbortController();
+            fetchData(controller);
+            return () => controller.abort();
+        }
+        setAlreadyFetched(false);
+        return () => {};
     }, [paginationModel]);
+
+    const shouldUpdateFilters = () => {
+        if (!props.filter) return false;
+
+        const currentItem = filterModel.items[0];
+
+        const isSame =
+            currentItem?.field === props.filter.field &&
+            currentItem?.operator === props.filter.operator &&
+            currentItem?.value === props.filter.value;
+
+        return !isSame;
+    };
 
     const handleSortModelChange = (newSortModel: GridSortModel) => {
         setSortModel(newSortModel);
@@ -96,12 +118,6 @@ const Fetcher = <T extends GridValidRowModel>(props: ComponentProps<T>, ref: Ref
             setPaginationModel(newPaginationModel);
         }
     };
-
-    useEffect(() => {
-        const controller = new AbortController();
-        fetchData(controller);
-        return () => controller.abort();
-    }, []);
 
     const fetchData = async (controller: AbortController) => {
         setError(undefined);

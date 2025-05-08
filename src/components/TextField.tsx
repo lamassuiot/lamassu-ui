@@ -13,20 +13,19 @@ const TextField: React.FC<TextFieldProps> = ({ label, tooltip, helperText, ...re
     return (
         <KeyValueLabel label={label} tooltip={tooltip} value={
             <>
-                <FilledInput {...rest} {...rest.error && {
-                    // endAdornment: <CancelRoundedIcon sx={{ color: theme.palette.error.main }} />,
-                    sx: { ...rest.sx }
-                }} />
+                <FilledInput
+                    {...rest}
+                    value={rest.value ?? ""}
+                    {...rest.error && {
+                        sx: { ...rest.sx }
+                    }}
+                />
                 <>
                     {
                         helperText && rest.error && (
                             typeof helperText === "string"
-                                ? (
-                                    <Typography sx={{ color: theme.palette.error.main }}>{helperText}</Typography>
-                                )
-                                : (
-                                    { helperText }
-                                )
+                                ? <Typography sx={{ color: theme.palette.error.main }}>{helperText}</Typography>
+                                : helperText
                         )
                     }
                 </>

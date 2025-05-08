@@ -12,7 +12,7 @@ declare module "react-map-interaction" {
     export type MapInteractionProps = {
         children?: ({
             scale,
-            translation,
+            translation
         }: {
             scale: number;
             translation: Translation;
@@ -40,7 +40,7 @@ declare module "react-map-interaction" {
 
         onChange?: ({
             scale,
-            translation,
+            translation
         }: {
             scale: number;
             translation: Translation;

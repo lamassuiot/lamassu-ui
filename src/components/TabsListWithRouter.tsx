@@ -37,7 +37,7 @@ const TabsListWithRouter: React.FC<TabsListWithRouterProps> = ({ tabs, headerSty
         }
 
         setValue(idx);
-    }, []);
+    }, [tabs]);
 
     return (
         <Grid container direction={"column"} sx={{ width: "100%", height: "100%" }}>

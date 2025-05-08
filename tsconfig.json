@@ -1,30 +1,31 @@
 {
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "assets/*":["./src/assets/*"],
-      "auths/*":["./src/auths/*"],
-      "components/*":["./src/components/*"],
-      "ducks/*": ["./src/ducks/*"],
-      "utils/*": ["./src/utils/*"],
-      "views/*": ["./src/views/*"],
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "assets/*": ["./src/assets/*"],
+            "auths/*": ["./src/auths/*"],
+            "components/*": ["./src/components/*"],
+            "ducks/*": ["./src/ducks/*"],
+            "utils/*": ["./src/utils/*"],
+            "views/*": ["./src/views/*"]
+        },
+        "allowJs": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "downlevelIteration": true,
+        "noFallthroughCasesInSwitch": true,
+        "module": "esnext",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "noEmit": true,
+        "jsx": "react-jsx",
+        "lib": ["ES2021", "DOM"]
     },
-    "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "downlevelIteration": true,
-    "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx"
-  },
-  "include": [
-    "src"
-  ]
+    "include": [
+        "src"
+    ]
 }

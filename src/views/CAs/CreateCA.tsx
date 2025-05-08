@@ -52,7 +52,10 @@ export const CreateCA: React.FC<CreateCAProps> = ({ defaultEngine }) => {
     const theme = useTheme();
 
     const navigate = useNavigate();
-    const [preselectedCAParent] = useOutletContext<[CertificateAuthority | undefined]>();
+    const { preselectedCAParent, engines } = useOutletContext<{
+        preselectedCAParent: CertificateAuthority | undefined;
+        engines: CryptoEngine[];
+      }>();
 
     const [error, setError] = useState<string | undefined>();
     const [loading, setLoading] = useState(false);

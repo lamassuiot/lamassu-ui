@@ -17,7 +17,7 @@ type Props = {
 export const CertificateSelector: React.FC<Props> = (props: Props) => {
     return (
         <GenericSelector
-            fetcher={async (query, controller) => {
+            fetcher={async (_query, _controller) => {
                 let params : QueryParameters = {};
                 if (props.limitSelection !== undefined) {
                     params = {
@@ -41,7 +41,7 @@ export const CertificateSelector: React.FC<Props> = (props: Props) => {
             onSelect={(item) => {
                 props.onSelect(item);
             }}
-            renderOption={(props, cert, selected) => (
+            renderOption={(_props, cert, _selected) => (
                 <CACustomFetchViewer
                     id={cert.issuer_metadata.id}
                     renderer={(ca) => {

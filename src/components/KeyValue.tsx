@@ -1,4 +1,4 @@
-import { Tooltip, Typography, useTheme } from "@mui/material";
+import { Tooltip, Typography } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import HelpOutlinedIcon from "@mui/icons-material/HelpOutlined";
 import React from "react";
@@ -10,7 +10,6 @@ interface KeyValueLabelProps {
 }
 
 const KeyValueLabel: React.FC<KeyValueLabelProps> = ({ label, tooltip, value }) => {
-    const theme = useTheme();
     return (
         <Grid container flexDirection={"column"}>
             <Grid container alignItems={"center"}>

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Box, ListItem, Paper, Typography, useTheme, useMediaQuery, IconButton, Drawer, Button, Alert, AlertTitle } from "@mui/material";
+import { Box, ListItem, Paper, Typography, useTheme, useMediaQuery, IconButton, Drawer, Button } from "@mui/material";
 import { CAView } from "views/CAs";
 import { CertificatesView } from "views/Certificates";
 import { DMSView } from "views/DMS";
@@ -8,8 +8,7 @@ import { Home } from "views/Home";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import { TbCertificate } from "react-icons/tb";
 import MailOutlinedIcon from "@mui/icons-material/MailOutlined";
-import { useAuth } from "react-oidc-context";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlined";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import FactoryOutlinedIcon from "@mui/icons-material/FactoryOutlined";
@@ -25,6 +24,7 @@ import lamassuFullWhite from "assets/lamassu/lamassu_full_white.svg";
 import lamassuBackground from "assets/lamassu/lamassu-background.png";
 import titleImg from "assets/lamassu/title.png";
 import { useLoading } from "components/Spinner/LoadingContext";
+import AuthService from "auths/AuthService";
 
 type SidebarSection = {
     sectionTitle: string, sectionItems: Array<SidebarItem>
@@ -52,7 +52,6 @@ function sidebarBasePathPattern (basePath: string) {
 }
 
 export default function Dashboard () {
-    const auth = useAuth();
     const theme = useTheme();
     const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
 
@@ -82,7 +81,7 @@ export default function Dashboard () {
                     goTo: "/",
                     basePath: "/",
                     icon: <DashboardOutlinedIcon />,
-                    content: <Home />
+                    content: <Home isMenuCollapsed={collapsed} />
                 }
             ]
         },
@@ -155,7 +154,7 @@ export default function Dashboard () {
                 {
                     kind: "button",
                     title: "Log out",
-                    onClick: () => auth.signoutRedirect(),
+                    onClick: () => AuthService.logout(),
                     icon: <LogoutIcon style={{ color: theme.palette.error.main, cursor: "pointer" }} />
                 }
             ]
@@ -169,37 +168,32 @@ export default function Dashboard () {
         return item.kind === "navigation";
     });
 
-    const interval = React.useRef<number>();
-
-    const [isChecking, setIsCheking] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const { setLoading } = useLoading();
 
-    React.useEffect(() => {
-        if (window._env_.AUTH.ENABLED) {
-            if (!auth.isLoading && !auth.isAuthenticated) {
-                if (auth.error === undefined) {
-                    auth.signinRedirect();
-                } else {
-                    interval.current = window.setTimeout(() => {
-                        auth.signinRedirect();
-                    }, 3000);
-                }
+    useEffect(() => {
+        const checkAuth = async () => {
+            setLoading(true);
+            const authenticated = await AuthService.isAuthenticated();
+            setIsAuthenticated(authenticated);
+            setLoading(false);
+
+            if (!authenticated) {
+                await AuthService.login();
             }
-        }
+        };
 
-        return () => { };
-    }, [auth.isAuthenticated, auth.isLoading]);
+        checkAuth();
+    }, [setLoading]);
 
-    if (window._env_.AUTH.ENABLED) {
-        if (isChecking){
-            return <Landing><span>hola</span></Landing>;
-        }
+    if (!isAuthenticated) {
+        return <Landing />;
     }
 
     return (
         <Box component={Paper} sx={{ height: "100%" }}>
             <Grid container sx={{ height: "100%" }} direction={"column"} spacing={0}>
-                <Grid container sx={{ background: theme.palette.primary.main, height: "40px", paddingX: "10px", width: "100%", margin: 0 }} alignItems={"center"} >
+                <Grid container sx={{ background: theme.palette.primary.main, height: "50px", paddingX: "10px", width: "100%", margin: 0 }} alignItems={"center"} >
                     {
                         !isMdUp && (
                             <Grid xs="auto">
@@ -210,7 +204,7 @@ export default function Dashboard () {
                         )
                     }
                     <Grid xs>
-                        <img src={lamassuFullWhite} height={24} style={{ marginLeft: "10px" }} />
+                        <img src={lamassuFullWhite} height={30} style={{ marginLeft: "10px" }} />
                     </Grid>
                 </Grid>
                 <Grid flexGrow={1} container sx={{ height: "calc(100% - 50px)" }}>
@@ -257,45 +251,44 @@ export default function Dashboard () {
     );
 }
 
-interface LandingProps {
-    children: React.ReactElement
-}
-
-const Landing = React.memo<LandingProps>((props) => {
-    const auth = useAuth();
+const Landing = React.memo(() => {
+    const handleClick = () => {
+        AuthService.login();
+    };
     return (
-        <Grid sx={{
-            width: "100%",
-            height: "100%",
-            backgroundImage: `url("${lamassuBackground}")`,
-            backgroundPosition: "center",
-            backgroundSize: "cover",
-            backgroundRepeat: "no-repeat"
-        }}
-        container
-        alignItems={"center"}
-        justifyContent={"center"}
-        padding={"50px"}
-        flexDirection={"column"}
+        <Box
+            sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "column",
+                width: "100%",
+                height: "100vh",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+                backgroundImage: `url("${lamassuBackground}")`
+            }}
         >
-            <Grid sx={{ marginBottom: "75px" }}>
+            <Box
+                sx={{
+                    marginBottom: "5%",
+                    display: "flex",
+                    justifyContent: "center"
+                }
+                }>
                 <img src={titleImg} style={{ margin: "0px auto" }} />
-            </Grid>
-            <Grid>
-                <Box component={Paper} sx={{ padding: "20px 40px 30px 40px", maxWidth: "500px" }}>
-                    <Grid container spacing={2}>
-                        <Grid xs={12}>
-                            {props.children}
-                        </Grid>
-                        <Grid xs={12}>
-                            <Button fullWidth variant="contained" onClick={() => {
-                                auth.signinRedirect();
-                            }}>Authenticate</Button>
-                        </Grid>
-                    </Grid>
+            </Box>
+            <Box display="flex" justifyContent="center">
+                <Box component={Paper} sx={{ padding: "20px 30px 20px 30px", maxWidth: "500px" }} >
+                    <Box display="flex" flexDirection="column" gap={2}>
+                        <Button fullWidth variant="contained" onClick={handleClick}>
+                            Authenticate
+                        </Button>
+                    </Box>
                 </Box>
-            </Grid>
-        </Grid>
+            </Box>
+        </Box>
     );
 });
 Landing.displayName = "Landing";

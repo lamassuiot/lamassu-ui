@@ -43,7 +43,10 @@ export const CAImporter: React.FC<CAImporterProps> = ({ defaultEngine }) => {
     const theme = useTheme();
     const navigate = useNavigate();
 
-    const [preselectedCAParent] = useOutletContext<[CertificateAuthority | undefined]>();
+    const { preselectedCAParent, engines } = useOutletContext<{
+        preselectedCAParent: CertificateAuthority | undefined;
+        engines: CryptoEngine[];
+        }>();
 
     const { control, getValues, setValue, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
         defaultValues: {

@@ -1,6 +1,4 @@
 import "./index.css";
-import * as oidc from "oidc-client-ts";
-import { AuthProvider } from "react-oidc-context";
 import { BrowserRouter as Router } from "react-router-dom";
 import { SnackbarProvider } from "notistack";
 import App from "./App";
@@ -10,6 +8,7 @@ import ThemeProviderWrapper from "./theme/ThemeProvider";
 import { FluentProvider, webLightTheme } from "@fluentui/react-components";
 import moment from "moment";
 import { LoadingProvider } from "components/Spinner/LoadingContext";
+import Spinner from "components/Spinner/Spinner";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -47,31 +46,12 @@ root.render(
     <FluentProvider theme={webLightTheme} style={{ height: "100%" }}>
         <ThemeProviderWrapper>
             <LoadingProvider>
-                <AuthProvider
-                    authority={window._env_.AUTH.OIDC.AUTHORITY}
-                    client_id={window._env_.AUTH.OIDC.CLIENT_ID}
-                    redirect_uri={window.location.origin}
-                    post_logout_redirect_uri={`${window.location.origin}`}
-                    {
-                        ...window._env_.AUTH.ENABLED && window._env_.AUTH.COGNITO.ENABLED && {
-                            /** Can be used to seed or add additional values to the results of the discovery request */
-                            metadataSeed: {
-                                end_session_endpoint: `${window._env_.AUTH.COGNITO.HOSTED_UI_DOMAIN}/logout?client_id=${window._env_.AUTH.OIDC.CLIENT_ID}&logout_uri=${window.location.origin}/loggedout`
-                            }
-                        }
-                    }
-                /*
-localStorage persists until explicitly deleted. Changes made are saved and available for all current and future visits to the site.
-sessionStorage, changes are only available per tab. Changes made are saved and available for the current page in that tab until it is closed. Once it is closed, the stored data is deleted.
-*/
-                    userStore={new oidc.WebStorageStateStore({ store: window.localStorage })}
-                >
-                    <Router>
-                        <SnackbarProvider maxSnack={3}>
-                            <App />
-                        </SnackbarProvider>
-                    </Router>
-                </AuthProvider>
+                <Router>
+                    <SnackbarProvider maxSnack={3}>
+                        <Spinner />
+                        <App />
+                    </SnackbarProvider>
+                </Router>
             </LoadingProvider>
         </ThemeProviderWrapper>
     </FluentProvider>

@@ -117,7 +117,7 @@ export const GenericSelector = <T extends any>(props: GenericSelectorProps<T>) =
                                             style: { padding: "0px 0px 5px 0px" }
                                         }}
                                         label={""}
-                                        placeholder=""
+                                        placeholder="Select one"
                                     />
                                     {
                                         loading && (

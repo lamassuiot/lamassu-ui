@@ -1,5 +1,5 @@
 import { Alert, Box, Paper, Skeleton } from "@mui/material";
-import { errorToString } from "../ducks/services/api-client";
+import { errorToString } from "ducks/services/api-client";
 import React, { ReactElement, Ref, useEffect, useImperativeHandle } from "react";
 
 interface WrapperComponentProps<T> {
@@ -53,7 +53,7 @@ const Fetcher = <T extends object>(props: ComponentProps<T>, ref: Ref<FetchHandl
     }
 
     return (
-        <Box component={Paper}>
+        <Box component={Paper} sx={{ padding: 2, margin: 2 }}>
             <Alert severity="error">
                 {
                     props.errorPrefix || "Could not fetch"

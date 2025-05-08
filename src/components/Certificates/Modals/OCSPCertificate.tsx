@@ -22,6 +22,7 @@ export const OCSPCertificateVerificationModal = (props: Props) => {
     };
 
     const createRequest = async () => {
+        console.log("ocsp request");
         const issuer = await apicalls.cas.getCA(props.certificate.issuer_metadata.id);
         const issuerCert = toPKIJSCertificate(issuer.certificate.certificate);
         const crt = toPKIJSCertificate(props.certificate.certificate);

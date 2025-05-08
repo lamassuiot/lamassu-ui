@@ -27,7 +27,6 @@ export const CASelector: React.FC<Props> = (props: Props) => {
                                 filters: [`id=[contains]${query}`]
                             };
                         }
-
                         const resp = await apicalls.cas.getCAs(params);
 
                         let list: CertificateAuthority[] = resp.list;
