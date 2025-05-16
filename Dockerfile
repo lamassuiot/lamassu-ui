@@ -1,4 +1,4 @@
-FROM node:18-alpine as build
+FROM node:18-alpine AS build
 LABEL authors="hsaiz@ikerlan.es"
 
 WORKDIR /app
@@ -20,7 +20,7 @@ FROM nginx:1.20-alpine
 LABEL authors="hsaiz@ikerlan.es"
 
 COPY --from=build /app/build /usr/share/nginx/html
-COPY ./nginx.conf /etc/nginx/conf.d/server.conf
+COPY ./nginx.conf /etc/nginx/nginx.conf
 
 ARG SHA1VER= # set by build script
 ARG VERSION= # set by build script
@@ -36,7 +36,7 @@ RUN now=$(TZ=GMT date +"%Y-%m-%dT%H:%M:%SZ") && \
 COPY ./docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
-EXPOSE 443
+EXPOSE 8080
 
 # Add bash
 RUN apk add --no-cache bash
