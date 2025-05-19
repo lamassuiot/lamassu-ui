@@ -82,6 +82,11 @@ export const ViewDevice: React.FC<Props> = () => {
         return deviceActions;
     };
 
+    const showDetails = (device: Device) => {
+        const { status, identity } = device;
+        return status !== DeviceStatus.NoIdentity && identity;
+    };
+
     return (
         <FetchViewer ref={ref} fetcher={() => apicalls.devices.getDeviceByID(params.deviceId!)} renderer={device => {
             return (
@@ -139,7 +144,7 @@ export const ViewDevice: React.FC<Props> = () => {
 
                     <Grid>
                         {
-                            device.status !== DeviceStatus.NoIdentity && (
+                            showDetails(device) && (
                                 <ViewDeviceDetails device={device} onChange={() => {
                                     ref.current?.refresh();
                                 }} />
