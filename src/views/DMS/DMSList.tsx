@@ -373,8 +373,10 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms, onDelete, engine
                                 </MenuItem>
 
                                 <Divider sx={{ my: 0.5 }} />
-
-                                <MenuItem disabled onClick={handleClickMenuDelete} disableRipple>
+                                <MenuItem onClick={() => {
+                                    handleClose();
+                                    setShowDelete(true);
+                                }} disableRipple>
                                     <DeleteIcon fontSize={"small"} sx={{ color: theme.palette.error.main, marginRight: "10px" }} />
                                     Delete
                                 </MenuItem>
@@ -480,7 +482,16 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms, onDelete, engine
                         actions={
                             <Grid container spacing={1}>
                                 <Grid xs>
-                                    <Button fullWidth color="error" variant="contained" onClick={handleClickDelete}>Delete</Button>
+                                    <Button fullWidth color="error" variant="contained" onClick={async () => {
+                                        try {
+                                            await apicalls.dmss.deleteDMS(dms.id);
+                                            enqueueSnackbar(`DMS ${dms.id} deleted successfully`, { variant: "success" });
+                                            setShowDelete(false);
+                                            onDelete();
+                                        } catch (e) {
+                                            enqueueSnackbar(`Error deleting DMS ${dms.id}: ${errorToString(e)}`, { variant: "error" });
+                                        }
+                                    }}>Delete</Button>
                                 </Grid>
                                 <Grid xs="auto">
                                     <Button variant="text" onClick={() => setShowDelete(false)}>Close</Button>

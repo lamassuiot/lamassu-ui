@@ -45,6 +45,13 @@ export const updateDMS = async (id: string, payload: CreateUpdateDMSPayload): Pr
     }) as Promise<DMS>;
 };
 
+export const deleteDMS = async (id: string): Promise<{}> => {
+    return apiRequest({
+        method: "DELETE",
+        url: `${window._env_.LAMASSU_DMS_MANAGER_API}/v1/dms/${id}`
+    }) as Promise<{}>;
+};
+
 export const bindDeviceIdentity = async (device_id: string, cert_sn: string): Promise<BindResponse> => {
     return apiRequest({
         method: "POST",
