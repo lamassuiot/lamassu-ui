@@ -8,7 +8,8 @@ interface SelectProps extends MuiSelectProps {
     label: string
     options: Array<{
         value: any,
-        render: string | (() => React.ReactElement)
+        render: string | (() => React.ReactElement),
+        disabled?: boolean
     }>
 }
 
@@ -30,7 +31,7 @@ const Select: React.FC<SelectProps> = ({ ...rest }) => {
                     )
                     : (
                         rest.options.map((option) => (
-                            <MenuItem key={option.value} value={option.value}>
+                            <MenuItem key={option.value} value={option.value} disabled={option.disabled}>
                                 {typeof option.render === "string" ? option.render : option.render()}
                             </MenuItem>
                         ))
