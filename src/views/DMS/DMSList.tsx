@@ -475,7 +475,22 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms, onDelete, engine
                                     </Typography>
                                 </Grid>
                                 <Grid xs={12}>
-                                    <Select label="Delete Mode" options={deleteTypes} />
+                                    <Select label="Delete Mode" value="SOFT-DELETE" options={[
+                                        {
+                                            value: "SOFT-DELETE",
+                                            render: "Detach Devices"
+                                        },
+                                        {
+                                            value: "CHAINED-DELETE",
+                                            render: "Delete owned Devices",
+                                            disabled: true
+                                        },
+                                        {
+                                            value: "TRANSFER",
+                                            render: "Transfer owned Devices to DMS",
+                                            disabled: true
+                                        }
+                                    ]} />
                                 </Grid>
                             </Grid>
                         )}
