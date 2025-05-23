@@ -184,7 +184,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms, onDelete }) => {
                                     Show Metadata
                                 </MenuItem>
                                 <Divider sx={{ my: 0.5 }} />
-                                <MenuItem disabled onClick={() => {
+                                <MenuItem onClick={() => {
                                     handleClose();
                                     setShowDelete(true);
                                 }} disableRipple>
@@ -375,18 +375,20 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms, onDelete }) => {
                                     </Typography>
                                 </Grid>
                                 <Grid xs={12}>
-                                    <Select label="Delete Mode" options={[
+                                    <Select label="Delete Mode" value="SOFT-DELETE" options={[
                                         {
                                             value: "SOFT-DELETE",
                                             render: "Detach Devices"
                                         },
                                         {
                                             value: "CHAINED-DELETE",
-                                            render: "Delete owned Devices"
+                                            render: "Delete owned Devices",
+                                            disabled: true
                                         },
                                         {
                                             value: "TRANSFER",
-                                            render: "Transfer owned Devices to DMS"
+                                            render: "Transfer owned Devices to DMS",
+                                            disabled: true
                                         }
                                     ]} />
                                 </Grid>
@@ -397,7 +399,7 @@ const DMSCardRenderer: React.FC<DMSCardRendererProps> = ({ dms, onDelete }) => {
                                 <Grid xs>
                                     <Button fullWidth color="error" variant="contained" onClick={async () => {
                                         try {
-                                            await apicalls.dmss.getDMSs();
+                                            await apicalls.dmss.deleteDMS(dms.id);
                                             enqueueSnackbar(`DMS ${dms.id} deleted successfully`, { variant: "success" });
                                             setShowDelete(false);
                                             onDelete();
