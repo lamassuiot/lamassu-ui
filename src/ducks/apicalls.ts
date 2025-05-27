@@ -4,6 +4,7 @@ import * as devicesApiCalls from "./features/devices/apicalls";
 import * as dmssApiCalls from "./features/dmss/apicalls";
 import * as estApiCalls from "./features/est/apicalls";
 import * as vaApiCalls from "./features/va/apicalls";
+import * as kmsApiCalls from "./features/kms/apicalls";
 
 export default {
     alerts: alertsApiCalls,
@@ -11,5 +12,6 @@ export default {
     devices: devicesApiCalls,
     dmss: dmssApiCalls,
     est: estApiCalls,
-    va: vaApiCalls
+    va: vaApiCalls,
+    kms: kmsApiCalls
 };

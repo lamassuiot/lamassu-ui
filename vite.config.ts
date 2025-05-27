@@ -5,9 +5,12 @@ import eslint from "vite-plugin-eslint";
 
 // https://vite.dev/config/
 export default defineConfig({
-    plugins: [react(), eslint()],
+    plugins: [react()],
     server: {
         port: 3000
+    },
+    optimizeDeps: {
+        include: ['@mui/material', '@emotion/react', '@emotion/styled'],
     },
     resolve: {
         alias: {

@@ -25,6 +25,8 @@ import lamassuBackground from "assets/lamassu/lamassu-background.png";
 import titleImg from "assets/lamassu/title.png";
 import { useLoading } from "components/Spinner/LoadingContext";
 import AuthService from "auths/AuthService";
+import { HiOutlineKey } from "react-icons/hi2";
+import { KMSView } from "views/KMS";
 
 type SidebarSection = {
     sectionTitle: string, sectionItems: Array<SidebarItem>
@@ -82,6 +84,19 @@ export default function Dashboard () {
                     basePath: "/",
                     icon: <DashboardOutlinedIcon />,
                     content: <Home isMenuCollapsed={collapsed} />
+                }
+            ]
+        },
+        {
+            sectionTitle: "Key Management",
+            sectionItems: [
+                {
+                    kind: "navigation",
+                    title: "Asymmetric KMS",
+                    goTo: "/kms",
+                    basePath: "/kms",
+                    icon: <HiOutlineKey />,
+                    content: <KMSView />
                 }
             ]
         },

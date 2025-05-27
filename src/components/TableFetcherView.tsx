@@ -210,7 +210,7 @@ const Fetcher = <T extends GridValidRowModel>(props: ComponentProps<T>, ref: Ref
                 }
             }}
             autosizeOptions={{
-                columns: ["status"],
+                //columns: ["status"],
                 includeOutliers: false,
                 includeHeaders: true
             }}
