@@ -7,6 +7,7 @@ type AuthContextType = {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isLoginout: boolean;
   signinRedirect: () => void;
   signoutRedirect: () => void;
 };
@@ -16,10 +17,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isLoginout, setIsLoginout] = useState<boolean>(false);
     const { setLoading } = useLoading();
 
     useEffect(() => {
-        if (!isAuthEnabled) {
+        if (!isAuthEnabled || isLoginout) {
             setIsLoading(false);
             return;
         }
@@ -44,7 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         userManager.events.addUserUnloaded(() => {
             setUser(null);
         });
-    }, []);
+    }, [isLoginout, setLoading]);
 
     const isAuthenticated = !isAuthEnabled || !!user;
 
@@ -58,6 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const signoutRedirect = async () => {
         if (isAuthEnabled) {
             setLoading(true);
+            setIsLoginout(true);
 
             const metadata = await userManager.metadataService.getMetadata();
 
@@ -93,6 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 user,
                 isAuthenticated,
                 isLoading,
+                isLoginout,
                 signinRedirect,
                 signoutRedirect
             }}

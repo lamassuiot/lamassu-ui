@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { AiOutlineSafetyCertificate } from "react-icons/ai";
 import { Box, Breadcrumbs, Divider, IconButton, Paper, Slide, ToggleButton, ToggleButtonGroup, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material";
@@ -48,6 +48,7 @@ export const CAListView: React.FC = () => {
     const params = useParams();
     const navigate = useNavigate();
     const isMediumScreen = useMediaQuery(theme.breakpoints.up("md"));
+    const firstRender = useRef(true);
 
     const [viewMode, setViewMode] = React.useState<"list" | "graph">("list");
     const preSelectedCaID = params.caName;
@@ -101,6 +102,11 @@ export const CAListView: React.FC = () => {
     }, [isMediumScreen]);
 
     useEffect(() => {
+        if (firstRender.current) {
+            firstRender.current = false;
+            return;
+        }
+
         if (query.field !== "" && query.value !== "") {
             setRootChain([]);
             setIsSearching(true);
@@ -163,7 +169,16 @@ export const CAListView: React.FC = () => {
     };
 
     const handleChange = (value: string, field:string) => {
-        setQuery({ value, field, operator: queryableFields.find((f) => f.key === field)!.operator || "contains" });
+        const newOperator = queryableFields.find((f) => f.key === field)?.operator || "contains";
+
+        if (value === query.value &&
+            field === query.field &&
+            newOperator === query.operator
+        ) {
+            return;
+        }
+
+        setQuery({ value, field, operator: newOperator });
     };
 
     if (error) {
@@ -219,7 +234,7 @@ export const CAListView: React.FC = () => {
                 </Grid>
                 <Grid flex={1}>
                     <Box component={Paper} borderRadius={0} sx={{ height: "100%" }}>
-                        <Outlet context={{ preselectedCAParent: [], engines, shoulUpdateCAs: () => { loadCas(); } }} />
+                        <Outlet context={{ preselectedCAParent: [], engines, shoulUpdateCAs: () => loadCas() }} />
                     </Box>
                 </Grid>
             </Grid>
@@ -413,7 +428,7 @@ export const CAListView: React.FC = () => {
                                 <Outlet context={{
                                     preselectedCAParent: rootChain.length > 0 ? rootChain[rootChain.length - 1] : undefined,
                                     engines,
-                                    shoulUpdateCAs: () => { loadCas(); }
+                                    shoulUpdateCAs: () => loadCas()
                                 }} />
                             </Box>
                         </Slide>

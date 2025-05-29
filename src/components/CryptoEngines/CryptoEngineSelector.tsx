@@ -25,7 +25,7 @@ const CryptoEngineSelector: React.FC<Props> = (props: Props) => {
             onSelect={(engine) => { props.onSelect(engine); }}
             value={props.value}
         />
-);
+    );
 };
 
 export default CryptoEngineSelector;

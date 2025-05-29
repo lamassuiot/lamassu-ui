@@ -53,7 +53,7 @@ function sidebarBasePathPattern (basePath: string) {
 export default function Dashboard () {
     const theme = useTheme();
     const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
-    const { isAuthenticated, signinRedirect, signoutRedirect, isLoading } = useAuth();
+    const { isAuthenticated, signinRedirect, signoutRedirect, isLoading, isLoginout } = useAuth();
 
     const [collapsed, setCollapsed] = React.useState(false);
     const handleCollapseClick = () => {
@@ -175,11 +175,11 @@ export default function Dashboard () {
     const [redirecting, setRedirecting] = React.useState(false);
 
     React.useEffect(() => {
-        if (!isLoading && !isAuthenticated && location.pathname !== "/callback") {
+        if (!isLoading && !isAuthenticated && location.pathname !== "/callback" && !isLoginout) {
             setRedirecting(true);
             signinRedirect();
         }
-    }, [isLoading, isAuthenticated, location.pathname]);
+    }, [isLoading, isAuthenticated, location.pathname, isLoginout]);
 
     if (isLoading || redirecting) {
         return <Landing />;
