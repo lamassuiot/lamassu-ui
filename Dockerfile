@@ -1,5 +1,4 @@
-FROM node:18-alpine AS build
-LABEL authors="hsaiz@ikerlan.es"
+FROM node:22-alpine AS build
 
 WORKDIR /app
 
@@ -9,17 +8,15 @@ COPY ./package-lock.json package-lock.json
 RUN npm install
 
 COPY . .
-ENV NODE_OPTIONS="--max-old-space-size=16384"
-ENV NODE_OPTIONS="--openssl-legacy-provider"
+ENV NODE_OPTIONS="--max-old-space-size=16384 --openssl-legacy-provider"
 ENV GENERATE_SOURCEMAP=false
 
 RUN npm run build
 
 #production environment
-FROM nginx:1.20-alpine
-LABEL authors="hsaiz@ikerlan.es"
+FROM nginx:1.28.0-alpine-slim
 
-COPY --from=build /app/build /usr/share/nginx/html
+COPY --from=build /app/dist /usr/share/nginx/html
 COPY ./nginx.conf /etc/nginx/nginx.conf
 
 ARG SHA1VER= # set by build script
