@@ -24,21 +24,6 @@ jobs:
             - name: Install dependencies
               run: npm install
 
-            - name: Generate dummy env-config.js from template
-              run: |
-                cp env-docker-config.js env-config.js
-                sed -i 's/${CHART_VERSION}/dummy_chart_version/g' env-config.js
-                sed -i 's/${HELM_REVISION}/dummy_helm_revision/g' env-config.js
-                sed -i 's/${OIDC_ENABLED}/false/g' env-config.js
-                sed -i 's/${COGNITO_ENABLED}/false/g' env-config.js
-                sed -i 's/${COGNITO_HOSTED_UI_DOMAIN}/dummy_cognito_hosted_ui_domain/g' env-config.js
-                sed -i 's/${OIDC_AUTHORITY}/dummy_oidc_authority/g' env-config.js
-                sed -i 's/${OIDC_CLIENT_ID}/dummy_oidc_client_id/g' env-config.js
-                sed -i 's/${DOMAIN}/dummy_domain/g' env-config.js
-                sed -i 's/$CLOUD_CONNECTORS/[]/g' env-config.js
-                echo "env-config.js generated with dummy values"
-                cat env-config.js
-
             - name: Build project
               run: |
                 npm run build
