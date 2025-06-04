@@ -11,22 +11,8 @@ COPY . .
 ENV NODE_OPTIONS="--max-old-space-size=16384 --openssl-legacy-provider"
 ENV GENERATE_SOURCEMAP=false
 
-# a dummy env-config.js is required for the build to succeed
-COPY ./env-docker-config.js env-config.js
-RUN sed -i 's/${CHART_VERSION}/dummy_chart_version/g' env-config.js && \
-                sed -i 's/${HELM_REVISION}/dummy_helm_revision/g' env-config.js && \
-                sed -i 's/${OIDC_ENABLED}/false/g' env-config.js && \
-                sed -i 's/${COGNITO_ENABLED}/false/g' env-config.js && \
-                sed -i 's/${COGNITO_HOSTED_UI_DOMAIN}/dummy_cognito_hosted_ui_domain/g' env-config.js && \
-                sed -i 's/${OIDC_AUTHORITY}/dummy_oidc_authority/g' env-config.js && \
-                sed -i 's/${OIDC_CLIENT_ID}/dummy_oidc_client_id/g' env-config.js && \
-                sed -i 's/${DOMAIN}/dummy_domain/g' env-config.js && \
-                sed -i 's/$CLOUD_CONNECTORS/[]/g' env-config.js 
-RUN cat env-config.js
-
 RUN npm run build
 
-RUN rm env-config.js
 #production environment
 FROM nginx:1.28.0-alpine-slim
 
