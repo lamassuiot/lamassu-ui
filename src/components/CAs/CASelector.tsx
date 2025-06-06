@@ -27,7 +27,7 @@ export const CASelector: React.FC<Props> = (props: Props) => {
                         let params: QueryParameters | undefined;
                         if (query !== "") {
                             params = {
-                                filters: [`id=[contains]${query}`]
+                                filters: [`id[contains]${query}`]
                             };
                         }
                         const resp = await apicalls.cas.getCAs(params);
