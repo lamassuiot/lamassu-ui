@@ -62,32 +62,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setLoading(true);
             setIsLoginout(true);
 
-            const metadata = await userManager.metadataService.getMetadata();
-
             await userManager.removeUser();
-
-            // Check if Auth Provider has end_session_endpoint
-            if (metadata.end_session_endpoint) {
-                await userManager.signoutRedirect();
-                return;
-            }
 
             if (isCognitoAuth) {
                 signoutCognitoRedirect();
             } else {
-                // Fallback to any other Auth Provider
-                window.location.href = window.location.origin;
+                await userManager.signoutRedirect();
             }
         }
     };
 
     const signoutCognitoRedirect = () => {
-        const domain = cognitoData.domain;
+        // Redirect to Cognito’s logout endpoint
         const clientId = cognitoData.clientId;
-        const logoutUri = encodeURIComponent(window.location.origin);
-        const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${logoutUri}`;
+        const logoutUri = window.location.origin + "/";
+        const cognitoDomain = cognitoData.domain;
 
-        window.location.href = logoutUrl;
+        window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
     };
 
     return (

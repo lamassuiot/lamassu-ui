@@ -4,7 +4,7 @@ const env = window._env_;
 
 export const isAuthEnabled = env.AUTH.ENABLED;
 
-export const isCognitoAuth = env.AUTH.COGNITO.ENABLED || false;
+export const isCognitoAuth = (isAuthEnabled && env.AUTH.COGNITO.ENABLED) || false;
 
 export const cognitoData = {
     domain: env.AUTH.COGNITO.HOSTED_UI_DOMAIN,
@@ -16,7 +16,7 @@ export const oidcConfig = {
     client_id: env.AUTH.OIDC.CLIENT_ID,
     redirect_uri: window.location.origin + "/callback",
     response_type: "code",
-    scope: "openid profile email",
+    scope: "openid",
     post_logout_redirect_uri: window.location.origin + "/",
     userStore: new WebStorageStateStore({ store: window.localStorage })
 };

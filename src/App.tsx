@@ -23,7 +23,8 @@ import lamassuFullWhite from "assets/lamassu/lamassu_full_white.svg";
 import { useAuth } from "auths/AuthProvider";
 import { Landing } from "components/Landing/Landing";
 import AuthCallback from "views/AuthCallback/AuthCallback";
-import { isAuthEnabled } from "auths/oidcConfig";
+import { isAuthEnabled, isCognitoAuth } from "auths/oidcConfig";
+import LogoutModal from "components/LogoutModal/LogoutModal";
 
 type SidebarSection = {
     sectionTitle: string, sectionItems: Array<SidebarItem>
@@ -56,8 +57,20 @@ export default function Dashboard () {
     const { isAuthenticated, signinRedirect, signoutRedirect, isLoading, isLoginout } = useAuth();
 
     const [collapsed, setCollapsed] = React.useState(false);
+    const [open, setOpen] = React.useState(false);
+    const [menuOpen, setMenuOpen] = React.useState(false);
+    const [redirecting, setRedirecting] = React.useState(false);
+
     const handleCollapseClick = () => {
         setCollapsed(!collapsed);
+    };
+
+    const handleLogout = () => {
+        if (isCognitoAuth) {
+            setOpen(true);
+        } else {
+            signoutRedirect();
+        }
     };
 
     const sidebarContent: Array<SidebarSection> = [
@@ -156,7 +169,7 @@ export default function Dashboard () {
                         {
                             kind: "button",
                             title: "Log out",
-                            onClick: () => signoutRedirect(),
+                            onClick: handleLogout,
                             icon: <LogoutIcon style={{ color: theme.palette.error.main, cursor: "pointer" }} />
                         } as SidebarItemButton
                     ]
@@ -165,14 +178,10 @@ export default function Dashboard () {
         }
     ];
 
-    const [menuOpen, setMenuOpen] = React.useState(false);
-
     const sidebarItems = sidebarContent.map(section => section.sectionItems).flat();
     const sidebarNavigator = sidebarItems.filter((item): item is SidebarItemNavigation => {
         return item.kind === "navigation";
     });
-
-    const [redirecting, setRedirecting] = React.useState(false);
 
     React.useEffect(() => {
         if (!isLoading && !isAuthenticated && location.pathname !== "/callback" && !isLoginout) {
@@ -187,6 +196,9 @@ export default function Dashboard () {
 
     return (
         <Box component={Paper} sx={{ height: "100%" }}>
+
+            <LogoutModal open={open} onClose={() => setOpen(false)} onConfirm={() => signoutRedirect()} />
+
             <Grid container sx={{ height: "100%" }} direction={"column"} spacing={0}>
                 <Grid container sx={{ background: theme.palette.primary.main, height: "50px", paddingX: "10px", width: "100%", margin: 0 }} alignItems={"center"} >
                     {
