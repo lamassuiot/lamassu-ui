@@ -51,6 +51,7 @@ type FormData = {
             validationCAs: CertificateAuthority[];
             allowExpired: boolean;
         },
+        verifyCsrSignature: boolean,
         external_webhook?: {
             name: string;
             url: string;
@@ -158,6 +159,7 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                 registrationMode: EnrollmentRegistrationMode.JITP,
                 overrideEnrollment: false,
                 enrollmentCA: undefined,
+                verifyCsrSignature: true,
                 external_webhook: {
                     name: "",
                     url: "",
@@ -274,11 +276,13 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                         overrideEnrollment: dms.settings.enrollment_settings.enable_replaceable_enrollment,
                         enrollmentCA: casResp.list.find(ca => ca.id === dms!.settings.enrollment_settings.enrollment_ca)!,
                         registrationMode: dms!.settings.enrollment_settings.registration_mode,
+                        verifyCsrSignature: dms.settings.enrollment_settings.verify_csr_signature,
                         certificateValidation: {
                             chainValidation: dms!.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.chain_level_validation,
                             validationCAs: dms!.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.validation_cas.map(ca => casResp.list.find(caF => caF.id === ca)!),
                             allowExpired: dms!.settings.enrollment_settings.est_rfc7030_settings.client_certificate_settings.allow_expired
                         }
+
                     },
                     enrollDeviceRegistration: {
                         icon: {
@@ -483,7 +487,8 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                             metadata: {},
                             tags: data.enrollDeviceRegistration.tags
                         },
-                        registration_mode: data.enrollProtocol.registrationMode
+                        registration_mode: data.enrollProtocol.registrationMode,
+                        verify_csr_signature: data.enrollProtocol.verifyCsrSignature
                     },
                     reenrollment_settings: {
                         revoke_on_reenrollment: data.reEnroll.revokeOnReenroll,
@@ -578,6 +583,9 @@ export const DMSForm: React.FC<Props> = ({ dms, onSubmit, actionLabel = "Create"
                                         </Grid>
                                         <Grid xs={12}>
                                             <FormSwitch control={control} name="enrollProtocol.overrideEnrollment" label="Allow Override Enrollment" />
+                                        </Grid>
+                                        <Grid xs={12}>
+                                            <FormSwitch control={control} name="enrollProtocol.verifyCsrSignature" label="Verify CSR Signature" />
                                         </Grid>
                                         <Grid xs={12}>
                                             <FormSelect control={control} name="enrollProtocol.estAuthMode" label="Authentication Mode" options={[
