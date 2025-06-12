@@ -78,6 +78,7 @@ export type EnrollmentSettings = {
     enrollment_ca: string,
     enable_replaceable_enrollment: boolean,
     registration_mode: EnrollmentRegistrationMode,
+    verify_csr_signature: boolean
 }
 
 export type ReEnrollmentSettings = {
