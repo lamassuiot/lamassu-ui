@@ -40,7 +40,7 @@ export const Doughnut: React.FC<DoughnutProps> = ({ dataset, small = true, title
 
     // const options: ChartOptions<"doughnut"> = {
     const options: any = {
-        cutout: 120,
+        cutout: "90%",
         borderWidth: 0,
         backgroundColor: localColors,
         hoverBackgroundColor: localColors,
@@ -89,7 +89,7 @@ export const Doughnut: React.FC<DoughnutProps> = ({ dataset, small = true, title
                         onClick(getElementAtEvent(chartRef.current!, ev));
                     }} />
                 </Box>
-                <Box sx={{ marginTop: small ? "-180px" : "-215px", marginBottom: small ? "60px" : "90px", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
+                <Box sx={{ marginTop: small ? "-180px" : "-55%", marginBottom: "35%", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
                     <Box style={{ display: "flex", alignItems: "end" }}>
                         <Typography sx={{ fontSize: "35px", fontWeight: "600", color: primaryTextColor }}>{primaryStat}</Typography>
                         {
