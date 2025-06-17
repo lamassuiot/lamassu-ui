@@ -7,8 +7,8 @@ import React from "react";
 import RefreshIcon from "@mui/icons-material/Refresh";
 
 const queryableFields = [
-    { key: "subject.common_name", title: "Common Name", operator: "contains" },
-    { key: "serial_number", title: "Serial Number", operator: "contains" }
+    { key: "subject.common_name", title: "Common Name", operator: "contains_ignorecase" },
+    { key: "serial_number", title: "Serial Number", operator: "contains_ignorecase" }
 ];
 
 export const CertificateListView = () => {
@@ -24,7 +24,7 @@ export const CertificateListView = () => {
                     <Grid xs={12} md>
                         <Grid container>
                             <QuerySearchbarInput onChange={({ query, field }) => {
-                                setQuery({ value: query, field, operator: queryableFields.find((f) => f.key === field)!.operator || "contains" });
+                                setQuery({ value: query, field, operator: queryableFields.find((f) => f.key === field)!.operator || "contains_ignorecase" });
                             }}
                             fieldSelector={queryableFields}
                             />

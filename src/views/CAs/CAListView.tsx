@@ -34,8 +34,8 @@ export type CAOutletContext = {
 }
 
 const queryableFields = [
-    { key: "subject.common_name", title: "CN", operator: "contains" },
-    { key: "id", title: "ID", operator: "contains" }
+    { key: "subject.common_name", title: "CN", operator: "contains_ignorecase" },
+    { key: "id", title: "ID", operator: "contains_ignorecase" }
 ];
 
 const initialCAState: ListResponse<CertificateAuthority> = {
@@ -169,7 +169,7 @@ export const CAListView: React.FC = () => {
     };
 
     const handleChange = (value: string, field:string) => {
-        const newOperator = queryableFields.find((f) => f.key === field)?.operator || "contains";
+        const newOperator = queryableFields.find((f) => f.key === field)?.operator || "contains_ignorecase";
 
         if (value === query.value &&
             field === query.field &&
