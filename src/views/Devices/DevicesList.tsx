@@ -10,8 +10,8 @@ import React from "react";
 import RefreshIcon from "@mui/icons-material/Refresh";
 
 const queryableFields = [
-    { key: "id", title: "Device ID", operator: "contains" },
-    { key: "tags", title: "Tags", operator: "equal" }
+    { key: "id", title: "Device ID", operator: "contains_ignorecase" },
+    { key: "tags", title: "Tags", operator: "equal_ignorecase" }
 ];
 
 export const DevicesListView = () => {

@@ -26,8 +26,8 @@ import { errorToString } from "ducks/services/api-client";
 import useCachedEngines from "components/cache/cachedEngines";
 
 const queryableFields = [
-    { key: "subject.common_name", title: "Common Name", operator: "contains" },
-    { key: "serial_number", title: "Serial Number", operator: "contains" }
+    { key: "subject.common_name", title: "Common Name", operator: "contains_ignorecase" },
+    { key: "serial_number", title: "Serial Number", operator: "contains_ignorecase" }
 ];
 
 interface Props {
@@ -108,7 +108,7 @@ export const IssuedCertificates: React.FC<Props> = ({ caData }) => {
                         <Grid container>
                             <Grid xs>
                                 <QuerySearchbarInput onChange={({ query, field }) => {
-                                    setQuery({ value: query, field, operator: queryableFields.find((f) => f.key === field)!.operator || "contains" });
+                                    setQuery({ value: query, field, operator: queryableFields.find((f) => f.key === field)!.operator || "contains_ignorecase" });
                                 }}
                                 fieldSelector={queryableFields}
                                 />
