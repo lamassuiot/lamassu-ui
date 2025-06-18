@@ -44,10 +44,23 @@ export const getRevocationReasonDescription = (reason: RevocationReason): string
     }
 };
 
+/**
+ * Represents a Distinguished Name (DN) structure commonly used in X.509 certificates.
+ */
+export type DN = {
+    common_name: string;
+    organization: string;
+    organization_unit: string;
+    country: string;
+    state: string;
+    locality: string;
+};
+
 export type Certificate = {
     status: CertificateStatus
     serial_number: string
-    key_id: string
+    subject_key_id: string
+    authority_key_id: string
     engine_id: string
     certificate: string
     key_metadata: {
@@ -55,14 +68,8 @@ export type Certificate = {
         bits: number
         strength: "HIGH"
     }
-    subject: {
-        common_name: string
-        organization: string
-        organization_unit: string
-        country: string
-        state: string
-        locality: string
-    }
+    subject: DN
+    issuer: DN
     valid_from: Moment
     valid_to: Moment
     revocation_timestamp: Moment
@@ -99,8 +106,8 @@ export interface CAStats {
 }
 
 export interface CAStatsByCA {
-    [key: string]: number
-};
+    [key: string]: number;
+}
 
 export enum CertificateStatus {
     Active = "ACTIVE",
@@ -146,14 +153,7 @@ export type CreateCAPayload = {
     parent_id: string | undefined
     id: string | undefined
     engine_id: string | undefined
-    subject: {
-        common_name: string
-        organization: string
-        organization_unit: string
-        country: string
-        state: string
-        locality: string
-    },
+    subject: DN
     key_metadata: {
         type: string
         bits: number
@@ -182,7 +182,7 @@ export type Profile = {
 
 export enum KeyUsage {
     DigitalSignature = "DigitalSignature",
-   ContentCommitment = "ContentCommitment",
+    ContentCommitment = "ContentCommitment",
     KeyEncipherment = "KeyEncipherment",
     DataEncipherment = "DataEncipherment",
     KeyAgreement = "KeyAgreement",
@@ -215,14 +215,7 @@ export interface CertificateAuthorityRequest {
 export type RequestCAPayload = {
     id: string | undefined
     engine_id: string | undefined
-    subject: {
-        common_name: string
-        organization: string
-        organization_unit: string
-        country: string
-        state: string
-        locality: string
-    },
+    subject: DN
     key_metadata: {
         type: string
         bits: number

@@ -202,7 +202,7 @@ export const CAInspector: React.FC = () => {
                                 <LoadingButton loading={loadingCRLResp} onClick={async () => {
                                     setLoadingCRLResp(true);
                                     try {
-                                        const crl = await apicalls.va.getCRL(caData.certificate.key_id);
+                                        const crl = await apicalls.va.getCRL(caData.certificate.subject_key_id);
                                         download(`${caData.certificate.subject.common_name}.crl`, crl);
                                     } catch (e) {
                                         enqueueSnackbar(`Error while downloading CRL for CA with ID ${caData.id} and CN ${caData.certificate.subject.common_name}: ${e}`, { variant: "error" });
