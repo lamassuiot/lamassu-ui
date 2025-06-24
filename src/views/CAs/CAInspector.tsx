@@ -261,11 +261,12 @@ export const CAInspector: React.FC = () => {
                         {
                             caData.certificate.type !== "EXTERNAL" && (
                                 <FetchViewer
+                                    key={caData.id}
                                     fetcher={() => apicalls.cas.getStatsByCA(caName)}
                                     renderer={(caStats) => {
-                                        const statsActive = caStats[CertificateStatus.Active] ? caStats[CertificateStatus.Active] : 0;
-                                        const statsRevoked = caStats[CertificateStatus.Revoked] ? caStats[CertificateStatus.Revoked] : 0;
-                                        const statsExpired = caStats[CertificateStatus.Expired] ? caStats[CertificateStatus.Expired] : 0;
+                                        const statsActive = caStats[CertificateStatus.Active] ?? 0;
+                                        const statsRevoked = caStats[CertificateStatus.Revoked] ?? 0;
+                                        const statsExpired = caStats[CertificateStatus.Expired] ?? 0;
 
                                         const totalCerts = statsActive + statsExpired + statsRevoked;
                                         if (totalCerts === 0) {
